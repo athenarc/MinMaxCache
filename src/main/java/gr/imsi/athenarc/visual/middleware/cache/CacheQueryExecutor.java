@@ -133,13 +133,7 @@ public class CacheQueryExecutor {
         List<Integer> measuresWithError = new ArrayList<>();
         // For each measure with a miss, add the fetched data points to the pixel columns and recalculate the error.
         for(int measureWithMiss : missingTimeSeriesSpansPerMeasure.keySet()) {
-            List<PixelColumn> pixelColumns = new ArrayList<>();
-            for (long j = 0; j < viewPort.getWidth(); j++) {
-                long pixelFrom = from + (j * pixelColumnInterval);
-                long pixelTo = pixelFrom + pixelColumnInterval;
-                PixelColumn pixelColumn = new PixelColumn(pixelFrom, pixelTo, viewPort);
-                pixelColumns.add(pixelColumn);
-            }
+            List<PixelColumn> pixelColumns = pixelColumnsPerMeasure.get(measureWithMiss);
             List<TimeSeriesSpan> timeSeriesSpans = missingTimeSeriesSpansPerMeasure.get(measureWithMiss);
             // Add to pixel columns
             dataProcessor.processDatapoints(from, to, viewPort, pixelColumns, timeSeriesSpans);
@@ -170,9 +164,16 @@ public class CacheQueryExecutor {
                     dataProcessor.getMissing(from, to, m4MissingIntervals, m4AggFactors, viewPort, QueryMethod.M4);
             // Set error to 0 for M4 measures and add to pixel columns
             for (int measureWithError : measuresWithError) {
-                List<PixelColumn> pixelColumns = pixelColumnsPerMeasure.get(measureWithError);
+                List<PixelColumn> pixelColumns = new ArrayList<>();
+                for (long j = 0; j < viewPort.getWidth(); j++) {
+                    long pixelFrom = from + (j * pixelColumnInterval);
+                    long pixelTo = pixelFrom + pixelColumnInterval;
+                    PixelColumn pixelColumn = new PixelColumn(pixelFrom, pixelTo, viewPort);
+                    pixelColumns.add(pixelColumn);
+                }
                 List<TimeSeriesSpan> timeSeriesSpans = m4TimeSeriesSpansPerMeasure.get(measureWithError);
                 dataProcessor.processDatapoints(from, to, viewPort, pixelColumns, timeSeriesSpans);
+                pixelColumnsPerMeasure.put(measureWithError, pixelColumns);
                 errorPerMeasure.put(measureWithError, 0.0);
             }
             queryResults.setProgressiveQueryTime((System.currentTimeMillis() - timeStart) / 1000F);

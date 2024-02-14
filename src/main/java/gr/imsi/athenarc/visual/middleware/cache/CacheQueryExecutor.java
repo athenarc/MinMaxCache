@@ -133,7 +133,7 @@ public class CacheQueryExecutor {
         List<Integer> measuresWithError = new ArrayList<>();
         // For each measure with a miss, add the fetched data points to the pixel columns and recalculate the error.
         for(int measureWithMiss : missingTimeSeriesSpansPerMeasure.keySet()) {
-            List<PixelColumn> pixelColumns = pixelColumnsPerMeasure.get(measureWithMiss);
+            List<PixelColumn> pixelColumns = new ArrayList<>();
             List<TimeSeriesSpan> timeSeriesSpans = missingTimeSeriesSpansPerMeasure.get(measureWithMiss);
             // Add to pixel columns
             dataProcessor.processDatapoints(from, to, viewPort, pixelColumns, timeSeriesSpans);
@@ -143,7 +143,7 @@ public class CacheQueryExecutor {
             double errorForMeasure = errorCalculator.calculateTotalError(pixelColumns, viewPort, pixelColumnInterval, query.getAccuracy());
             if (errorCalculator.hasError()) measuresWithError.add(measureWithMiss);
             errorPerMeasure.put(measureWithMiss, errorForMeasure);
-
+            pixelColumnsPerMeasure.put(measureWithMiss, pixelColumns);
             // Add them all to the cache.
             cacheManager.addToCache(timeSeriesSpans);
         }
@@ -151,8 +151,25 @@ public class CacheQueryExecutor {
 
         // Fetch errored measures with M4
         if(!measuresWithError.isEmpty()) {
-            Query m4Query = new Query(from , to, 1.0f, query.getFilter(), QueryMethod.M4, measuresWithError, query.getViewPort(), query.getOpType());
-            return executeM4Query(m4Query, dataProcessor.getQueryExecutor());
+            Map<Integer, List<TimeInterval>> m4MissingIntervals =  new HashMap<>(measuresWithError.size());
+            Map<Integer, Integer> m4AggFactors = new HashMap<>(measuresWithError.size());
+            for(int measureWithError : measuresWithError){
+                m4MissingIntervals.put(measureWithError, List.of(new TimeRange(from, to)));
+                m4AggFactors.put(measureWithError, 1);
+            }
+            LOG.info("Cached data are above error bound. Fetching {}: for {} ", m4MissingIntervals, measuresWithError);
+            query.setQueryMethod(QueryMethod.M4);
+            long timeStart = System.currentTimeMillis();
+            Map<Integer, List<TimeSeriesSpan>> m4TimeSeriesSpansPerMeasure =
+                    dataProcessor.getMissing(from, to, m4MissingIntervals, m4AggFactors, viewPort, QueryMethod.M4);
+            // Set error to 0 for M4 measures and add to pixel columns
+            for (int measureWithError : measuresWithError) {
+                List<PixelColumn> pixelColumns = pixelColumnsPerMeasure.get(measureWithError);
+                List<TimeSeriesSpan> timeSeriesSpans = m4TimeSeriesSpansPerMeasure.get(measureWithError);
+                dataProcessor.processDatapoints(from, to, viewPort, pixelColumns, timeSeriesSpans);
+                errorPerMeasure.put(measureWithError, 0.0);
+            }
+            queryResults.setProgressiveQueryTime((System.currentTimeMillis() - timeStart) / 1000F);
         }
 
         // Query Results

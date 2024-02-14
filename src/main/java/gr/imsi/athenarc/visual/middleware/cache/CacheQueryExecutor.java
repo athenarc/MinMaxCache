@@ -134,6 +134,12 @@ public class CacheQueryExecutor {
         // For each measure with a miss, add the fetched data points to the pixel columns and recalculate the error.
         for(int measureWithMiss : missingTimeSeriesSpansPerMeasure.keySet()) {
             List<PixelColumn> pixelColumns = new ArrayList<>();
+            for (long j = 0; j < viewPort.getWidth(); j++) {
+                long pixelFrom = from + (j * pixelColumnInterval);
+                long pixelTo = pixelFrom + pixelColumnInterval;
+                PixelColumn pixelColumn = new PixelColumn(pixelFrom, pixelTo, viewPort);
+                pixelColumns.add(pixelColumn);
+            }
             List<TimeSeriesSpan> timeSeriesSpans = missingTimeSeriesSpansPerMeasure.get(measureWithMiss);
             // Add to pixel columns
             dataProcessor.processDatapoints(from, to, viewPort, pixelColumns, timeSeriesSpans);

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+
+<configuration scan="true">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n
+            </Pattern>
+        </layout>
+    </appender>
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs.log</file>
+        <append>false</append>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n
+            </Pattern>
+        </layout>
+    </appender>
+
+    <logger name="org.apache.parquet" level="ERROR"/>
+    <logger name="org.apache.hadoop" level="ERROR"/>
+    <logger name="gr.imsi.athenarc.visual.middleware.util.io.ParquetReader" level="INFO"/>
+    <logger name="gr.imsi.athenarc.visual.middleware.util.io.CsvReader.CsvRandomAccessReader" level="INFO"/>
+    <logger name="gr.imsi.athenarc.visual.middleware.experiments.Experiments" level="INFO"/>
+    <logger name="gr.imsi.athenarc.visual.middleware.experiments.util.QuerySequenceGenerator" level="INFO"/>
+    <logger name="com.mitchellbosecke.pebble" level="ERROR"/>
+
+    <logger name ="gr.imsi.athenarc.visual.cache.MinMaxCache" level="INFO"/>
+    <logger name ="gr.imsi.athenarc.visual.datasource.QueryExecutor" level="INFO"/>
+    <logger name ="gr.imsi.athenarc.visual.middleware.cache.TimeSeriesSpanFactory" level="INFO"/>
+    <logger name ="gr.imsi.athenarc.visual.middleware.domain.PixelColumn" level="INFO"/>
+    <logger name ="gr.imsi.athenarc.visual.middleware.datasource.DataSource" level="INFO"/>
+    <logger name ="gr.imsi.athenarc.visual.middleware.domain.MaxErrorEvaluator" level="INFO"/>
+    <logger name ="gr.imsi.athenarc.visual.middleware.cache.DataProcessor" level="DEBUG"/>
+
+    <root>
+        <level>INFO</level>
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>

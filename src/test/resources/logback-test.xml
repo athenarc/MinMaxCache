@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+
+<configuration scan="true">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n
+            </Pattern>
+        </layout>
+    </appender>
+    <logger name="org.apache.parquet" level="ERROR"/>
+    <logger name="org.apache.hadoop" level="ERROR"/>
+    <logger name="gr.imsi.athenarc.visual.middleware.util.io.ParquetReader" level="INFO"/>
+    <logger name="gr.imsi.athenarc.visual.middleware.util.io.CsvReader.CsvRandomAccessReader" level="INFO"/>
+    <root>
+        <level>INFO</level>
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

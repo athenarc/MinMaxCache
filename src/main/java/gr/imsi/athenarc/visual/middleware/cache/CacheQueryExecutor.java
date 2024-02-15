@@ -45,6 +45,7 @@ public class CacheQueryExecutor {
         long from = query.getFrom();
         long to = query.getTo();
         QueryResults queryResults = new QueryResults();
+
         ViewPort viewPort = query.getViewPort();
 
         long pixelColumnInterval = (to - from) / viewPort.getWidth();
@@ -54,6 +55,7 @@ public class CacheQueryExecutor {
         stopwatch.start();
         LOG.debug("Pixel column interval: " + pixelColumnInterval + " ms");
         List<Integer> measures = Optional.ofNullable(query.getMeasures()).orElse(dataset.getMeasures());
+        Map<Integer, List<DataPoint>> resultData = new HashMap<>(measures.size());
 
         // Initialize Pixel Columns
         Map<Integer, List<PixelColumn>> pixelColumnsPerMeasure = new HashMap<>(measures.size()); // Lists of pixel columns. One list for every measure.
@@ -151,38 +153,19 @@ public class CacheQueryExecutor {
 
         // Fetch errored measures with M4
         if(!measuresWithError.isEmpty()) {
-            Map<Integer, List<TimeInterval>> m4MissingIntervals =  new HashMap<>(measuresWithError.size());
-            Map<Integer, Integer> m4AggFactors = new HashMap<>(measuresWithError.size());
-            for(int measureWithError : measuresWithError){
-                m4MissingIntervals.put(measureWithError, List.of(new TimeRange(from, to)));
-                m4AggFactors.put(measureWithError, 1);
-            }
-            LOG.info("Cached data are above error bound. Fetching {}: for {} ", m4MissingIntervals, measuresWithError);
-            query.setQueryMethod(QueryMethod.M4);
+            Query m4Query = new Query(from, to, 1.0f, query.getFilter(), QueryMethod.M4, measuresWithError, viewPort, query.getOpType());
+            QueryResults m4QueryResults = executeM4Query(m4Query, dataProcessor.getQueryExecutor());
             long timeStart = System.currentTimeMillis();
-            Map<Integer, List<TimeSeriesSpan>> m4TimeSeriesSpansPerMeasure =
-                    dataProcessor.getMissing(from, to, m4MissingIntervals, m4AggFactors, viewPort, QueryMethod.M4);
-            // Set error to 0 for M4 measures and add to pixel columns
-            for (int measureWithError : measuresWithError) {
-                List<PixelColumn> pixelColumns = new ArrayList<>();
-                for (long j = 0; j < viewPort.getWidth(); j++) {
-                    long pixelFrom = from + (j * pixelColumnInterval);
-                    long pixelTo = pixelFrom + pixelColumnInterval;
-                    PixelColumn pixelColumn = new PixelColumn(pixelFrom, pixelTo, viewPort);
-                    pixelColumns.add(pixelColumn);
-                }
-                List<TimeSeriesSpan> timeSeriesSpans = m4TimeSeriesSpansPerMeasure.get(measureWithError);
-                dataProcessor.processDatapoints(from, to, viewPort, pixelColumns, timeSeriesSpans);
-                pixelColumnsPerMeasure.put(measureWithError, pixelColumns);
-                errorPerMeasure.put(measureWithError, 0.0);
-            }
+            measuresWithError.forEach(m -> resultData.put(m, m4QueryResults.getData().get(m))); // add m4 results to final result
+            measuresWithError.forEach(m -> errorPerMeasure.put(m, 0.0)); // set error to 0;
             queryResults.setProgressiveQueryTime((System.currentTimeMillis() - timeStart) / 1000F);
         }
 
         // Query Results
-        Map<Integer, List<DataPoint>> resultData = new HashMap<>(measures.size());
+        List<Integer> measuresWithoutError = new ArrayList<>(measures);
+        measuresWithoutError.removeAll(measuresWithError); // remove measures handled with m4 query
         Map<Integer, DoubleSummaryStatistics> measureStatsMap = new HashMap<>(measures.size());
-        for (int measure : measures) {
+        for (int measure : measuresWithoutError) {
             int count = 0;
             double max = Double.MIN_VALUE;
             double min = Double.MAX_VALUE;

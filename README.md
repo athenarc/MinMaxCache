@@ -2,7 +2,7 @@
 # Visualization-aware Timeseries Min-Max Caching with Error Bound Guarantees
 
 ## Supplemental Material
-Supplemental material detailing the theorems and proofs used in the paper can be found [here](https://imisathena-my.sharepoint.com/:b:/g/personal/bstam_athenarc_gr/EZLMpCbHnvBAr451eO73T78BC93AOf0OPwmwxltP6H2W4Q?e=wMDCSG).
+Supplemental material detailing the theorems and proofs used in the paper can be found [here](https://github.com/athenarc/MinMaxCache/blob/main/paper_supplementary_material.pdf).
 ## Datasets
 Data used for the experiments can be found [here](https://imisathena-my.sharepoint.com/:f:/g/personal/bstam_athenarc_gr/EqNFfVTRJ_9KresHs-QGyQ8BYJZVOQNty_mRCIwpru7s-Q?e=PoAxgl).
 
@@ -23,13 +23,13 @@ mvn clean install
 
 To initialize a dataset in a .csv file, run the following:
 ```
-java -jar target/experiments.jar -path <path_to_csv> -c initialize -type <influx, postgres> -timeCol <time_column> 
--out output -schema <schema> -table <table_name> -timeFormat "yyyy-MM-dd[ HH:mm:ss.SSS]"
+java -jar target/experiments.jar -path <path_to_csv> -c initialize -type <influx, postgres> -out output -schema <schema> -table <table_name> -timeFormat "yyyy-MM-dd[ HH:mm:ss.SSS]"
 ```
 To execute a sequence of queries, e.g. using a table, run the following:
 
 ```
-java -jar target/experiments.jar -c timeQueries -seqCount 50 -type <influx, postgres> -mode <ttiMinMax> -measures <measure_ids> -zoomFactor 2 -viewport <width,height> -runs 5 -out "$out" -minShift 0.001 -maxShift 1 -schema more -table "$table" -timeFormat "yyyy-MM-dd[ HH:mm:ss.SSS]" -a 0.95 -q 0.1 -p 1 -agg 4 -reduction 4
+java -jar target/experiments.jar -c timeQueries -seqCount 50 -measureChange 0 -type <influx, postgres> -mode <minMax> -measures <measure_ids> -timeCol <timeCol (if postgres)>
+-valueCol <valueCol (if postgres)> -idCol <idCol (if postgres)> -zoomFactor 2 -viewport <width,height> -runs 1 -out <output_folder_path> -minShift 0.1 -maxShift 0.5 -schema <schema or bucket> -table <tableName> -timeFormat "yyyy-MM-dd[ HH:mm:ss.SSS]" -a 0.95 -q 0.1 -p 1 -agg 4 
 ```
 
 ### Parameters:
@@ -40,12 +40,15 @@ java -jar target/experiments.jar -c timeQueries -seqCount 50 -type <influx, post
 
 -type *Database, <influx, postgres>*
 
-
--mode *Algorithm to run <ttiMinMax, m4, raw>
+-mode *Algorithm to run <minMax, m4, raw>
 
 -measures *Measure ids, e.g 1,2,3*
 
--timeCol *Name of time column (for initialization)*
+-timeCol *Name of time column (for postgres)*
+
+-valueCol *Name of value column (for postgres)*
+
+-idCol *Name of id column (for postgres)*
 
 -out *Output Folder*
 
@@ -73,6 +76,5 @@ java -jar target/experiments.jar -c timeQueries -seqCount 50 -type <influx, post
 
 -agg *Initial Aggregation Factor*
 
--reduction *Data Reduction Factor*
-
+(-queries) *A path to a csv file with predefined epoch-based queries. First column is start epoch and the second end epoch (e.g queries.txt file in the repository). *
 

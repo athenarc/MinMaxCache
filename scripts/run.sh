@@ -8,8 +8,8 @@ w=$5
 h=$6
 type=$7
 
-tables=( "manufacturing_exp")
-modes=("minMax" "m4")
+tables=("manufacturing_exp")
+modes=("minMax")
 
 for table in "${tables[@]}"
 do

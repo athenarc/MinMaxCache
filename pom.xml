@@ -9,13 +9,13 @@
     <packaging>jar</packaging>
     <name>MinMaxCache</name>
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jjwt.version>0.11.1</jjwt.version>
-        <javac.version>11</javac.version>
-        <javac.source>11</javac.source>
-        <javac.target>11</javac.target>
+        <javac.version>17</javac.version>
+        <javac.source>17</javac.source>
+        <javac.target>17</javac.target>
         <arrow.version>11.0.0</arrow.version>
         <protobuf.version>3.24.3</protobuf.version>
     </properties>

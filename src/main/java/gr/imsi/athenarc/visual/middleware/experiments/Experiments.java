@@ -10,12 +10,10 @@ import com.univocity.parsers.csv.CsvWriterSettings;
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCache;
 import gr.imsi.athenarc.visual.middleware.datasource.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.InfluxDBQuery;
-import gr.imsi.athenarc.visual.middleware.datasource.ModelarDBQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.QueryExecutorFactory;
 import gr.imsi.athenarc.visual.middleware.datasource.SQLQuery;
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.*;
-import gr.imsi.athenarc.visual.middleware.domain.ModelarDB.ModelarDBConnection;
 import gr.imsi.athenarc.visual.middleware.domain.PostgreSQL.JDBCConnection;
 import gr.imsi.athenarc.visual.middleware.domain.InfluxDB.InfluxDBConnection;
 import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
@@ -173,9 +171,6 @@ public class Experiments<T> {
                 break;
             case "influx":
                 if(config == null) config = "influxDB.cfg";
-                break;
-            case "modelar":
-                if(config == null) config = "modelarDB.cfg";
                 break;
             default:
                 Preconditions.checkNotNull(outFolder, "No config files specified.");
@@ -336,9 +331,6 @@ public class Experiments<T> {
                     dataSourceQuery = new SQLQuery(dataset.getSchema(), dataset.getTable(), dataset.getTimeCol(), dataset.getIdCol(), dataset.getValueCol(),
                             query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
                     break;
-                case "modelar":
-                    dataSourceQuery = new ModelarDBQuery(query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
-                    break;
                 case "influx":
                     dataSourceQuery = new InfluxDBQuery(dataset.getSchema(), dataset.getTable(), query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
                     break;
@@ -443,14 +435,6 @@ public class Experiments<T> {
                     SerializationUtilities.storeSerializedObject(dataset, p);
                 }
                 break;
-            case "modelar":
-                p = String.valueOf(Paths.get("metadata", "modelarDB-" + table));
-                if (new File(p).exists()) dataset = (ModelarDBDataset) SerializationUtilities.loadSerializedObject(p);
-                else{
-                    dataset = new ModelarDBDataset(config, table, schema, table, timeFormat, timeCol, idCol, valueCol);
-                    SerializationUtilities.storeSerializedObject(dataset, p);
-                }
-                break;
             case "influx":
                 p = String.valueOf(Paths.get("metadata", "influx-" + table));
                 if (new File(p).exists()) dataset = (InfluxDBDataset) SerializationUtilities.loadSerializedObject(p);
@@ -478,8 +462,6 @@ public class Experiments<T> {
             case "postgres":
                 dataset = new PostgreSQLDataset(config, table, schema, table, timeFormat);
                 break;
-            case "modelar":
-                dataset = new ModelarDBDataset(config, table, schema, table, timeFormat);
             case "influx":
                 dataset = new InfluxDBDataset(config, table, schema, table, timeFormat);
                 break;
@@ -497,12 +479,7 @@ public class Experiments<T> {
                         new JDBCConnection(config);
                 postgreSQLConnection.connect();
                 queryExecutor = postgreSQLConnection.getQueryExecutor(dataset);
-                break;
-            case "modelar":
-                ModelarDBConnection modelarDBConnection =
-                        new ModelarDBConnection(config);
-                queryExecutor = modelarDBConnection.getQueryExecutor(dataset);
-                break;
+                break;             
             case "influx":
                 InfluxDBConnection influxDBConnection =
                         new InfluxDBConnection(config);

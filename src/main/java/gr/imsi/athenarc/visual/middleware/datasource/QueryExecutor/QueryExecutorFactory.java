@@ -1,7 +1,6 @@
 package gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor;
 
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.*;
-import gr.imsi.athenarc.visual.middleware.domain.ModelarDB.ModelarDBConnection;
 import gr.imsi.athenarc.visual.middleware.domain.PostgreSQL.JDBCConnection;
 import gr.imsi.athenarc.visual.middleware.domain.InfluxDB.InfluxDBConnection;
 
@@ -17,10 +16,6 @@ public class QueryExecutorFactory {
             InfluxDBConnection influxDBConnection = new InfluxDBConnection(((InfluxDBDataset) dataset).getConfig());
             influxDBConnection.connect();
             return influxDBConnection.getQueryExecutor(dataset);
-        }
-        else if(dataset instanceof ModelarDBDataset) {
-            ModelarDBConnection modelarDBConnection = new ModelarDBConnection(((ModelarDBDataset) dataset).getConfig());
-            return modelarDBConnection.getSqlQueryExecutor(dataset);
         }
         throw new IllegalArgumentException("Unsupported Datasource");
     }

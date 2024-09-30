@@ -1,8 +1,9 @@
 package gr.imsi.athenarc.visual.middleware.experiments.util;
 
-import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.ModelarDBQueryExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.QueryExecutor;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public class PrepareSQLStatement {
-    private static final Logger LOG = LoggerFactory.getLogger(ModelarDBQueryExecutor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(QueryExecutor.class);
 
     private final HashMap<String, ArrayList<Integer>> fields = new HashMap<>();
     private String sql;

@@ -11,7 +11,6 @@ import gr.imsi.athenarc.visual.middleware.cache.MinMaxCache;
 import gr.imsi.athenarc.visual.middleware.datasource.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.InfluxDBQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.QueryExecutor;
-import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.QueryExecutorFactory;
 import gr.imsi.athenarc.visual.middleware.datasource.SQLQuery;
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.*;
 import gr.imsi.athenarc.visual.middleware.domain.PostgreSQL.JDBCConnection;
@@ -299,7 +298,7 @@ public class Experiments<T> {
         CsvWriter csvWriter = new CsvWriter(new FileWriter(outFile, false), csvWriterSettings);
         Stopwatch stopwatch = Stopwatch.createUnstarted();
         AbstractDataset dataset = createDataset();
-        QueryExecutor queryExecutor = QueryExecutorFactory.getQueryExecutor(dataset);
+        QueryExecutor queryExecutor = createQueryExecutor(dataset);
         QueryMethod queryMethod = QueryMethod.M4;
         Query q0 = new Query(startTime, endTime, accuracy, null, queryMethod, measures, viewPort, null);
         List<Query> sequence = generateQuerySequence(q0, dataset);
@@ -328,7 +327,7 @@ public class Experiments<T> {
             DataSourceQuery dataSourceQuery = null;
             switch (type) {
                 case "postgres":
-                    dataSourceQuery = new SQLQuery(dataset.getSchema(), dataset.getTable(), dataset.getTimeCol(), dataset.getIdCol(), dataset.getValueCol(),
+                    dataSourceQuery = new SQLQuery(dataset.getSchema(), dataset.getTable(), ((PostgreSQLDataset)dataset).getTimeCol(), ((PostgreSQLDataset)dataset).getIdCol(), ((PostgreSQLDataset)dataset).getValueCol(),
                             query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
                     break;
                 case "influx":
@@ -423,6 +422,22 @@ public class Experiments<T> {
         FileUtil.build(metadataPath.toString());
     }
 
+
+    private AbstractDataset createInitDataset() {
+        AbstractDataset dataset = null;
+        switch (type) {
+            case "postgres":
+                dataset = new PostgreSQLDataset(table, schema, table);
+                break;
+            case "influx":
+                dataset = new InfluxDBDataset(table, schema, table);
+                break;
+            default:
+                break;
+        }
+        return dataset;
+    }
+    
     private AbstractDataset createDataset() throws SQLException {
         String p = "";
         AbstractDataset dataset = null;
@@ -431,7 +446,9 @@ public class Experiments<T> {
                 p = String.valueOf(Paths.get("metadata", "postgres-" + table));
                 if (new File(p).exists()) dataset = (PostgreSQLDataset) SerializationUtilities.loadSerializedObject(p);
                 else{
-                    dataset = new PostgreSQLDataset(config, table, schema, table, timeFormat, timeCol, idCol, valueCol);
+                    JDBCConnection postgreSQLConnection =
+                        (JDBCConnection) new JDBCConnection(config).connect();
+                    dataset = new PostgreSQLDataset(postgreSQLConnection, table, schema, table);
                     SerializationUtilities.storeSerializedObject(dataset, p);
                 }
                 break;
@@ -439,7 +456,8 @@ public class Experiments<T> {
                 p = String.valueOf(Paths.get("metadata", "influx-" + table));
                 if (new File(p).exists()) dataset = (InfluxDBDataset) SerializationUtilities.loadSerializedObject(p);
                 else {
-                    dataset = new InfluxDBDataset(config, table, schema, table, timeFormat, timeCol);
+                    InfluxDBConnection influxDBConnection = (InfluxDBConnection) new InfluxDBConnection(config).connect();
+                    dataset = new InfluxDBDataset(influxDBConnection, table, schema, table);
                     SerializationUtilities.storeSerializedObject(dataset, p);
                 }
                 break;
@@ -452,21 +470,6 @@ public class Experiments<T> {
         if(q != null){
             startTime = dataset.getTimeRange().getTo() - (long) (q * (dataset.getTimeRange().getTo() - dataset.getTimeRange().getFrom()));
             endTime = (dataset.getTimeRange().getTo());
-        }
-        return dataset;
-    }
-
-    private AbstractDataset createInitDataset() {
-        AbstractDataset dataset = null;
-        switch (type) {
-            case "postgres":
-                dataset = new PostgreSQLDataset(config, table, schema, table, timeFormat);
-                break;
-            case "influx":
-                dataset = new InfluxDBDataset(config, table, schema, table, timeFormat);
-                break;
-            default:
-                break;
         }
         return dataset;
     }

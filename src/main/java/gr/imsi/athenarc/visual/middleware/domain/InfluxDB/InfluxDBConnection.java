@@ -49,7 +49,7 @@ public class InfluxDBConnection implements DatabaseConnection {
     }
 
     @Override
-    public void connect() {
+    public DatabaseConnection connect() {
         OkHttpClient.Builder okHttpClient = new OkHttpClient.Builder()
                 .readTimeout(10, TimeUnit.MINUTES)
                 .writeTimeout(30, TimeUnit.MINUTES)
@@ -64,7 +64,7 @@ public class InfluxDBConnection implements DatabaseConnection {
                 .build();
         client = InfluxDBClientFactory.create(options);
         LOG.info("Initialized InfluxDB connection");
-
+        return this;
     }
 
     private InfluxDBQueryExecutor createQueryExecutor(AbstractDataset dataset) {

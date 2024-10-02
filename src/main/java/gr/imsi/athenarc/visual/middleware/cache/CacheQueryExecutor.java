@@ -10,6 +10,7 @@ import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.SQLQueryExecu
 import gr.imsi.athenarc.visual.middleware.datasource.SQLQuery;
 import gr.imsi.athenarc.visual.middleware.domain.*;
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
+import gr.imsi.athenarc.visual.middleware.domain.Dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
 import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
 import org.slf4j.Logger;
@@ -245,7 +246,8 @@ public class CacheQueryExecutor {
             numberOfGroupsPerMeasureName.put(measureName, query.getViewPort().getWidth());
         }
         if(queryExecutor instanceof SQLQueryExecutor)
-            dataSourceQuery = new SQLQuery(dataset.getSchema(), dataset.getTable(), dataset.getTimeCol(), dataset.getIdCol(), dataset.getValueCol(),
+            dataSourceQuery = new SQLQuery(dataset.getSchema(), dataset.getTable(), 
+                    ((PostgreSQLDataset)dataset).getTimeCol(), ((PostgreSQLDataset)dataset).getIdCol(), ((PostgreSQLDataset)dataset).getValueCol(),
                     query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
         else if (queryExecutor instanceof InfluxDBQueryExecutor)
             dataSourceQuery = new InfluxDBQuery(dataset.getSchema(), dataset.getTable(), query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);

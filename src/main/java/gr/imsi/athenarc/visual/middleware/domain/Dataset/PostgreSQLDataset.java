@@ -15,68 +15,95 @@ import java.util.stream.Collectors;
 
 public class PostgreSQLDataset extends AbstractDataset {
 
-    private String config;
+    private String timeCol;
+    private String idCol;
+    private String valueCol;
 
-    public PostgreSQLDataset(SQLQueryExecutor sqlQueryExecutor, String id, String schema, String table,
-                             String timeFormat, String timeCol, String idCol, String valueCol) throws SQLException {
-        super(id, table, schema, timeFormat, timeCol, idCol, valueCol);
-        setTimeCol(timeCol);
-        this.fillPostgreSQLDatasetInfo(sqlQueryExecutor);
+
+    // Abstract class implementation
+    public PostgreSQLDataset(String id, String schema, String table){
+        super(id, schema, table);
     }
 
-
-    public PostgreSQLDataset(String config, String id, String schema, String table,
-                             String timeFormat, String timeCol, String idCol, String valueCol) throws SQLException {
-        super(id, table, schema, timeFormat, timeCol, idCol, valueCol);
-        this.config = config;
-        setTimeCol(timeCol);
-        JDBCConnection jdbcConnection = new JDBCConnection(config);
+    public PostgreSQLDataset(JDBCConnection jdbcConnection, String id, String schema, String table) throws SQLException {
+        super(id, schema, table);
         jdbcConnection.connect();
-        this.fillPostgreSQLDatasetInfo(jdbcConnection.getQueryExecutor());
+        this.fillPostgreSQLDatasetInfo(jdbcConnection.getQueryExecutor(), schema, table);
     }
 
-    public PostgreSQLDataset(String config, String id, String schema, String table, String timeFormat) {
-        super(id, table, schema, timeFormat);
-        this.config = config;
+    private void fillPostgreSQLDatasetInfo(SQLQueryExecutor sqlQueryExecutor, String schema, String table) throws SQLException {
+        // Use information_schema to retrieve metadata about the table's columns
+        String columnInfoQuery = "SELECT column_name, data_type FROM information_schema.columns " +
+                                 "WHERE table_schema = '" + schema + "' AND table_name = '" + table + "';";
+
+        ResultSet resultSet = sqlQueryExecutor.execute(columnInfoQuery);
+        List<String> potentialTimeCols = new ArrayList<>();
+        List<String> potentialIdCols = new ArrayList<>();
+        List<String> potentialValueCols = new ArrayList<>();
+
+        while (resultSet.next()) {
+            String columnName = resultSet.getString("column_name");
+            String dataType = resultSet.getString("data_type");
+
+            // Identify potential time column (timestamp data type)
+            if (dataType.contains("timestamp")) {
+                potentialTimeCols.add(columnName);
+            }
+            // Identify potential id column (string type)
+            else if (dataType.contains("character") || dataType.contains("text")) {
+                potentialIdCols.add(columnName);
+            }
+            // Identify potential value column (numeric or double precision)
+            else if (dataType.contains("numeric") || dataType.contains("double precision")) {
+                potentialValueCols.add(columnName);
+            }
+        }
+
+        // Assuming there's only one correct column for each role, or apply rules to select one
+        if (!potentialTimeCols.isEmpty()) setTimeCol(potentialTimeCols.get(0));
+        if (!potentialIdCols.isEmpty()) setIdCol(potentialIdCols.get(0));
+        if (!potentialValueCols.isEmpty()) setValueCol(potentialValueCols.get(0));
+
+        // Now that we have the columns, continue with fetching the metadata
+        fillMetadata(sqlQueryExecutor);
     }
 
-    private void fillPostgreSQLDatasetInfo(SQLQueryExecutor sqlQueryExecutor) throws SQLException {
+    private void fillMetadata(SQLQueryExecutor sqlQueryExecutor) throws SQLException {
         ResultSet resultSet;
-        // Header query
-        String headerQuery = "SELECT DISTINCT(" + getIdCol() + ") FROM " + getSchema() + "." + getTable() + " \n" +
-                "ORDER BY " + getIdCol() + " ASC";
 
+        // Header query to fetch distinct measures
+        String headerQuery = "SELECT DISTINCT(" + getIdCol() + ") FROM " + getSchema() + "." + getTable() + " " +
+                             "ORDER BY " + getIdCol() + " ASC";
         resultSet = sqlQueryExecutor.execute(headerQuery);
         List<String> header = new ArrayList<>();
-        while(resultSet.next()) {
+        while (resultSet.next()) {
             header.add(resultSet.getString(1));
         }
         setHeader(header.toArray(new String[0]));
 
-        // First date and sampling frequency query
-        String firstQuery = "SELECT EXTRACT(epoch FROM " + getTimeCol() + ") * 1000 \n" +
-                "FROM " + getSchema()  + "." + getTable() + " \n" +
-                "WHERE " + getIdCol() + " = " + "'" + header.get(getMeasures().get(0)) + "'" +  " \n" +
-                "ORDER BY " + getTimeCol() + " ASC \n" +
-                "LIMIT 2;";
+        // Query for the first and second timestamps to determine sampling interval
+        String firstQuery = "SELECT EXTRACT(epoch FROM " + getTimeCol() + ") * 1000 " +
+                            "FROM " + getSchema() + "." + getTable() + " " +
+                            "WHERE " + getIdCol() + " = '" + header.get(getMeasures().get(0)) + "' " +
+                            "ORDER BY " + getTimeCol() + " ASC " +
+                            "LIMIT 2;";
         resultSet = sqlQueryExecutor.execute(firstQuery);
         resultSet.next();
         long from = resultSet.getLong(1);
         resultSet.next();
         long second = resultSet.getLong(1);
-
         setSamplingInterval(Duration.of(second - from, ChronoUnit.MILLIS));
-        // Last date query
-        String lastQuery = "SELECT EXTRACT(epoch FROM " + getTimeCol() + ") * 1000 \n" +
-                "FROM " + getSchema()  + "." + getTable() + "\n" +
-                "ORDER BY " + getTimeCol() + " DESC \n" +
-                "LIMIT 1;";
+
+        // Query for the last timestamp
+        String lastQuery = "SELECT EXTRACT(epoch FROM " + getTimeCol() + ") * 1000 " +
+                           "FROM " + getSchema() + "." + getTable() + " " +
+                           "ORDER BY " + getTimeCol() + " DESC " +
+                           "LIMIT 1;";
         resultSet = sqlQueryExecutor.execute(lastQuery);
         resultSet.next();
         long to = resultSet.getLong(1);
         setTimeRange(new TimeRange(from, to));
     }
-
 
     @Override
     public List<Integer> getMeasures() {
@@ -87,8 +114,29 @@ public class PostgreSQLDataset extends AbstractDataset {
                 .boxed()
                 .collect(Collectors.toList());
     }
-    public String getConfig() {
-        return config;
+    
+    public String getTimeCol() {
+        return timeCol;
+    }
+
+    public void setTimeCol(String timeCol) {
+        this.timeCol = timeCol;
+    }
+
+    public String getIdCol() {
+        return idCol;
+    }
+
+    public void setIdCol(String idCol) {
+        this.idCol = idCol;
+    }
+
+    public String getValueCol() {
+        return valueCol;
+    }
+
+    public void setValueCol(String valueCol) {
+        this.valueCol = valueCol;
     }
 
 }

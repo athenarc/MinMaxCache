@@ -8,7 +8,7 @@ import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
 
 public interface DatabaseConnection {
 
-    public void connect() throws  SQLException;
+    public DatabaseConnection connect() throws  SQLException;
 
     public QueryExecutor getQueryExecutor();
 

@@ -15,6 +15,7 @@ public class CsvDataset extends AbstractDataset implements Serializable {
 
     private static final long serialVersionUID = 1L;
     public String delimiter;
+    private String timeCol;
     private Boolean hasHeader;
     private List<Integer> measures = new ArrayList<>();
 
@@ -22,7 +23,8 @@ public class CsvDataset extends AbstractDataset implements Serializable {
 
 
     public CsvDataset(String path, String id, String table, String timeCol, String timeFormat, String delimiter, Boolean hasHeader) {
-        super(path, id, table, timeCol, timeFormat);
+        super(path, id, table);
+        this.timeCol = timeCol;
         this.delimiter = delimiter;
         this.hasHeader = hasHeader;
     }
@@ -43,7 +45,6 @@ public class CsvDataset extends AbstractDataset implements Serializable {
         this.measures = measures;
     }
 
-
     public String getDelimiter() {
         return delimiter;
     }
@@ -59,6 +60,16 @@ public class CsvDataset extends AbstractDataset implements Serializable {
     public void setMeasureStats(Map<Integer, MeasureStats> measureStats) {
         this.measureStats = measureStats;
     }
+
+
+    public String getTimeCol() {
+        return timeCol;
+    }
+
+    public void setTimeCol(String timeCol) {
+        this.timeCol = timeCol;
+    }
+
 
     public int getMeasureIndex(String measure){
         return IntStream.range(0, getHeader().length)

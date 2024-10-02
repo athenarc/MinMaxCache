@@ -42,7 +42,7 @@ public class JDBCConnection implements DatabaseConnection {
         this.password = password;
     }
     @Override
-    public void connect() {
+    public DatabaseConnection connect() {
         connection = null;
         try {
             Class.forName("org.postgresql.Driver");
@@ -53,6 +53,7 @@ public class JDBCConnection implements DatabaseConnection {
             e.printStackTrace();
             LOG.error(e.getClass().getName()+": "+e.getMessage());
         }
+        return this;
     }
 
 
@@ -75,6 +76,15 @@ public class JDBCConnection implements DatabaseConnection {
         return new SQLQueryExecutor(connection);
     }
 
+    public boolean isClosed(){
+        try {
+            return connection.isClosed();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return true;
+        }
+    }
+
     @Override
     public SQLQueryExecutor getQueryExecutor() {
         return this.createQueryExecutor();
@@ -84,6 +94,7 @@ public class JDBCConnection implements DatabaseConnection {
     public SQLQueryExecutor getQueryExecutor(AbstractDataset dataset) {
         return this.createQueryExecutor(dataset);
     }
+
 
 
 

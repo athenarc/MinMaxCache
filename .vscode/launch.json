@@ -1,0 +1,54 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Experiments",
+            "request": "launch",
+            "mainClass": "gr.imsi.athenarc.visual.middleware.experiments.Experiments",
+            "projectName": "min-max-cache",
+            "args": [
+                "-c", "initialize",
+                "-measureChange", "0",
+                "-seqCount", "50",
+                "-type", "postgres",
+                "-mode", "minMax",
+                "-measures", "2",
+                "-timeCol", "timestamp",
+                "-idCol", "id",
+                "-valueCol", "value",
+                "-zoomFactor", "2",
+                "-viewport", "600,300",
+                "-runs", "1",
+                "-out", "output",
+                "-minShift", "0.1",
+                "-maxShift", "0.5",
+                "-schema", "more",
+                "-table", "manufacturing_exp",
+                "-timeFormat", "yyyy-MM-dd[ HH:mm:ss.SSS]",
+                "-a", "6",
+                "-q", "0.01",
+                "-p", "1",
+                "-agg", "4",
+                "-queries", "queries.txt"
+            ],
+        },
+        {
+            "type": "java",
+            "name": "CacheAPI",
+            "request": "launch",
+            "mainClass": "gr.imsi.athenarc.visual.middleware.web.CacheAPI",
+            "projectName": "min-max-cache"
+        }
+    ]
+}

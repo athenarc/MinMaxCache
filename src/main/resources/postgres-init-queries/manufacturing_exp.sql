@@ -24,7 +24,7 @@ CREATE TABLE more.manufacturing_exp(
 );
 
 INSERT INTO more.manufacturing_exp(timestamp, id, value)
-SELECT  timestamp, 'value_1', value_1, FROM more.manufacturing_exp_tmp;
+SELECT  timestamp, 'value_1', value_1 FROM more.manufacturing_exp_tmp;
 
 INSERT INTO more.manufacturing_exp(timestamp, id, value)
 SELECT  timestamp, 'value_2', value_2 FROM more.manufacturing_exp_tmp;

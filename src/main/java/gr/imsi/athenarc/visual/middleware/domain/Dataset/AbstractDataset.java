@@ -1,6 +1,4 @@
 package gr.imsi.athenarc.visual.middleware.domain.Dataset;
-
-import gr.imsi.athenarc.visual.middleware.domain.DataFileInfo;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 
 import java.time.Duration;
@@ -13,15 +11,13 @@ public abstract class AbstractDataset implements Serializable {
 
 
     private static final long serialVersionUID = 1L;
-    private Duration samplingInterval;
     @NotNull
     private String id;
     private String[] header;
     private String schema;
     private String table;
     private TimeRange timeRange;
-
-    List<DataFileInfo> fileInfoList = new ArrayList<>();
+    private Duration samplingInterval;
 
     public AbstractDataset(){}
 
@@ -58,14 +54,6 @@ public abstract class AbstractDataset implements Serializable {
 
     public void setSamplingInterval(Duration samplingInterval) {
         this.samplingInterval = samplingInterval;
-    }
-
-    public List<DataFileInfo> getFileInfoList() {
-        return fileInfoList;
-    }
-
-    public void setFileInfoList(List<DataFileInfo> fileInfoList) {
-        this.fileInfoList = fileInfoList;
     }
 
     public List<Integer> getMeasures(){return null;}

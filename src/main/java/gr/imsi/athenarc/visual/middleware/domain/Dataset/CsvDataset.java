@@ -1,5 +1,6 @@
 package gr.imsi.athenarc.visual.middleware.domain.Dataset;
 
+import gr.imsi.athenarc.visual.middleware.domain.DataFileInfo;
 import gr.imsi.athenarc.visual.middleware.domain.MeasureStats;
 
 import java.io.Serializable;
@@ -18,9 +19,10 @@ public class CsvDataset extends AbstractDataset implements Serializable {
     private String timeCol;
     private Boolean hasHeader;
     private List<Integer> measures = new ArrayList<>();
-
     private Map<Integer, MeasureStats> measureStats;
+    List<DataFileInfo> fileInfoList = new ArrayList<>();
 
+    
 
     public CsvDataset(String path, String id, String table, String timeCol, String timeFormat, String delimiter, Boolean hasHeader) {
         super(path, id, table);
@@ -70,6 +72,13 @@ public class CsvDataset extends AbstractDataset implements Serializable {
         this.timeCol = timeCol;
     }
 
+    public List<DataFileInfo> getFileInfoList() {
+        return fileInfoList;
+    }
+
+    public void setFileInfoList(List<DataFileInfo> fileInfoList) {
+        this.fileInfoList = fileInfoList;
+    }
 
     public int getMeasureIndex(String measure){
         return IntStream.range(0, getHeader().length)

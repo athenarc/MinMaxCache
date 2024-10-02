@@ -3,7 +3,7 @@ package gr.imsi.athenarc.visual.middleware.web.rest.controller;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,7 +22,7 @@ public class DatasetController {
     @Autowired
     private InfluxDBService influxService;
 
-    @GetMapping("/postgres/query")
+    @PostMapping("/postgres/query")
     public String queryPostgres( @Valid @RequestBody Query query, @Valid @RequestBody String schema, @Valid @RequestBody String name) {
         try {
             postgresService.performQuery(query, schema, name);
@@ -32,7 +32,7 @@ public class DatasetController {
         }
     }
 
-    @GetMapping("/influx/query")
+    @PostMapping("/influx/query")
     public String queryInflux(@Valid @RequestBody Query query) {
         try {
             influxService.performQuery(query);

@@ -18,7 +18,7 @@
             "mainClass": "gr.imsi.athenarc.visual.middleware.experiments.Experiments",
             "projectName": "min-max-cache",
             "args": [
-                "-c", "initialize",
+                "-c", "timeQueries",
                 "-measureChange", "0",
                 "-seqCount", "50",
                 "-type", "postgres",
@@ -40,7 +40,7 @@
                 "-q", "0.01",
                 "-p", "1",
                 "-agg", "4",
-                "-queries", "queries.txt"
+                // "-queries", "queries.txt"
             ],
         },
         {

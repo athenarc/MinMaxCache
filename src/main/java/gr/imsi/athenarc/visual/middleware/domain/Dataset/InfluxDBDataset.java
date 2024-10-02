@@ -93,7 +93,6 @@ public class InfluxDBDataset extends AbstractDataset {
     @Override
     public String toString() {
         return "InfluxDBDataset{" +
-                "fileInfoList=" + fileInfoList +
                 ", bucket='" + bucket + '\'' +
                 ", measurement='" + measurement + '\'' +
                 '}';

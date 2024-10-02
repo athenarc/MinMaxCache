@@ -26,7 +26,7 @@ public class InfluxDBService {
     // Method to initialize InfluxDB connection manually
     public void initializeConnection() {
         influxDBConnection = new InfluxDBConnection(influxDbUrl, influxDbOrg, influxDbToken, influxDbBucket);
-        System.out.println("InfluxDB connection established.");
+        // LOG.info("InfluxDB connection established.");
     }
 
     // Sample method to query the database
@@ -40,7 +40,7 @@ public class InfluxDBService {
     public void closeConnection() {
         if (influxDBConnection != null) {
             influxDBConnection.closeConnection();
-            System.out.println("InfluxDB connection closed.");
+            // LOG.info("InfluxDB connection closed.");
         }
     }
 }

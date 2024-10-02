@@ -4,9 +4,9 @@ import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 import gr.imsi.athenarc.visual.middleware.domain.ViewPort;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -19,7 +19,7 @@ import static gr.imsi.athenarc.visual.middleware.experiments.util.UserOpType.*;
 
 public class QuerySequenceGenerator {
 
-    private static final Logger LOG = LogManager.getLogger(QuerySequenceGenerator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(QuerySequenceGenerator.class);
 
     private float minShift;
     private float maxShift;
@@ -141,7 +141,7 @@ public class QuerySequenceGenerator {
             zoomFactor = (float) zooms[i];
             TimeRange timeRange = null;
             ViewPort viewPort = q.getViewPort();
-            List<Integer> measures = q.getMeasures().stream().map(Integer::new).collect(Collectors.toList());
+            List<Integer> measures = q.getMeasures().stream().collect(Collectors.toList());
             // Check for measure change
             if(measureChanges.contains(i)){
                 if (measures.size() != dataset.getMeasures().size()) {

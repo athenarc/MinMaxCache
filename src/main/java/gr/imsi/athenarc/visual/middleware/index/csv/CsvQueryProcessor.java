@@ -11,8 +11,6 @@ import gr.imsi.athenarc.visual.middleware.index.TimeSeriesIndexUtil;
 import gr.imsi.athenarc.visual.middleware.index.TreeNode;
 import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 
 
 import java.io.BufferedReader;
@@ -25,9 +23,12 @@ import java.time.temporal.TemporalField;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CsvQueryProcessor {
 
-    private static final Logger LOG = LogManager.getLogger(CsvQueryProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CsvQueryProcessor.class);
     private Query query;
     private QueryResults queryResults;
     private CsvDataset dataset;

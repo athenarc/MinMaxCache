@@ -2,9 +2,6 @@ package gr.imsi.athenarc.visual.middleware.index;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -14,12 +11,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static java.time.temporal.ChronoField.*;
 
 public class TimeSeriesIndexUtil {
     public static final List<TemporalField> TEMPORAL_HIERARCHY = Arrays.asList(YEAR, MONTH_OF_YEAR, DAY_OF_MONTH, HOUR_OF_DAY, MINUTE_OF_HOUR, SECOND_OF_MINUTE, MILLI_OF_SECOND);
     private static BiMap<String, TemporalField> temporalFieldMap = HashBiMap.create();
-    private static final Logger LOG = LogManager.getLogger(TimeSeriesIndexUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesIndexUtil.class);
 
     static {
         temporalFieldMap.put("YEAR", YEAR);

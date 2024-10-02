@@ -97,7 +97,7 @@ public class InfluxDBDatasource implements DataSource {
                 fluxTables = influxDBQueryExecutor.executeRawInfluxQuery(influxDBQuery);
                 return new InfluxDBDataPointsIterator(influxDBQuery.getMissingIntervalsPerMeasure(), fluxTables);
             } catch (Exception e){
-                System.out.println("No data in a specified query");
+                LOG.error("No data in a specified query");
             }
             return Iterators.concat(new Iterator[0]);
         }

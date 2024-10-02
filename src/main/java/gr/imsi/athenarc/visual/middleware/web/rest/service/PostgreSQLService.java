@@ -30,7 +30,7 @@ public class PostgreSQLService {
     // Method to initialize connection manually
     public void initializeConnection() throws SQLException {
         jdbcConnection = new JDBCConnection(postgresUrl, postgresUsername, postgresPassword);
-        System.out.println("PostgreSQL connection established.");
+        // LOG.info("PostgreSQL connection established.");
     }
 
     // Sample method to query the database
@@ -56,7 +56,7 @@ public class PostgreSQLService {
     public void closeConnection() throws SQLException {
         if (jdbcConnection != null && !jdbcConnection.isClosed()) {
             jdbcConnection.closeConnection();;
-            System.out.println("PostgreSQL connection closed.");
+            // LOG.info("PostgreSQL connection closed.");
         }
     }
 

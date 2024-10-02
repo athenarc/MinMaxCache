@@ -241,7 +241,6 @@ public class Experiments<T> {
             csvWriter.addValue(queryResults.getError());
             csvWriter.addValue(queryResults.isFlag());
             csvWriter.writeValuesToRow();
-            System.out.println();
             stopwatch.reset();
         }
         csvWriter.flush();
@@ -284,7 +283,6 @@ public class Experiments<T> {
             csvWriter.addValue(time);
             csvWriter.addValue(memorySize);
             csvWriter.writeValuesToRow();
-            System.out.println();
             stopwatch.reset();
 
         }

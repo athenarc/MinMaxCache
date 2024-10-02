@@ -18,9 +18,6 @@
             </Pattern>
         </layout>
     </appender>
-
-    <logger name="org.apache.parquet" level="ERROR"/>
-    <logger name="org.apache.hadoop" level="ERROR"/>
     <logger name="gr.imsi.athenarc.visual.middleware.util.io.ParquetReader" level="INFO"/>
     <logger name="gr.imsi.athenarc.visual.middleware.util.io.CsvReader.CsvRandomAccessReader" level="INFO"/>
     <logger name="gr.imsi.athenarc.visual.middleware.experiments.Experiments" level="INFO"/>

@@ -19,7 +19,6 @@ public class PostgreSQLDataset extends AbstractDataset {
     private String idCol;
     private String valueCol;
 
-
     // Abstract class implementation
     public PostgreSQLDataset(String id, String schema, String table){
         super(id, schema, table);

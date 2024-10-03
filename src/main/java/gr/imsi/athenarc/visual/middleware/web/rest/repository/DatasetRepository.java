@@ -7,6 +7,7 @@ import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.domain.PostgreSQL.JDBCConnection;
 
 // Repository for managing datasets (AbstractDataset and its subclasses)
+
 @Repository
 public interface DatasetRepository extends JpaRepository<AbstractDataset, String> {
 

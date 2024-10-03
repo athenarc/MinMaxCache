@@ -58,7 +58,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>3.6.0</version>
         <executions>
           <execution>
             <id>shade-own</id>
@@ -102,15 +102,16 @@
     </plugins>
   </build>
   <properties>
-    <javac.target>17</javac.target>
-    <maven.compiler.target>17</maven.compiler.target>
+    <spring.security.version>6.3.3</spring.security.version>
+    <postgres.version>42.7.4</postgres.version>
     <slf4j.version>1.7.21</slf4j.version>
-    <maven.compiler.source>17</maven.compiler.source>
     <jjwt.version>0.11.1</jjwt.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring.version>3.3.0</spring.version>
-    <javac.source>17</javac.source>
     <javac.version>17</javac.version>
-    <postgres.version>42.7.4</postgres.version>
+    <maven.compiler.source>17</maven.compiler.source>
+    <spring.version>3.3.4</spring.version>
+    <javac.source>17</javac.source>
+    <javac.target>17</javac.target>
+    <maven.compiler.target>17</maven.compiler.target>
   </properties>
 </project>

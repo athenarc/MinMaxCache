@@ -16,7 +16,8 @@
         <javac.version>17</javac.version>
         <javac.source>17</javac.source>
         <javac.target>17</javac.target>
-        <spring.version>3.3.0</spring.version>
+        <spring.version>3.3.4</spring.version>
+        <spring.security.version>6.3.3</spring.security.version>
         <postgres.version>42.7.4</postgres.version>
         <slf4j.version>1.7.21</slf4j.version>
     </properties>
@@ -33,12 +34,31 @@
             <version>${spring.version}</version>
         </dependency>
         <dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-config</artifactId>
+            <version>${spring.security.version}</version>
+        </dependency>
+        <dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+            <version>${spring.security.version}</version>
+		</dependency>
+        <dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-resource-server</artifactId>
+            <version>${spring.security.version}</version>
+		</dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-jose</artifactId>
+            <version>${spring.security.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
             <version>2.3.232</version>
         </dependency>
-       
         <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
@@ -79,12 +99,6 @@
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
             <version>5.9</version>
-            <!-- <exclusions>
-               <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion> 
-            </exclusions> -->
         </dependency>
         <dependency>
             <groupId>it.unimi.dsi</groupId>
@@ -112,7 +126,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.6.0</version>
                 <executions>
                     <execution>
                         <id>shade-own</id>

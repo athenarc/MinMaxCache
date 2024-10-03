@@ -3,42 +3,89 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import io.micrometer.common.lang.NonNull;
+import jakarta.persistence.*;
+
 
 @Entity
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "user_name"),
+        @UniqueConstraint(columnNames = "email")
+})
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(unique = true)
+    private String userId;
 
+    @Column(name = "user_name", unique = true)
+    @NonNull
     private String username;
-    private String password;
-    private String role;
 
-    // Getters and setters
-    public Long getId() {
-        return id;
+    @NonNull
+    @Column(name = "email", unique = true)
+    private String email;
+
+    @NonNull
+    private String password;
+
+    public User() {
     }
-    public void setId(Long id) {
-        this.id = id;
+
+    public User(String userId, @NonNull String username, @NonNull String email, @NonNull String password) {
+        this.userId = userId;
+        this.username = username;
+        this.email = email;
+        this.password = password;
     }
+
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    @NonNull
     public String getUsername() {
         return username;
     }
-    public void setUsername(String username) {
+
+    public void setUsername(@NonNull String username) {
         this.username = username;
     }
+
+    @NonNull
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(@NonNull String email) {
+        this.email = email;
+    }
+
+    @NonNull
     public String getPassword() {
         return password;
     }
-    public void setPassword(String password) {
+
+    public void setPassword(@NonNull String password) {
         this.password = password;
     }
-    public String getRole() {
-        return role;
+
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId='" + userId + '\'' +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                '}';
     }
-    public void setRole(String role) {
-        this.role = role;
-    }
-    
+
+
 }

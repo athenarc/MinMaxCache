@@ -1,13 +1,11 @@
 package gr.imsi.athenarc.visual.middleware.web.rest.security;
 
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import gr.imsi.athenarc.visual.middleware.web.rest.model.User;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 public class AuthUser extends User implements UserDetails {
 

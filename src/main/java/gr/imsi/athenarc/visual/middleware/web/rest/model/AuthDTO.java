@@ -5,6 +5,9 @@ public final class AuthDTO {
     public static class LoginRequest {
         String username;
         String password;
+        public LoginRequest() {
+        
+        }
 
 
         public LoginRequest(String username, String password) {
@@ -22,6 +25,11 @@ public final class AuthDTO {
             return password;
         }
 
+
+        @Override
+        public String toString() {
+            return "LoginRequest [username=" + username + ", password=" + password + "]";
+        }
         
     }
 
@@ -29,9 +37,29 @@ public final class AuthDTO {
         String msg;
         String token;
 
+        public Response() {
+        
+        }
+        
         public Response(String msg, String token) {
            this.msg = msg;
            this.token = token;
+        }
+
+        public String getMsg() {
+            return msg;
+        }
+
+        public void setMsg(String msg) {
+            this.msg = msg;
+        }
+
+        public String getToken() {
+            return token;
+        }
+
+        public void setToken(String token) {
+            this.token = token;
         }
         
         

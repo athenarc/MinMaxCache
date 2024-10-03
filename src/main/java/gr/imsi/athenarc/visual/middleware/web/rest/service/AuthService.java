@@ -15,7 +15,6 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
-import com.influxdb.client.domain.User;
 
 import gr.imsi.athenarc.visual.middleware.web.rest.repository.UserRepository;
 
@@ -25,6 +24,7 @@ public class AuthService {
  private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     @Autowired
     private JwtEncoder jwtEncoder;
+    
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired

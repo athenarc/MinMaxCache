@@ -1,8 +1,4 @@
 package gr.imsi.athenarc.visual.middleware.web.rest.model;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import io.micrometer.common.lang.NonNull;
 import jakarta.persistence.*;
 
@@ -33,13 +29,12 @@ public class User {
     public User() {
     }
 
-    public User(String userId, @NonNull String username, @NonNull String email, @NonNull String password) {
+    public User(String userId, String username, String email, String password) {
         this.userId = userId;
         this.username = username;
         this.email = email;
         this.password = password;
     }
-
 
     public String getUserId() {
         return userId;
@@ -76,16 +71,13 @@ public class User {
         this.password = password;
     }
 
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "userId='" + userId + '\'' +
-                ", username='" + username + '\'' +
-                ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
-                '}';
+   @Override
+public String toString() {
+    return "User{" +
+            "userId=" + userId +
+            ", username='" + username + '\'' +
+            ", email='" + email + '\'' +
+            ", password='" + password + '\'' +
+            '}';
     }
-
-
 }

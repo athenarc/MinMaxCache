@@ -17,19 +17,17 @@ import java.util.stream.Collectors;
 @Table(name = "influxdb_dataset")
 public class InfluxDBDataset extends AbstractDataset {
 
-    private String bucket;
-    private String measurement;
 
     public InfluxDBDataset(){}
     // Abstract class implementation
-    public InfluxDBDataset(String id, String schema, String table){
-        super(id, schema, table);
+    public InfluxDBDataset(String id, String bucket, String measurement){
+        super(id, bucket, measurement);
+
     }
 
     public InfluxDBDataset(InfluxDBConnection influxDBConnection, String id, String bucket, String measurement) {
         super(id, bucket, measurement);
-        this.bucket = bucket;
-        this.measurement = measurement;
+
         this.fillInfluxDBDatasetInfo(influxDBConnection.getQueryExecutor());
     }
     
@@ -37,7 +35,7 @@ public class InfluxDBDataset extends AbstractDataset {
         List<FluxTable> fluxTables;
         String firstQuery = "from(bucket:\"" + getSchema() + "\")\n" +
                 "  |> range(start: 1970-01-01T00:00:00.000Z, stop: 2150-01-01T00:00:00.999Z)\n" +
-                "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + measurement + "\")\n" +
+                "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + getTableName() + "\")\n" +
                 "  |> limit(n: 2)\n" +
                 "  |> yield(name:\"first\")\n";
 
@@ -58,9 +56,9 @@ public class InfluxDBDataset extends AbstractDataset {
             }
         }
         
-        String lastQuery =  "from(bucket:\"" + bucket + "\")\n" +
+        String lastQuery =  "from(bucket:\"" + getSchema() + "\")\n" +
                 "  |> range(start: 0, stop:2120-01-01T00:00:00.000Z)\n" +
-                "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + measurement + "\")\n" +
+                "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + getTableName() + "\")\n" +
                 "  |> keep(columns: [\"_time\"])\n" +
                 "  |> last(column: \"_time\")\n";
 
@@ -71,16 +69,6 @@ public class InfluxDBDataset extends AbstractDataset {
         setSamplingInterval(Duration.of(second - from, ChronoUnit.MILLIS));
         setTimeRange(new TimeRange(from, to));
         setHeader(header.toArray(new String[0]));
-    }
-
-    @Override
-    public String getSchema() {
-        return bucket;
-    }
-
-    @Override
-    public String getTableName() {
-        return measurement;
     }
 
 
@@ -97,8 +85,8 @@ public class InfluxDBDataset extends AbstractDataset {
     @Override
     public String toString() {
         return "InfluxDBDataset{" +
-                ", bucket='" + bucket + '\'' +
-                ", measurement='" + measurement + '\'' +
+                ", bucket='" + getSchema() + '\'' +
+                ", measurement='" + getTableName() + '\'' +
                 '}';
     }
 }

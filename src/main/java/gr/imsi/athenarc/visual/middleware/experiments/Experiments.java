@@ -325,11 +325,11 @@ public class Experiments<T> {
             DataSourceQuery dataSourceQuery = null;
             switch (type) {
                 case "postgres":
-                    dataSourceQuery = new SQLQuery(dataset.getSchema(), dataset.getTable(), ((PostgreSQLDataset)dataset).getTimeCol(), ((PostgreSQLDataset)dataset).getIdCol(), ((PostgreSQLDataset)dataset).getValueCol(),
+                    dataSourceQuery = new SQLQuery(dataset.getSchema(), dataset.getTableName(), ((PostgreSQLDataset)dataset).getTimeCol(), ((PostgreSQLDataset)dataset).getIdCol(), ((PostgreSQLDataset)dataset).getValueCol(),
                             query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
                     break;
                 case "influx":
-                    dataSourceQuery = new InfluxDBQuery(dataset.getSchema(), dataset.getTable(), query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
+                    dataSourceQuery = new InfluxDBQuery(dataset.getSchema(), dataset.getTableName(), query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
                     break;
             }
             queryResults = queryExecutor.execute(dataSourceQuery, queryMethod);
@@ -462,7 +462,7 @@ public class Experiments<T> {
             default:
                 break;
         }
-        LOG.info("Initialized Dataset: {}, range {}, header {}, sampling interval {}", dataset.getTable(),
+        LOG.info("Initialized Dataset: {}, range {}, header {}, sampling interval {}", dataset.getTableName(),
                 dataset.getTimeRange(), Arrays.asList(dataset.getHeader()), dataset.getSamplingInterval());
         // If query percent given. Change start and end times based on it
         if(q != null){

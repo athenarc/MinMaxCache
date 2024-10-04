@@ -41,6 +41,7 @@ public class JDBCConnection implements DatabaseConnection {
         this.user = user;
         this.password = password;
     }
+    
     @Override
     public DatabaseConnection connect() {
         connection = null;

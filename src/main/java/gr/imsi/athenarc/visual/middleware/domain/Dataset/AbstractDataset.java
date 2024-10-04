@@ -1,30 +1,47 @@
 package gr.imsi.athenarc.visual.middleware.domain.Dataset;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.Table;
 
 import java.time.Duration;
 
 import javax.validation.constraints.NotNull;
+
+import com.influxdb.annotations.Column;
+
 import java.io.Serializable;
 import java.util.*;
 
+
+@Entity
+@Table(name = "datasets") // Root table for the hierarchy
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class AbstractDataset implements Serializable {
 
 
     private static final long serialVersionUID = 1L;
+
     @NotNull
+    @Id
     private String id;
+
     private String[] header;
     private String schema;
-    private String table;
+    private String tableName;
     private TimeRange timeRange;
+
+    @Column(name = "sampling_interval")
     private Duration samplingInterval;
 
     public AbstractDataset(){}
 
-    public AbstractDataset(String id, String schema, String table){
+    public AbstractDataset(String id, String schema, String tableName){
         this.id = id;
         this.schema = schema;
-        this.table = table;
+        this.tableName = tableName;
     }
 
 
@@ -66,12 +83,12 @@ public abstract class AbstractDataset implements Serializable {
         this.schema = schema;
     }
 
-    public String getTable() {
-        return table;
+    public String getTableName() {
+        return tableName;
     }
 
-    public void setTable(String table) {
-        this.table = table;
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
     }
 
     @Override

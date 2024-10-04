@@ -48,7 +48,7 @@ public class InfluxDBQueryExecutor implements QueryExecutor {
     public InfluxDBQueryExecutor(InfluxDBClient influxDBClient, AbstractDataset dataset, String org) {
         this.influxDBClient = influxDBClient;
         this.dataset = (InfluxDBDataset) dataset;
-        this.table = dataset.getTable();
+        this.table = dataset.getTableName();
         this.bucket = dataset.getSchema();
         this.org = org;
     }

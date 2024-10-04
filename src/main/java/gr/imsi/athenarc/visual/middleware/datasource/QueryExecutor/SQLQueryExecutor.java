@@ -41,7 +41,7 @@ public class SQLQueryExecutor implements QueryExecutor {
         this.connection = connection;
         this.dataset = (PostgreSQLDataset) dataset;
         this.schema = dataset.getSchema();
-        this.table = dataset.getTable();
+        this.table = dataset.getTableName();
     }
 
     @Override

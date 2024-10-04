@@ -17,8 +17,9 @@ public class Query implements TimeInterval {
     List<Integer> measures;
     ViewPort viewPort;
     QueryMethod queryMethod;
-    UserOpType opType;
     private HashMap<Integer, Double[]> filter;
+
+    UserOpType opType;
     float accuracy;
 
     public Query() {}

@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
+import gr.imsi.athenarc.visual.middleware.web.rest.model.QueryDTO;
 import gr.imsi.athenarc.visual.middleware.web.rest.service.InfluxDBService;
 import gr.imsi.athenarc.visual.middleware.web.rest.service.PostgreSQLService;
 
 @RestController
-@RequestMapping("/data")
+@RequestMapping("/api/data")
 public class DatasetController {
 
     @Autowired
@@ -23,9 +23,9 @@ public class DatasetController {
     private InfluxDBService influxService;
 
     @PostMapping("/postgres/query")
-    public String queryPostgres( @Valid @RequestBody Query query, @Valid @RequestBody String schema, @Valid @RequestBody String name) {
+    public String queryPostgres( @Valid @RequestBody QueryDTO.QueryRequest queryRequest) {
         try {
-            postgresService.performQuery(query, schema, name);
+            postgresService.performQuery(queryRequest.query, queryRequest.schema, queryRequest.table);
             return "PostgreSQL query executed successfully.";
         } catch (Exception e) {
             return "Error executing PostgreSQL query: " + e.getMessage();
@@ -33,9 +33,9 @@ public class DatasetController {
     }
 
     @PostMapping("/influx/query")
-    public String queryInflux(@Valid @RequestBody Query query) {
+    public String queryInflux(@Valid @RequestBody QueryDTO.QueryRequest queryRequest) {
         try {
-            influxService.performQuery(query);
+            influxService.performQuery(queryRequest.query, queryRequest.schema, queryRequest.table);
             return "InfluxDB query executed successfully.";
         } catch (Exception e) {
             return "Error executing InfluxDB query: " + e.getMessage();

@@ -246,11 +246,11 @@ public class CacheQueryExecutor {
             numberOfGroupsPerMeasureName.put(measureName, query.getViewPort().getWidth());
         }
         if(queryExecutor instanceof SQLQueryExecutor)
-            dataSourceQuery = new SQLQuery(dataset.getSchema(), dataset.getTable(), 
+            dataSourceQuery = new SQLQuery(dataset.getSchema(), dataset.getTableName(), 
                     ((PostgreSQLDataset)dataset).getTimeCol(), ((PostgreSQLDataset)dataset).getIdCol(), ((PostgreSQLDataset)dataset).getValueCol(),
                     query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
         else if (queryExecutor instanceof InfluxDBQueryExecutor)
-            dataSourceQuery = new InfluxDBQuery(dataset.getSchema(), dataset.getTable(), query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
+            dataSourceQuery = new InfluxDBQuery(dataset.getSchema(), dataset.getTableName(), query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
         else {
             throw new RuntimeException("Unsupported query executor");
         }

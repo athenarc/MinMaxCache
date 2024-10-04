@@ -21,7 +21,7 @@ import gr.imsi.athenarc.visual.middleware.web.rest.repository.UserRepository;
 @Service
 public class AuthService {
         
- private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     @Autowired
     private JwtEncoder jwtEncoder;
     

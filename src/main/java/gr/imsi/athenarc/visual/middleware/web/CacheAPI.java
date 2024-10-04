@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +19,7 @@ import gr.imsi.athenarc.visual.middleware.web.rest.repository.UserRepository;
 
 @SpringBootApplication
 @EnableConfigurationProperties(RsaKeyConfigProperties.class)
+@EntityScan("gr.imsi.athenarc.visual.middleware.domain")
 @ComponentScan(basePackages = "gr.imsi.athenarc.visual.middleware.web.rest")
 public class CacheAPI {
         private static final Logger LOG = LoggerFactory.getLogger(CacheAPI.class);

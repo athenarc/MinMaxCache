@@ -1,6 +1,9 @@
 package gr.imsi.athenarc.visual.middleware.domain.Dataset;
 
 import gr.imsi.athenarc.visual.middleware.domain.PostgreSQL.JDBCConnection;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.SQLQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 
@@ -13,12 +16,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Entity
+@Table(name = "postgresql_dataset")
 public class PostgreSQLDataset extends AbstractDataset {
 
     private String timeCol;
     private String idCol;
     private String valueCol;
 
+    public PostgreSQLDataset(){}
     // Abstract class implementation
     public PostgreSQLDataset(String id, String schema, String table){
         super(id, schema, table);
@@ -71,7 +77,7 @@ public class PostgreSQLDataset extends AbstractDataset {
         ResultSet resultSet;
 
         // Header query to fetch distinct measures
-        String headerQuery = "SELECT DISTINCT(" + getIdCol() + ") FROM " + getSchema() + "." + getTable() + " " +
+        String headerQuery = "SELECT DISTINCT(" + getIdCol() + ") FROM " + getSchema() + "." + getTableName() + " " +
                              "ORDER BY " + getIdCol() + " ASC";
         resultSet = sqlQueryExecutor.execute(headerQuery);
         List<String> header = new ArrayList<>();
@@ -82,7 +88,7 @@ public class PostgreSQLDataset extends AbstractDataset {
 
         // Query for the first and second timestamps to determine sampling interval
         String firstQuery = "SELECT EXTRACT(epoch FROM " + getTimeCol() + ") * 1000 " +
-                            "FROM " + getSchema() + "." + getTable() + " " +
+                            "FROM " + getSchema() + "." + getTableName() + " " +
                             "WHERE " + getIdCol() + " = '" + header.get(getMeasures().get(0)) + "' " +
                             "ORDER BY " + getTimeCol() + " ASC " +
                             "LIMIT 2;";
@@ -95,7 +101,7 @@ public class PostgreSQLDataset extends AbstractDataset {
 
         // Query for the last timestamp
         String lastQuery = "SELECT EXTRACT(epoch FROM " + getTimeCol() + ") * 1000 " +
-                           "FROM " + getSchema() + "." + getTable() + " " +
+                           "FROM " + getSchema() + "." + getTableName() + " " +
                            "ORDER BY " + getTimeCol() + " DESC " +
                            "LIMIT 1;";
         resultSet = sqlQueryExecutor.execute(lastQuery);

@@ -2,6 +2,9 @@ package gr.imsi.athenarc.visual.middleware.web.rest.service;
 
 import java.sql.SQLException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -10,11 +13,14 @@ import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.SQLQueryExecu
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.domain.PostgreSQL.JDBCConnection;
 import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
-import gr.imsi.athenarc.visual.middleware.web.rest.repository.DatasetRepository;
+import gr.imsi.athenarc.visual.middleware.web.rest.repository.PostgreSQLDatasetRepository;
 
 @Service
 public class PostgreSQLService {
-     @Value("${postgres.url}")
+
+    private static final Logger LOG = LoggerFactory.getLogger(PostgreSQLService.class);
+
+    @Value("${postgres.url}")
     private String postgresUrl;
 
     @Value("${postgres.username}")
@@ -25,12 +31,18 @@ public class PostgreSQLService {
 
     private JDBCConnection jdbcConnection;
 
-    private DatasetRepository datasetRepository;
+    private final PostgreSQLDatasetRepository datasetRepository;
+
+    @Autowired
+    public PostgreSQLService(PostgreSQLDatasetRepository datasetRepository) {
+        this.datasetRepository = datasetRepository;
+    }
+
 
     // Method to initialize connection manually
     public void initializeConnection() throws SQLException {
-        jdbcConnection = new JDBCConnection(postgresUrl, postgresUsername, postgresPassword);
-        // LOG.info("PostgreSQL connection established.");
+        jdbcConnection = (JDBCConnection) new JDBCConnection(postgresUrl, postgresUsername, postgresPassword).connect();
+        LOG.info("PostgreSQL connection established.");
     }
 
     // Sample method to query the database
@@ -43,10 +55,13 @@ public class PostgreSQLService {
             // If it exists, return the dataset
             dataset = (PostgreSQLDataset) datasetRepository.findById(id).orElseThrow(() -> new RuntimeException("Dataset not found."));
         }
-        // Initialize the dataset
-        dataset = initializeDataset(schema, id);
+        else {
+            // Initialize the dataset
+            dataset = initializeDataset(schema, id);
+            datasetRepository.save(dataset);
+        }
+        
         // Save the initialized dataset to the repository
-        datasetRepository.save(dataset);
         SQLQueryExecutor sqlQueryExecutor = jdbcConnection.getQueryExecutor(dataset);
         MinMaxCache minMaxCache = new MinMaxCache(sqlQueryExecutor, dataset, 0.5, 4, 4);
         minMaxCache.executeQuery(query);

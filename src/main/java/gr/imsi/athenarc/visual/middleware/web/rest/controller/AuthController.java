@@ -32,8 +32,6 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthDTO.LoginRequest userLogin) throws IllegalAccessException {
-        LOG.info("Token requested for user :{}", userLogin);
-
         Authentication authentication =
                 authenticationManager
                         .authenticate(new UsernamePasswordAuthenticationToken(
@@ -44,7 +42,6 @@ public class AuthController {
         AuthUser userDetails = (AuthUser) authentication.getPrincipal();
 
         String token = authService.generateToken(authentication);
-        LOG.info("Token: {}", token);
 
         AuthDTO.Response response = new AuthDTO.Response("User logged in successfully", token);
 

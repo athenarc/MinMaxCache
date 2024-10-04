@@ -3,19 +3,27 @@ package gr.imsi.athenarc.visual.middleware.domain.Dataset;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 import gr.imsi.athenarc.visual.middleware.domain.InfluxDB.InfluxDBConnection;
+import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
+import gr.imsi.athenarc.visual.middleware.web.CacheAPI;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.InfluxDBQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 
 import java.time.Duration;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Entity
 @Table(name = "influxdb_dataset")
 public class InfluxDBDataset extends AbstractDataset {
+
+    private static final Logger LOG = LoggerFactory.getLogger(InfluxDBDataset.class);
 
 
     public InfluxDBDataset(){}
@@ -32,43 +40,52 @@ public class InfluxDBDataset extends AbstractDataset {
     }
     
     private void fillInfluxDBDatasetInfo(InfluxDBQueryExecutor influxDBQueryExecutor) {
-        List<FluxTable> fluxTables;
+        // Fetch first timestamp
         String firstQuery = "from(bucket:\"" + getSchema() + "\")\n" +
-                "  |> range(start: 1970-01-01T00:00:00.000Z, stop: 2150-01-01T00:00:00.999Z)\n" +
-                "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + getTableName() + "\")\n" +
-                "  |> limit(n: 2)\n" +
-                "  |> yield(name:\"first\")\n";
-
-        fluxTables = influxDBQueryExecutor.execute(firstQuery);
-
-        Set<String> header = new LinkedHashSet<>();
-        long from = Long.MAX_VALUE;
-        long second = 0L;
-
-        for(FluxTable fluxTable : fluxTables) {
-            int i = 0;
-            for (FluxRecord record : fluxTable.getRecords()) {
-                if (i == 1) second = Objects.requireNonNull(record.getTime()).toEpochMilli();
-                header.add(record.getField());
-                long time = Objects.requireNonNull(record.getTime()).toEpochMilli();
-                from = Math.min(from, time);
-                i++;
-            }
-        }
-        
-        String lastQuery =  "from(bucket:\"" + getSchema() + "\")\n" +
-                "  |> range(start: 0, stop:2120-01-01T00:00:00.000Z)\n" +
-                "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + getTableName() + "\")\n" +
-                "  |> keep(columns: [\"_time\"])\n" +
-                "  |> last(column: \"_time\")\n";
-
+            "  |> range(start: 1970-01-01T00:00:00.000Z, stop: now())\n" +
+            "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + getTableName() + "\")\n" +
+            "  |> first()\n";
+    
+        List<FluxTable> fluxTables = influxDBQueryExecutor.execute(firstQuery);
+        FluxRecord firstRecord = fluxTables.get(0).getRecords().get(0);
+        long firstTime = firstRecord.getTime().toEpochMilli();
+    
+        // Fetch last timestamp
+        String lastQuery = "from(bucket:\"" + getSchema() + "\")\n" +
+            "  |> range(start: 1970-01-01T00:00:00.000Z, stop: now())\n" +
+            "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + getTableName() + "\")\n" +
+            "  |> last()\n";
+    
         fluxTables = influxDBQueryExecutor.execute(lastQuery);
-        FluxRecord record = fluxTables.get(0).getRecords().get(0);
-        long to = record.getTime().toEpochMilli();
-
-        setSamplingInterval(Duration.of(second - from, ChronoUnit.MILLIS));
-        setTimeRange(new TimeRange(from, to));
+        FluxRecord lastRecord = fluxTables.get(0).getRecords().get(0);
+        long lastTime = lastRecord.getTime().toEpochMilli();
+    
+        String influxFormat = "\"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\"";
+        // Fetch the second timestamp to calculate the sampling interval.
+        // Query on first time plus some time later
+        String secondQuery = "from(bucket:\"" + getSchema() + "\")\n" +
+            "  |> range(start:" + DateTimeUtil.format(influxFormat, firstTime).replace("\"", "") + ", stop: " + DateTimeUtil.format(influxFormat, firstTime + 60000).replace("\"", "") + ")\n" +
+            "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + getTableName() + "\")\n" +
+            "  |> limit(n: 2)\n";  // Fetch the first two records
+    
+        fluxTables = influxDBQueryExecutor.execute(secondQuery);
+        FluxRecord secondRecord = fluxTables.get(0).getRecords().get(1); 
+        long secondTime = secondRecord.getTime().toEpochMilli();
+    
+        // Calculate and set sampling interval
+        setSamplingInterval(Duration.of(secondTime - firstTime, ChronoUnit.MILLIS));
+    
+        // Set time range and headers
+        setTimeRange(new TimeRange(firstTime, lastTime));
+    
+        // Populate header (field keys)
+        Set<String> header = fluxTables.stream()
+            .flatMap(fluxTable -> fluxTable.getRecords().stream())
+            .map(FluxRecord::getField)
+            .collect(Collectors.toSet());
+        
         setHeader(header.toArray(new String[0]));
+        LOG.info("Dataset: {}, {}", this.getTimeRange(), this.getSamplingInterval());
     }
 
 

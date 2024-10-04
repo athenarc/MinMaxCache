@@ -1,6 +1,7 @@
 package gr.imsi.athenarc.visual.middleware.web.rest.service;
 
 import java.sql.SQLException;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCache;
+import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.InfluxDBQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.SQLQueryExecutor;
+import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.domain.PostgreSQL.JDBCConnection;
 import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
@@ -33,6 +36,9 @@ public class PostgreSQLService {
 
     private final PostgreSQLDatasetRepository datasetRepository;
 
+    // Map to hold the minmaxcache of each dataset
+    private final ConcurrentHashMap<String, MinMaxCache> cacheMap = new ConcurrentHashMap<>();
+
     @Autowired
     public PostgreSQLService(PostgreSQLDatasetRepository datasetRepository) {
         this.datasetRepository = datasetRepository;
@@ -46,14 +52,15 @@ public class PostgreSQLService {
     }
 
     // Sample method to query the database
-    public void performQuery(Query query, String schema, String id) throws SQLException {
+    public QueryResults performQuery(Query query, String schema, String id) throws SQLException {
         if (jdbcConnection == null) {
             initializeConnection();
         }
-        PostgreSQLDataset dataset = null;
+
+        PostgreSQLDataset dataset;
         if (datasetRepository.existsById(id)) {
             // If it exists, return the dataset
-            dataset = (PostgreSQLDataset) datasetRepository.findById(id).orElseThrow(() -> new RuntimeException("Dataset not found."));
+            dataset = datasetRepository.findById(id).orElseThrow(() -> new RuntimeException("Dataset not found."));
         }
         else {
             // Initialize the dataset
@@ -61,10 +68,13 @@ public class PostgreSQLService {
             datasetRepository.save(dataset);
         }
         
-        // Save the initialized dataset to the repository
-        SQLQueryExecutor sqlQueryExecutor = jdbcConnection.getQueryExecutor(dataset);
-        MinMaxCache minMaxCache = new MinMaxCache(sqlQueryExecutor, dataset, 0.5, 4, 4);
-        minMaxCache.executeQuery(query);
+        // Check if cache exists in memory, if not, create it
+        MinMaxCache minMaxCache = cacheMap.computeIfAbsent(id, key -> {
+            SQLQueryExecutor sqlQueryExecutor = jdbcConnection.getQueryExecutor(dataset);
+            return new MinMaxCache(sqlQueryExecutor, dataset, 0.5, 4, 4);
+        });
+
+        return minMaxCache.executeQuery(query);
     }
 
     // Close connection method (optional)

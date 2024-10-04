@@ -1,6 +1,8 @@
 package gr.imsi.athenarc.visual.middleware.web.rest.service;
 
 
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCache;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.InfluxDBQueryExecutor;
+import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.InfluxDBDataset;
 import gr.imsi.athenarc.visual.middleware.domain.InfluxDB.InfluxDBConnection;
 import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
@@ -35,7 +38,10 @@ public class InfluxDBService {
 
     private final InfluxDBDatasetRepository datasetRepository;
 
-     @Autowired
+    // Map to hold the minmaxcache of each dataset
+    private final ConcurrentHashMap<String, MinMaxCache> cacheMap = new ConcurrentHashMap<>();
+
+    @Autowired
     public InfluxDBService(InfluxDBDatasetRepository datasetRepository) {
         this.datasetRepository = datasetRepository;
     }
@@ -47,25 +53,29 @@ public class InfluxDBService {
     }
 
     // Sample method to query the database
-    public void performQuery(Query query, String schema, String id) {
+    public QueryResults performQuery(Query query, String schema, String id) {
         if (influxDBConnection == null) {
             initializeConnection();
         }
 
-        InfluxDBDataset dataset = null;
+        InfluxDBDataset dataset;
+
+        // Check if the dataset exists in the repository (database)
         if (datasetRepository.existsById(id)) {
-            // If it exists, return the dataset
-            dataset = (InfluxDBDataset) datasetRepository.findById(id).orElseThrow(() -> new RuntimeException("Dataset not found."));
-        }
-        else{
-            // Initialize the dataset
+            dataset = datasetRepository.findById(id).orElseThrow(() -> new RuntimeException("Dataset not found."));
+        } else {
+            // If dataset doesn't exist, initialize it
             dataset = initializeDataset(schema, id);
-            // Save the initialized dataset to the repository
-            datasetRepository.save(dataset);
+            datasetRepository.save(dataset);  // Persist dataset in the repository
         }
-        InfluxDBQueryExecutor influxDBQueryExecutor = influxDBConnection.getQueryExecutor(dataset);
-        MinMaxCache minMaxCache = new MinMaxCache(influxDBQueryExecutor, dataset, 0.5, 4, 4);
-        minMaxCache.executeQuery(query);
+
+        // Check if cache exists in memory, if not, create it
+        MinMaxCache minMaxCache = cacheMap.computeIfAbsent(id, key -> {
+            InfluxDBQueryExecutor influxDBQueryExecutor = influxDBConnection.getQueryExecutor(dataset);
+            return new MinMaxCache(influxDBQueryExecutor, dataset, 0.5, 4, 4);
+        });
+
+        return minMaxCache.executeQuery(query);
     }
 
     // Close connection method (optional)

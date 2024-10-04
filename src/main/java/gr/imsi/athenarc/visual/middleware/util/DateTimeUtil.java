@@ -38,6 +38,13 @@ public class DateTimeUtil {
         return format(DEFAULT_FORMATTER, timeStamp, zone);
     }
 
+    public static String format(final String format, final long timeStamp) {
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
+        return Instant.ofEpochMilli(timeStamp)
+                .atZone(UTC)
+                .format(formatter);
+    }
+
     public static String format(final String format, final long timeStamp, final ZoneId zone) {
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
         return Instant.ofEpochMilli(timeStamp)

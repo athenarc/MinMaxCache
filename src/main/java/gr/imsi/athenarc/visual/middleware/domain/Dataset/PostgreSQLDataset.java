@@ -16,6 +16,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Entity
 @Table(name = "postgresql_dataset")
 public class PostgreSQLDataset extends AbstractDataset {
@@ -23,6 +26,8 @@ public class PostgreSQLDataset extends AbstractDataset {
     private String timeCol;
     private String idCol;
     private String valueCol;
+
+    private static final Logger LOG = LoggerFactory.getLogger(PostgreSQLDataset.class);
 
     public PostgreSQLDataset(){}
     // Abstract class implementation
@@ -34,6 +39,7 @@ public class PostgreSQLDataset extends AbstractDataset {
         super(id, schema, table);
         jdbcConnection.connect();
         this.fillPostgreSQLDatasetInfo(jdbcConnection.getQueryExecutor(), schema, table);
+        LOG.info("Dataset: {}, {}", this.getTimeRange(), this.getSamplingInterval());
     }
 
     private void fillPostgreSQLDatasetInfo(SQLQueryExecutor sqlQueryExecutor, String schema, String table) throws SQLException {

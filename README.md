@@ -14,14 +14,60 @@ By running the expand_data.ipynb, the original datasets will be expanded 50 time
 Running create_synth.ipynb, will create 11 synthetic timeseries datasets generated from random walks, with the names synthetic_{1m-1b}.csv.
 
 ## Running Instructions
-
 First, build the JAR file:
 
 ```
-mvn clean install
+mvn clean package
 ```
 
+### REST API
+
+To start the SpringBoot Rest API, run the following:
+```
+java -jar target/min-max-cache-2.0.jar
+```
+
+#### Request methods
+| Method   | URL                                      | Description                              |
+| -------- | ---------------------------------------- | ---------------------------------------- |
+| `POST`    | `/api/auth/login`                             | Logins to the system.                      |
+| `POST`   | `/api/data/influx/query`                             | Queries InfluxDB.                      |
+| `POST`    | `/api/data/postgres/query`                          | Queries PostgreSQL.                       |
+
+
+#### Examples
+
+<b>Login</b>, returns a JWT token.
+```
+{
+    "username": "admin",
+    "password": "password"
+}
+```
+
+<b>Query</b>, use the previous token as a bearer token authentication and query the database.
+```
+{
+    "query": {
+        "from":1330144930991,
+        "to": 1330146930990,
+        "measures": [2], 
+        "viewPort":{
+            "width":600,
+            "height":300
+        },
+        "accuracy": 0.95
+
+    },
+    "schema": "more",
+    "table" : "manufacturing_exp"
+}
+```
+
+### Experiments
+
 To initialize a dataset in a .csv file, run the following:
+
 ```
 java -jar target/experiments.jar -path <path_to_csv> -c initialize -type <influx, postgres> -out output -schema <schema> -table <table_name> -timeFormat "yyyy-MM-dd[ HH:mm:ss.SSS]"
 ```

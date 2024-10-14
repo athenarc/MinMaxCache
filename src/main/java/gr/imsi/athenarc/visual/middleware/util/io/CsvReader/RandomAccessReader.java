@@ -17,9 +17,9 @@ public class RandomAccessReader extends RandomAccessFile {
     public static final int DEFAULT_BUFFER_SIZE = 65536;
     // channel liked with the file, used to retrieve data and force updates.
     protected final FileChannel channel;
+    protected final String filePath;
     // absolute filesystem path to the file
     private final long bufferSize;
-    private final String filePath;
     private final long fileLength;
     private final Charset charset;
     private DIRECTION direction;
@@ -85,6 +85,7 @@ public class RandomAccessReader extends RandomAccessFile {
         }
         validBufferBytes = read;
     }
+    
 
     @Override
     public long getFilePointer() {
@@ -146,6 +147,26 @@ public class RandomAccessReader extends RandomAccessFile {
             reBuffer();
     }
 
+    // @Override
+    // -1 will be returned if there is nothing to read; higher-level methods like readInt
+    // or readFully (from RandomAccessFile) will throw EOFException but this should not
+    // public int read() throws IOException {
+    //     if (buffer == null)
+    //         throw new ClosedChannelException();
+
+    //     if (isEOF())
+    //         return -1; // required by RandomAccessFile
+
+    //     if(direction == DIRECTION.BACKWARD){
+    //         if(current <= bufferOffset) reBuffer();
+    //         return ((int) buffer[(int) ((--current - bufferOffset))]) & 0xff;
+    //     }
+    //     else{
+    //         if (current >= bufferOffset + buffer.length || validBufferBytes == -1) reBuffer();
+    //         return ((int) buffer[(int) ((current++ - bufferOffset))]) & 0xff;
+    //     }
+    // }
+
     @Override
     // -1 will be returned if there is nothing to read; higher-level methods like readInt
     // or readFully (from RandomAccessFile) will throw EOFException but this should not
@@ -156,13 +177,33 @@ public class RandomAccessReader extends RandomAccessFile {
         if (isEOF())
             return -1; // required by RandomAccessFile
 
-        if(direction == DIRECTION.BACKWARD){
-            if(current <= bufferOffset) reBuffer();
-            return ((int) buffer[(int) ((--current - bufferOffset))]) & 0xff;
-        }
-        else{
-            if (current >= bufferOffset + buffer.length || validBufferBytes == -1) reBuffer();
-            return ((int) buffer[(int) ((current++ - bufferOffset))]) & 0xff;
+        if (direction == DIRECTION.BACKWARD) {
+            if (current <= bufferOffset) reBuffer();
+
+            // Check if we have valid data to read
+            if (validBufferBytes == 0 || current <= bufferOffset) {
+                return -1; // No more data to read
+            }
+
+            int index = (int) (--current - bufferOffset);
+            if (index < 0 || index >= validBufferBytes) {
+                return -1;
+            }
+            return ((int) buffer[index]) & 0xff;
+        } else {
+            if (current >= bufferOffset + validBufferBytes || validBufferBytes == -1) reBuffer();
+
+            // Check if we have valid data to read
+            if (validBufferBytes == 0 || current - bufferOffset >= validBufferBytes) {
+                return -1; // No more data to read
+            }
+
+            int index = (int) (current - bufferOffset);
+            if (index < 0 || index >= validBufferBytes) {
+                return -1;
+            }
+            current++;
+            return ((int) buffer[index]) & 0xff;
         }
     }
 
@@ -200,6 +241,7 @@ public class RandomAccessReader extends RandomAccessFile {
 
         return toCopy;
     }
+    
 
     public ByteBuffer readBytes(int length) throws IOException {
         assert length >= 0 : "buffer length should not be negative: " + length;

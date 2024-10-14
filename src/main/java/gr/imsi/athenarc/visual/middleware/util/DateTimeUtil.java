@@ -23,6 +23,12 @@ public class DateTimeUtil {
         return LocalDateTime.parse(s, DateTimeFormatter.ofPattern(timeFormat)).atZone(UTC).toInstant().toEpochMilli();
     }
 
+
+
+    public static long parseDateTimeString(String s, DateTimeFormatter formatter) {
+        return LocalDateTime.parse(s, formatter).atZone(UTC).toInstant().toEpochMilli();
+    }
+
     public static long parseDateTimeString(String s, DateTimeFormatter formatter, ZoneId zoneId) {
         return LocalDateTime.parse(s, formatter).atZone(zoneId).toInstant().toEpochMilli();
     }

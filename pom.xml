@@ -20,6 +20,7 @@
         <spring.security.version>6.3.3</spring.security.version>
         <postgres.version>42.7.4</postgres.version>
         <slf4j.version>1.7.21</slf4j.version>
+        <junit.version>4.13.2</junit.version>
     </properties>
     <dependencies>
         <!-- Spring Boot Data JPA -->
@@ -63,6 +64,12 @@
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
             <version>2.0.1.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

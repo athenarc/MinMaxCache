@@ -101,12 +101,27 @@
       </plugin>
     </plugins>
   </build>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>hamcrest-core</artifactId>
+          <groupId>org.hamcrest</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+  </dependencies>
   <properties>
     <spring.security.version>6.3.3</spring.security.version>
     <postgres.version>42.7.4</postgres.version>
     <slf4j.version>1.7.21</slf4j.version>
     <jjwt.version>0.11.1</jjwt.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <junit.version>4.13.2</junit.version>
     <javac.version>17</javac.version>
     <maven.compiler.source>17</maven.compiler.source>
     <spring.version>3.3.4</spring.version>

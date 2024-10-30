@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN" monitorInterval="30">
+<Configuration status="debug" monitorInterval="30">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
         </Console>
-        <File name="File" fileName="logs.log" append="false">
+        <File name="File" fileName="./logs.log" append="false">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
         </File>
     </Appenders>
@@ -38,7 +38,7 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
         </Logger>
-        <Logger name="gr.imsi.athenarc.visual.middleware.cache.TimeSeriesSpanFactory" level="info" additivity="false">
+        <Logger name="gr.imsi.athenarc.visual.middleware.cache.TimeSeriesSpanFactory" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
         </Logger>
@@ -54,12 +54,12 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
         </Logger>
-        <Logger name="gr.imsi.athenarc.visual.middleware.cache.DataProcessor" level="debug" additivity="false">
+        <Logger name="gr.imsi.athenarc.visual.middleware.cache.DataProcessor" level="info" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
         </Logger>
 
-        <Root level="info">
+        <Root level="debug">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
         </Root>

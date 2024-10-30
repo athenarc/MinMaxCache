@@ -96,7 +96,7 @@ public class DataProcessor {
         Map<Integer, Integer> numberOfGroups = new HashMap<>(missingIntervalsPerMeasure.size());
         Map<Integer, Long> aggregateIntervals = new HashMap<>(missingIntervalsPerMeasure.size());
 
-        int rawNoOfGroups = DateTimeUtil.numberOfIntervals(from, to, RAW_FACTOR * dataset.getSamplingInterval().toMillis());
+        int rawNoOfGroups = DateTimeUtil.numberOfIntervals(from, to, RAW_FACTOR * dataset.getSamplingInterval());
 
         for(int measure : aggFactors.keySet()) {
             int noOfGroups = aggFactors.get(measure) * viewPort.getWidth();

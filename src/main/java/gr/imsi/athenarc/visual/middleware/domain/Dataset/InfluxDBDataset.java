@@ -4,14 +4,12 @@ import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 import gr.imsi.athenarc.visual.middleware.domain.InfluxDB.InfluxDBConnection;
 import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
-import gr.imsi.athenarc.visual.middleware.web.CacheAPI;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.InfluxDBQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 
 import java.time.Duration;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,19 +21,19 @@ import org.slf4j.LoggerFactory;
 @Table(name = "influxdb_dataset")
 public class InfluxDBDataset extends AbstractDataset {
 
+    private static String DEFAULT_INFLUX_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+
     private static final Logger LOG = LoggerFactory.getLogger(InfluxDBDataset.class);
 
 
     public InfluxDBDataset(){}
     // Abstract class implementation
     public InfluxDBDataset(String id, String bucket, String measurement){
-        super(id, bucket, measurement);
-
+        super(id, bucket, measurement, DEFAULT_INFLUX_FORMAT);
     }
-
+    
     public InfluxDBDataset(InfluxDBConnection influxDBConnection, String id, String bucket, String measurement) {
-        super(id, bucket, measurement);
-
+        super(id, bucket, measurement, DEFAULT_INFLUX_FORMAT);
         this.fillInfluxDBDatasetInfo(influxDBConnection.getQueryExecutor());
     }
     
@@ -73,7 +71,7 @@ public class InfluxDBDataset extends AbstractDataset {
         long secondTime = secondRecord.getTime().toEpochMilli();
     
         // Calculate and set sampling interval
-        setSamplingInterval(Duration.of(secondTime - firstTime, ChronoUnit.MILLIS));
+        setSamplingInterval(secondTime - firstTime);
     
         // Set time range and headers
         setTimeRange(new TimeRange(firstTime, lastTime));

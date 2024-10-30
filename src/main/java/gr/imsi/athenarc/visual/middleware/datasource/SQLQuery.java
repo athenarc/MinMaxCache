@@ -13,29 +13,32 @@ public class SQLQuery extends DataSourceQuery {
     final String table;
     final String timeCol;
     final String idCol;
+    final String format;
     final String valueCol;
 
-    public SQLQuery(String schema, String table, String timeCol, String idCol, String valueCol, long from, long to, Map<String, List<TimeInterval>> missingTimeIntervalsPerMeasure){
+    public SQLQuery(String schema, String table, String format, String timeCol, String idCol, String valueCol, long from, long to, Map<String, List<TimeInterval>> missingTimeIntervalsPerMeasure){
         super(from, to, missingTimeIntervalsPerMeasure);
         this.schema = schema;
         this.table = table;
         this.timeCol = timeCol;
         this.idCol = idCol;
         this.valueCol = valueCol;
+        this.format = format;
     }
 
-    public SQLQuery(String schema, String table, String timeCol, String idCol, String valueCol, long from, long to, Map<String, List<TimeInterval>> missingTimeIntervalsPerMeasure, Map<String, Integer> numberOfGroupsPerMeasure) {
+    public SQLQuery(String schema, String table, String format, String timeCol, String idCol, String valueCol, long from, long to, Map<String, List<TimeInterval>> missingTimeIntervalsPerMeasure, Map<String, Integer> numberOfGroupsPerMeasure) {
         super(from, to, missingTimeIntervalsPerMeasure, numberOfGroupsPerMeasure);
         this.schema = schema;
         this.table = table;
         this.timeCol = timeCol;
         this.idCol = idCol;
         this.valueCol = valueCol;
+        this.format = format;
     }
 
 
     private String calculateFilter(TimeInterval range, String measure) {
-        return  " (" + timeCol + " >= " + "'" + range.getFromDate("yyyy-MM-dd HH:mm:ss.SSS")  + "'" + " AND " + timeCol + " < " + "'" + range.getToDate("yyyy-MM-dd HH:mm:ss.SSS")  + "'" + " AND " + idCol+ " = '" + measure + "' ) \n" ;
+        return  " (" + timeCol + " >= " + "'" + range.getFromDate(format)  + "'" + " AND " + timeCol + " < " + "'" + range.getToDate(format)  + "'" + " AND " + idCol+ " = '" + measure + "' ) \n" ;
     }
 
     private String rawSkeleton(TimeInterval range, String measure, int i){
@@ -70,7 +73,7 @@ public class SQLQuery extends DataSourceQuery {
                 "AND (" + valueCol + " = v_min OR " + valueCol + " = v_max OR \n" +
                 timeCol + " = t_min OR " + timeCol + " = t_max) \n" +
                 "WHERE \n"  +
-                "(" + timeCol + " >= " + "'" + range.getFromDate("yyyy-MM-dd HH:mm:ss.SSS") + "'" + " AND " + timeCol + " < " + "'" + range.getToDate("yyyy-MM-dd HH:mm:ss.SSS") + "'" + " AND QA." + idCol + " = '" + measure + "' ) \n" ;
+                "(" + timeCol + " >= " + "'" + range.getFromDate(format) + "'" + " AND " + timeCol + " < " + "'" + range.getToDate(format) + "'" + " AND QA." + idCol + " = '" + measure + "' ) \n" ;
     }
 
     private String m4QuerySkeletonCreator() {

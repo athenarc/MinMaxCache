@@ -15,7 +15,7 @@ public class NonTimestampedStatsAggregator implements Stats, Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(StatsAggregator.class);
 
-    private  long from;
+    private long from;
     private long to;
 
     private int count = 0;
@@ -116,4 +116,12 @@ public class NonTimestampedStatsAggregator implements Stats, Serializable {
     public void setTo(long to) {
         this.to = to;
     }
+
+    @Override
+    public String toString() {
+        return "NonTimestampedStatsAggregator [from=" + from + ", to=" + to + ", count=" + count + ", sum=" + sum
+                + ", minValue=" + minValue + ", maxValue=" + maxValue + "]";
+    }
+
+    
 }

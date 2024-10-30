@@ -8,18 +8,22 @@ public class InfluxDBQuery extends DataSourceQuery {
 
     final String bucket;
     final String measurement;
+    final String timeFormat;
 
-    public InfluxDBQuery(String bucket, String measurement, long from, long to, Map<String, List<TimeInterval>> missingIntervalsPerMeasure, Map<String, Integer> numberOfGroups) {
+    public InfluxDBQuery(String bucket, String measurement, String timeFormat, 
+    long from, long to, Map<String, List<TimeInterval>> missingIntervalsPerMeasure, Map<String, Integer> numberOfGroups) {
         super(from, to, missingIntervalsPerMeasure, numberOfGroups);
         this.bucket = bucket;
         this.measurement = measurement;
+        this.timeFormat = timeFormat;
     }
 
 
-    public InfluxDBQuery(String bucket, String measurement, long from, long to, Map<String, List<TimeInterval>> missingIntervalsPerMeasure) {
+    public InfluxDBQuery(String bucket, String measurement, String timeFormat, long from, long to, Map<String, List<TimeInterval>> missingIntervalsPerMeasure) {
         super(from, to, missingIntervalsPerMeasure);
         this.bucket = bucket;
         this.measurement = measurement;
+        this.timeFormat = timeFormat;
     }
 
 

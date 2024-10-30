@@ -70,20 +70,22 @@ public class RandomAccessReader extends RandomAccessFile {
     protected void reBuffer() throws IOException {
         rebufferCount++;
         resetBuffer();
-        if (bufferOffset >= channel.size())
-            return;
-
+        if (bufferOffset >= channel.size() || bufferOffset < 0) return;
+    
         int read = 0;
-        // setting channel position
         channel.position(bufferOffset);
-
+    
         while (read < buffer.length) {
             int n = super.read(buffer, read, buffer.length - read);
-            if (n < 0)
-                break;
+            if (n < 0) break;
             read += n;
         }
         validBufferBytes = read;
+    
+        // Adjust `current` for the beginning of the file in backward direction
+        if (direction == DIRECTION.BACKWARD && current < bufferOffset) {
+            current = bufferOffset + validBufferBytes;
+        }
     }
     
 
@@ -121,10 +123,16 @@ public class RandomAccessReader extends RandomAccessFile {
         return (int) (current - bufferOffset);
     }
 
-    protected void resetBuffer() {
-        bufferOffset = direction == DIRECTION.FORWARD ? current : current - bufferSize;
+    protected void resetBuffer() throws IOException {
+        if (direction == DIRECTION.FORWARD) {
+            bufferOffset = current;
+        } else {
+            // Handle edge case for start of file when reading backward
+            bufferOffset = Math.max(0, current - bufferSize);
+        }
         validBufferBytes = 0;
     }
+    
 
     @Override
     public void close() throws IOException {
@@ -252,14 +260,18 @@ public class RandomAccessReader extends RandomAccessFile {
         return ByteBuffer.wrap(buff);
     }
 
-    public final String readLineReverse() throws  IOException {
+    public final String readLineReverse() throws IOException {
         StringBuilder input = new StringBuilder();
         int c = -1;
         boolean eol = false;
-
+    
         while (!eol) {
-            switch (c = read()) {
+            if (current <= 0) return input.length() == 0 ? null : input.reverse().toString();
+            c = read();
+            switch (c) {
                 case -1:
+                    eol = true;
+                    break;
                 case '\n':
                     eol = true;
                     break;
@@ -271,11 +283,11 @@ public class RandomAccessReader extends RandomAccessFile {
                     }
                     break;
                 default:
-                    input.append((char)c);
+                    input.append((char) c);
                     break;
             }
         }
-        this.lastRowReadOffset = this.current + 1;
+    
         if ((c == -1) && (input.length() == 0)) {
             return null;
         }
@@ -323,4 +335,9 @@ public class RandomAccessReader extends RandomAccessFile {
         if(this.direction == DIRECTION.BACKWARD) current --;
     }
 
+    public DIRECTION getDirection() {
+        return direction;
+    }
+
+    
 }

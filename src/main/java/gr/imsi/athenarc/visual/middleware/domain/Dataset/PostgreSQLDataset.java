@@ -1,7 +1,6 @@
 package gr.imsi.athenarc.visual.middleware.domain.Dataset;
 
 import gr.imsi.athenarc.visual.middleware.domain.PostgreSQL.JDBCConnection;
-import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.SQLQueryExecutor;
@@ -23,6 +22,8 @@ import org.slf4j.LoggerFactory;
 @Table(name = "postgresql_dataset")
 public class PostgreSQLDataset extends AbstractDataset {
 
+    private static String DEFAULT_POSTGRES_FORMAT = "yyyy-MM-dd[ HH:mm:ss.SSS]";
+
     private String timeCol;
     private String idCol;
     private String valueCol;
@@ -30,13 +31,14 @@ public class PostgreSQLDataset extends AbstractDataset {
     private static final Logger LOG = LoggerFactory.getLogger(PostgreSQLDataset.class);
 
     public PostgreSQLDataset(){}
+    
     // Abstract class implementation
     public PostgreSQLDataset(String id, String schema, String table){
-        super(id, schema, table);
+        super(id, schema, table, DEFAULT_POSTGRES_FORMAT);
     }
 
     public PostgreSQLDataset(JDBCConnection jdbcConnection, String id, String schema, String table) throws SQLException {
-        super(id, schema, table);
+        super(id, schema, table, DEFAULT_POSTGRES_FORMAT);
         jdbcConnection.connect();
         this.fillPostgreSQLDatasetInfo(jdbcConnection.getQueryExecutor(), schema, table);
         LOG.info("Dataset: {}, {}", this.getTimeRange(), this.getSamplingInterval());
@@ -103,7 +105,7 @@ public class PostgreSQLDataset extends AbstractDataset {
         long from = resultSet.getLong(1);
         resultSet.next();
         long second = resultSet.getLong(1);
-        setSamplingInterval(Duration.of(second - from, ChronoUnit.MILLIS));
+        setSamplingInterval(second - from);
 
         // Query for the last timestamp
         String lastQuery = "SELECT EXTRACT(epoch FROM " + getTimeCol() + ") * 1000 " +

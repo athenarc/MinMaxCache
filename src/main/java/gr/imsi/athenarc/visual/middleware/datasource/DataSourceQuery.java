@@ -19,11 +19,9 @@ public abstract class DataSourceQuery implements TimeInterval {
 
     final Map<String, List<TimeInterval>> missingIntervalsPerMeasure;
 
-    Map<String, Integer>  numberOfGroups;
+    Map<String, Integer> numberOfGroups;
 
     Map<String, Long> aggregateIntervals;
-
-
 
     /**
      * Creates a new instance of {@link DataSourceQuery}
@@ -49,8 +47,6 @@ public abstract class DataSourceQuery implements TimeInterval {
         this.to = to;
         this.missingIntervalsPerMeasure = missingIntervalsPerMeasure;
     }
-
-
 
     @Override
     public long getFrom() {

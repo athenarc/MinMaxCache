@@ -1,12 +1,11 @@
 package gr.imsi.athenarc.visual.middleware.domain.Dataset;
+import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
-
-import java.time.Duration;
 
 import javax.validation.constraints.NotNull;
 
@@ -23,7 +22,8 @@ public abstract class AbstractDataset implements Serializable {
 
 
     private static final long serialVersionUID = 1L;
-
+    // yyyy-MM-dd HH:mm:ss.SSS
+    private static String DEFAULT_FORMAT = "yyyy-MM-dd[ HH:mm:ss.SSS]";
     @NotNull
     @Id
     private String id;
@@ -31,19 +31,25 @@ public abstract class AbstractDataset implements Serializable {
     private String[] header;
     private String schema;
     private String tableName;
-    private TimeRange timeRange;
+    private String timeFormat;
+    private TimeInterval timeRange;
 
     @Column(name = "sampling_interval")
-    private Duration samplingInterval;
+    private long samplingInterval;
 
     public AbstractDataset(){}
 
     public AbstractDataset(String id, String schema, String tableName){
+        this(id, schema, tableName, DEFAULT_FORMAT);
+    }
+
+    // Constructor with time format
+    public AbstractDataset(String id, String schema, String tableName, String timeFormat){
         this.id = id;
         this.schema = schema;
         this.tableName = tableName;
+        this.timeFormat = timeFormat;
     }
-
 
     public String getId() {
         return id;
@@ -53,11 +59,11 @@ public abstract class AbstractDataset implements Serializable {
         this.id = id;
     }
 
-    public TimeRange getTimeRange() {
+    public TimeInterval getTimeRange() {
         return timeRange;
     }
 
-    public void setTimeRange(TimeRange timeRange) {
+    public void setTimeRange(TimeInterval timeRange) {
         this.timeRange = timeRange;
     }
 
@@ -65,11 +71,11 @@ public abstract class AbstractDataset implements Serializable {
 
     public void setHeader(String[] header) { this.header = header; }
 
-    public Duration getSamplingInterval() {
+    public long getSamplingInterval() {
         return samplingInterval;
     }
 
-    public void setSamplingInterval(Duration samplingInterval) {
+    public void setSamplingInterval(long samplingInterval) {
         this.samplingInterval = samplingInterval;
     }
 
@@ -89,6 +95,15 @@ public abstract class AbstractDataset implements Serializable {
 
     public void setTableName(String tableName) {
         this.tableName = tableName;
+    }
+
+
+    public String getTimeFormat() {
+        return timeFormat;
+    }
+
+    public void setTimeFormat(String timeFormat) {
+        this.timeFormat = timeFormat;
     }
 
     @Override

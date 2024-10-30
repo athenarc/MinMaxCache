@@ -2,8 +2,10 @@ package gr.imsi.athenarc.visual.middleware.cache;
 
 import com.google.common.base.Stopwatch;
 
+import gr.imsi.athenarc.visual.middleware.datasource.CsvQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.InfluxDBQuery;
+import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.CsvQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.InfluxDBQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.SQLQueryExecutor;
@@ -16,6 +18,7 @@ import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -98,7 +101,7 @@ public class CacheQueryExecutor {
             double totalAggFactors = 0.0;
             for (TimeSeriesSpan overlappingSpan : overlappingSpans) {
                 long size = overlappingSpan.getAggregateInterval(); // ms
-                if(size <= dataset.getSamplingInterval().toMillis()) continue; // if raw data continue
+                if(size <= dataset.getSamplingInterval()) continue; // if raw data continue
                 double coveragePercentage = overlappingSpan.percentage(query); // coverage
                 int spanAggFactor = (int) ((double) (pixelColumnInterval) / size);
                 totalAggFactors += coveragePercentage * spanAggFactor;
@@ -229,7 +232,6 @@ public class CacheQueryExecutor {
         double queryTime = 0;
 
         Stopwatch stopwatch = Stopwatch.createStarted();
-        QueryMethod queryMethod = QueryMethod.M4;
         DataSourceQuery dataSourceQuery = null;
         Map<Integer, List<TimeInterval>> missingTimeIntervalsPerMeasure = new HashMap<>(query.getMeasures().size());
         Map<String, List<TimeInterval>> missingTimeIntervalsPerMeasureName = new HashMap<>(query.getMeasures().size());
@@ -246,18 +248,23 @@ public class CacheQueryExecutor {
             numberOfGroupsPerMeasureName.put(measureName, query.getViewPort().getWidth());
         }
         if(queryExecutor instanceof SQLQueryExecutor)
-            dataSourceQuery = new SQLQuery(dataset.getSchema(), dataset.getTableName(), 
+            dataSourceQuery = new SQLQuery(dataset.getSchema(), dataset.getTableName(), dataset.getTimeFormat(),
                     ((PostgreSQLDataset)dataset).getTimeCol(), ((PostgreSQLDataset)dataset).getIdCol(), ((PostgreSQLDataset)dataset).getValueCol(),
                     query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
         else if (queryExecutor instanceof InfluxDBQueryExecutor)
-            dataSourceQuery = new InfluxDBQuery(dataset.getSchema(), dataset.getTableName(), query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
+            dataSourceQuery = new InfluxDBQuery(dataset.getSchema(), dataset.getTableName(), dataset.getTimeFormat(),
+             query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
+        else if (queryExecutor instanceof CsvQueryExecutor)
+            dataSourceQuery = new CsvQuery(query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
         else {
             throw new RuntimeException("Unsupported query executor");
         }
         try {
-            queryResults = queryExecutor.execute(dataSourceQuery, queryMethod);
+            queryResults = queryExecutor.execute(dataSourceQuery, QueryMethod.M4);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         Map<Integer, Double> error = new HashMap<>();

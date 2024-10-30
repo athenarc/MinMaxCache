@@ -8,8 +8,10 @@ import com.google.common.base.Stopwatch;
 import com.univocity.parsers.csv.CsvWriter;
 import com.univocity.parsers.csv.CsvWriterSettings;
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCache;
+import gr.imsi.athenarc.visual.middleware.datasource.CsvQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.InfluxDBQuery;
+import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.CsvQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.SQLQuery;
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.*;
@@ -22,7 +24,6 @@ import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 import gr.imsi.athenarc.visual.middleware.domain.ViewPort;
 import gr.imsi.athenarc.visual.middleware.experiments.util.*;
-import gr.imsi.athenarc.visual.middleware.util.io.SerializationUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -150,7 +151,7 @@ public class Experiments<T> {
     }
 
 
-    public static void main(String... args) throws IOException, ClassNotFoundException, SQLException {
+    public static void main(String... args) throws IOException, SQLException, NoSuchMethodException {
         Experiments experiments = new Experiments();
         JCommander jCommander = new JCommander(experiments);
         jCommander.parse(args);
@@ -161,7 +162,7 @@ public class Experiments<T> {
         }
     }
 
-    private void run() throws IOException, ClassNotFoundException, SQLException {
+    private void run() throws IOException, SQLException, NoSuchMethodException {
         Preconditions.checkNotNull(outFolder, "No out folder specified.");
         type = type.toLowerCase(Locale.ROOT);
         switch(type){
@@ -187,7 +188,7 @@ public class Experiments<T> {
     }
 
 
-    private void initialize() throws IOException, SQLException {
+    private void initialize() throws IOException, SQLException, NoSuchMethodException {
         AbstractDataset dataset = createInitDataset();
         QueryExecutor queryExecutor = createQueryExecutor(dataset);
         queryExecutor.drop();
@@ -236,7 +237,7 @@ public class Experiments<T> {
             csvWriter.addValue(time - queryResults.getQueryTime());
             csvWriter.addValue(queryResults.getQueryTime());
             csvWriter.addValue(memorySize);
-            csvWriter.addValue((query.getTo() - query.getFrom()) / dataset.getSamplingInterval().toMillis()); // raw data points
+            csvWriter.addValue((query.getTo() - query.getFrom()) / dataset.getSamplingInterval()); // raw data points
 //            csvWriter.addValue((double) ((query.getTo() - query.getFrom()) / queryResults.getAggFactor() / query.getViewPort().getWidth()) / dataset.getSamplingInterval().toMillis()); // data reduction factor
             csvWriter.addValue(queryResults.getError());
             csvWriter.addValue(queryResults.isFlag());
@@ -325,11 +326,15 @@ public class Experiments<T> {
             DataSourceQuery dataSourceQuery = null;
             switch (type) {
                 case "postgres":
-                    dataSourceQuery = new SQLQuery(dataset.getSchema(), dataset.getTableName(), ((PostgreSQLDataset)dataset).getTimeCol(), ((PostgreSQLDataset)dataset).getIdCol(), ((PostgreSQLDataset)dataset).getValueCol(),
+                    dataSourceQuery = new SQLQuery(dataset.getSchema(), dataset.getTableName(), dataset.getTimeFormat(), ((PostgreSQLDataset)dataset).getTimeCol(), ((PostgreSQLDataset)dataset).getIdCol(), ((PostgreSQLDataset)dataset).getValueCol(),
                             query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
                     break;
+                case "csv":
+                    dataSourceQuery = new CsvQuery(query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
+                    break;
                 case "influx":
-                    dataSourceQuery = new InfluxDBQuery(dataset.getSchema(), dataset.getTableName(), query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
+                    dataSourceQuery = new InfluxDBQuery(dataset.getSchema(), dataset.getTableName(), dataset.getTimeFormat(),
+                            query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
                     break;
             }
             queryResults = queryExecutor.execute(dataSourceQuery, queryMethod);
@@ -412,12 +417,10 @@ public class Experiments<T> {
         Path timeQueriesPath = Paths.get(outFolder, "timeQueries");
         Path typePath = Paths.get(outFolder, "timeQueries", type);
         Path tablePath = Paths.get(outFolder, "timeQueries", type, table);
-        Path metadataPath = Paths.get("metadata");
         FileUtil.build(outFolderPath.toString());
         FileUtil.build(timeQueriesPath.toString());
         FileUtil.build(typePath.toString());
         FileUtil.build(tablePath.toString());
-        FileUtil.build(metadataPath.toString());
     }
 
 
@@ -436,28 +439,21 @@ public class Experiments<T> {
         return dataset;
     }
     
-    private AbstractDataset createDataset() throws SQLException {
+    private AbstractDataset createDataset() throws SQLException, IOException {
         String p = "";
         AbstractDataset dataset = null;
         switch (type) {
+            case "csv":
+                dataset = new CsvDataset(path, table, schema, table, timeFormat, timeCol, delimiter, hasHeader);
+                break;
             case "postgres":
-                p = String.valueOf(Paths.get("metadata", "postgres-" + table));
-                if (new File(p).exists()) dataset = (PostgreSQLDataset) SerializationUtilities.loadSerializedObject(p);
-                else{
-                    JDBCConnection postgreSQLConnection =
-                        (JDBCConnection) new JDBCConnection(config).connect();
-                    dataset = new PostgreSQLDataset(postgreSQLConnection, table, schema, table);
-                    SerializationUtilities.storeSerializedObject(dataset, p);
-                }
+                JDBCConnection postgreSQLConnection =
+                    (JDBCConnection) new JDBCConnection(config).connect();
+                dataset = new PostgreSQLDataset(postgreSQLConnection, table, schema, table);
                 break;
             case "influx":
-                p = String.valueOf(Paths.get("metadata", "influx-" + table));
-                if (new File(p).exists()) dataset = (InfluxDBDataset) SerializationUtilities.loadSerializedObject(p);
-                else {
-                    InfluxDBConnection influxDBConnection = (InfluxDBConnection) new InfluxDBConnection(config).connect();
-                    dataset = new InfluxDBDataset(influxDBConnection, table, schema, table);
-                    SerializationUtilities.storeSerializedObject(dataset, p);
-                }
+                InfluxDBConnection influxDBConnection = (InfluxDBConnection) new InfluxDBConnection(config).connect();
+                dataset = new InfluxDBDataset(influxDBConnection, table, schema, table);
                 break;
             default:
                 break;
@@ -475,12 +471,15 @@ public class Experiments<T> {
     private QueryExecutor createQueryExecutor(AbstractDataset dataset) throws IOException, SQLException {
         QueryExecutor queryExecutor = null;
         switch (type) {
+            case "csv":
+                queryExecutor = new CsvQueryExecutor(dataset);
+                break;   
             case "postgres":
                 JDBCConnection postgreSQLConnection =
                         new JDBCConnection(config);
                 postgreSQLConnection.connect();
                 queryExecutor = postgreSQLConnection.getQueryExecutor(dataset);
-                break;             
+                break;               
             case "influx":
                 InfluxDBConnection influxDBConnection =
                         new InfluxDBConnection(config);

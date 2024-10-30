@@ -76,7 +76,7 @@ public class PostgreSQLDatasource implements DataSource {
                             entry -> dataset.getHeader()[entry.getKey()], // Key mapping is the measure name
                             Map.Entry::getValue // Value remains the same
                     ));
-            this.sqlQuery = new SQLQuery(dataset.getSchema(), dataset.getTableName(), dataset.getTimeCol(), dataset.getIdCol(), dataset.getValueCol(),
+            this.sqlQuery = new SQLQuery(dataset.getSchema(), dataset.getTableName(), dataset.getTimeFormat(), dataset.getTimeCol(), dataset.getIdCol(), dataset.getValueCol(),
                     from, to, missingIntervalsPerMeasureName);
         }
 
@@ -152,7 +152,7 @@ public class PostgreSQLDatasource implements DataSource {
                             (v1, v2) -> v1, // Merge function to keep the first value in case of key collision
                             LinkedHashMap::new // Specify LinkedHashMap to maintain insertion order
                     ));
-            this.sqlQuery = new SQLQuery(dataset.getSchema(), dataset.getTableName(), dataset.getTimeCol(), dataset.getIdCol(), dataset.getValueCol(),
+            this.sqlQuery = new SQLQuery(dataset.getSchema(), dataset.getTableName(),  dataset.getTimeFormat(), dataset.getTimeCol(), dataset.getIdCol(), dataset.getValueCol(),
                     from, to, missingIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
             this.queryMethod = queryMethod;
         }
@@ -194,12 +194,12 @@ public class PostgreSQLDatasource implements DataSource {
 
         @Override
         public String getFromDate() {
-            return getFromDate("yyyy-MM-dd HH:mm:ss");
+            return getFromDate(dataset.getTimeFormat());
         }
 
         @Override
         public String getToDate() {
-            return getToDate("yyyy-MM-dd HH:mm:ss");
+            return getToDate(dataset.getTimeFormat());
         }
 
         @Override

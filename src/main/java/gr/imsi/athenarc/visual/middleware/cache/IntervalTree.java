@@ -2,6 +2,7 @@ package gr.imsi.athenarc.visual.middleware.cache;
 
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -15,7 +16,7 @@ import java.util.*;
  * extensions mentioned in section 14.3
  * @param <T> - the type of TimeRange this tree contains
  */
-public class IntervalTree<T extends TimeInterval> implements Iterable<T> {
+public class IntervalTree<T extends TimeInterval> implements Iterable<T>, Serializable {
 
     private Node root;  // The root Node.
     private Node nil;   // The sentinel Node to represent the absence of a node.

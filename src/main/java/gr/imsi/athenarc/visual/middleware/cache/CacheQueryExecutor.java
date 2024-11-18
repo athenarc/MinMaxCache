@@ -77,7 +77,7 @@ public class CacheQueryExecutor {
         Map<Integer, List<TimeSeriesSpan>> overlappingSpansPerMeasure = cacheManager.getFromCache(query, pixelColumnInterval);
         LOG.debug("Overlapping intervals per measure {}", overlappingSpansPerMeasure);
         Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure = new HashMap<>(measures.size());
-        Map<Integer, Double> errorPerMeasure = new HashMap<>(measures.size());
+        Map<Integer, ErrorResults> errorPerMeasure = new HashMap<>(measures.size());
 
         // For each measure, get the overlapping spans, add them to pixel columns and calculate the error
         // Compute the aggFactor, and if there is an error double it.
@@ -92,8 +92,12 @@ public class CacheQueryExecutor {
 
             // Calculate Error
             ErrorCalculator errorCalculator = new ErrorCalculator();
+            ErrorResults errorResults = new ErrorResults();
             double errorForMeasure = errorCalculator.calculateTotalError(pixelColumns, viewPort, pixelColumnInterval, query.getAccuracy());
-            errorPerMeasure.put(measure, errorForMeasure);
+            errorResults.setError(errorForMeasure);
+            errorResults.setFalsePixels(errorCalculator.getFalsePixels());
+            errorResults.setMissingPixels(errorCalculator.getMissingPixels());
+            errorPerMeasure.put(measure, errorResults);
             List<TimeInterval> missingIntervalsForMeasure = errorCalculator.getMissingIntervals();
 
             // Calculate aggFactor
@@ -138,6 +142,7 @@ public class CacheQueryExecutor {
         List<Integer> measuresWithError = new ArrayList<>();
         // For each measure with a miss, add the fetched data points to the pixel columns and recalculate the error.
         for(int measureWithMiss : missingTimeSeriesSpansPerMeasure.keySet()) {
+
             List<PixelColumn> pixelColumns = pixelColumnsPerMeasure.get(measureWithMiss);
             List<TimeSeriesSpan> timeSeriesSpans = missingTimeSeriesSpansPerMeasure.get(measureWithMiss);
             // Add to pixel columns
@@ -145,22 +150,27 @@ public class CacheQueryExecutor {
 
             // Recalculate error per measure
             ErrorCalculator errorCalculator = new ErrorCalculator();
+            ErrorResults errorResults = new ErrorResults();
             double errorForMeasure = errorCalculator.calculateTotalError(pixelColumns, viewPort, pixelColumnInterval, query.getAccuracy());
+
             if (errorCalculator.hasError()) measuresWithError.add(measureWithMiss);
-            errorPerMeasure.put(measureWithMiss, errorForMeasure);
+            errorResults.setError(errorForMeasure);
+            errorResults.setFalsePixels(errorCalculator.getFalsePixels());
+            errorResults.setMissingPixels(errorCalculator.getMissingPixels());
+            errorPerMeasure.put(measureWithMiss, errorResults);
             pixelColumnsPerMeasure.put(measureWithMiss, pixelColumns);
             // Add them all to the cache.
             cacheManager.addToCache(timeSeriesSpans);
         }
-        LOG.info("Errors: {}", errorPerMeasure);
-
         // Fetch errored measures with M4
         if(!measuresWithError.isEmpty()) {
             Query m4Query = new Query(from, to, 1.0f, query.getFilter(), QueryMethod.M4, measuresWithError, viewPort, query.getOpType());
             QueryResults m4QueryResults = executeM4Query(m4Query, dataProcessor.getQueryExecutor());
             long timeStart = System.currentTimeMillis();
             measuresWithError.forEach(m -> resultData.put(m, m4QueryResults.getData().get(m))); // add m4 results to final result
-            measuresWithError.forEach(m -> errorPerMeasure.put(m, 0.0)); // set error to 0;
+            // Set error to 0
+            ErrorResults errorResults = new ErrorResults();
+            measuresWithError.forEach(m -> errorPerMeasure.put(m, errorResults)); // set error to 0;
             queryResults.setProgressiveQueryTime((System.currentTimeMillis() - timeStart) / 1000F);
         }
 
@@ -228,7 +238,7 @@ public class CacheQueryExecutor {
     }
 
     private QueryResults executeM4Query(Query query, QueryExecutor queryExecutor) {
-        QueryResults queryResults = null;
+        QueryResults queryResults = new QueryResults();
         double queryTime = 0;
 
         Stopwatch stopwatch = Stopwatch.createStarted();
@@ -267,9 +277,9 @@ public class CacheQueryExecutor {
             e.printStackTrace();
         }
 
-        Map<Integer, Double> error = new HashMap<>();
+        Map<Integer, ErrorResults> error = new HashMap<>();
         for(Integer m : query.getMeasures()){
-            error.put(m, 0.0);
+            error.put(m, new ErrorResults());
         }
         queryResults.setError(error);
 

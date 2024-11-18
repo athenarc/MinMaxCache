@@ -252,7 +252,7 @@ public class CsvTimeSeriesRandomAccessReader extends RandomAccessReader {
         return timeColumnIndex;
     }
 
-    public TimeInterval getTimeRange() {
+    public TimeRange getTimeRange() {
         return new TimeRange(startTime, endTime);
     }
 

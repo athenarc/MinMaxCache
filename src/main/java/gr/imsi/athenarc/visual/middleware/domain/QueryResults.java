@@ -24,7 +24,7 @@ public class QueryResults implements Serializable {
 
     private Map<Integer, StatsAggregator> groupByResults;
 
-    private Map<Integer, Double> error;
+    private Map<Integer, ErrorResults> error;
 
     private int ioCount = 0;
 
@@ -35,7 +35,7 @@ public class QueryResults implements Serializable {
     private Map<Integer, Integer> aggFactors;
 
     private boolean flag;
-
+    
     public TimeInterval getTimeRange() {
         return this.timeRange;
     }
@@ -76,7 +76,7 @@ public class QueryResults implements Serializable {
         this.ioCount = ioCount;
     }
 
-    public void setError(Map<Integer, Double> error) {
+    public void setError(Map<Integer, ErrorResults> error) {
         this.error = error;
     }
 
@@ -167,7 +167,7 @@ public class QueryResults implements Serializable {
         }
     }
 
-    public Map<Integer, Double> getError() {
+    public Map<Integer, ErrorResults> getError() {
         return error;
     }
 

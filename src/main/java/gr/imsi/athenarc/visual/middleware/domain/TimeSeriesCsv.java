@@ -1,6 +1,8 @@
 package gr.imsi.athenarc.visual.middleware.domain;
 
-public class TimeSeriesCsv implements TimeInterval {
+import java.io.Serializable;
+
+public class TimeSeriesCsv implements TimeInterval, Serializable {
 
     private long from;
     private long to;

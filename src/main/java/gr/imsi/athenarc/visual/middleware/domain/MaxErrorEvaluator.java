@@ -22,9 +22,14 @@ public class MaxErrorEvaluator {
     private List<TimeInterval> missingRanges;
 
 
+    private List<RangeSet<Integer>> missingPixels;
+    private List<RangeSet<Integer>> falsePixels;
+
     public MaxErrorEvaluator(ViewPort viewPort, List<PixelColumn> pixelColumns) {
         this.viewPort = viewPort;
         this.pixelColumns = pixelColumns;
+        this.missingPixels = new ArrayList<>();
+        this.falsePixels = new ArrayList<>();
     }
 
     public List<Double> computeMaxPixelErrorsPerColumn() {
@@ -45,7 +50,8 @@ public class MaxErrorEvaluator {
                 missingRanges.add(currentPixelColumn.getRange()); // add range as missing
                 continue;
             }
-            RangeSet<Integer> pixelErrorRangeSet = TreeRangeSet.create();
+            RangeSet<Integer> pixelColumnFalsePixels = TreeRangeSet.create();
+            RangeSet<Integer> pixelColumnMissingPixels = TreeRangeSet.create();
 
             // Check if there is a previous PixelColumn
             if (i > 0) {
@@ -53,9 +59,9 @@ public class MaxErrorEvaluator {
                 if (previousPixelColumn.getStats().getCount() != 0) {
                     Range<Integer> leftMaxFalsePixels = currentPixelColumn.getPixelIdsForLineSegment(previousPixelColumn.getStats().getLastTimestamp(), previousPixelColumn.getStats().getLastValue(),
                             currentPixelColumn.getStats().getFirstTimestamp(), currentPixelColumn.getStats().getFirstValue(), viewPortStatsAggregator);
-                    pixelErrorRangeSet.add(leftMaxFalsePixels);
+                            pixelColumnFalsePixels.add(leftMaxFalsePixels);
 
-                    if (!getMaxMissingInterColumnPixels(previousPixelColumn, currentPixelColumn, pixelErrorRangeSet, viewPortStatsAggregator)){
+                    if (!getMaxMissingInterColumnPixels(previousPixelColumn, currentPixelColumn, pixelColumnMissingPixels, viewPortStatsAggregator)){
                         maxPixelErrorsPerColumn.add(null);
                         missingRanges.add(currentPixelColumn.getRange()); // add range as missing
                         continue;
@@ -68,20 +74,34 @@ public class MaxErrorEvaluator {
                 if (nextPixelColumn.getStats().getCount() != 0) {
                     Range<Integer> rightMaxFalsePixels = currentPixelColumn.getPixelIdsForLineSegment(currentPixelColumn.getStats().getLastTimestamp(), currentPixelColumn.getStats().getLastValue(),
                             nextPixelColumn.getStats().getFirstTimestamp(), nextPixelColumn.getStats().getFirstValue(), viewPortStatsAggregator);
-                    pixelErrorRangeSet.add(rightMaxFalsePixels);
+                            pixelColumnFalsePixels.add(rightMaxFalsePixels);
 
-                    if (!getMaxMissingInterColumnPixels(currentPixelColumn, nextPixelColumn, pixelErrorRangeSet, viewPortStatsAggregator)){
+                    if (!getMaxMissingInterColumnPixels(currentPixelColumn, nextPixelColumn, pixelColumnMissingPixels, viewPortStatsAggregator)){
                         maxPixelErrorsPerColumn.add(null);
                         missingRanges.add(currentPixelColumn.getRange()); // add range as missing
                         continue;
                     }
                 }
             }
-            pixelErrorRangeSet.remove(currentPixelColumn.getActualInnerColumnPixelRange(viewPortStatsAggregator));
-            int maxWrongPixels = pixelErrorRangeSet.asRanges().stream()
+
+            // Remove actual inner column pixels 
+            pixelColumnFalsePixels.remove(currentPixelColumn.getActualInnerColumnPixelRange(viewPortStatsAggregator));
+            pixelColumnMissingPixels.remove(currentPixelColumn.getActualInnerColumnPixelRange(viewPortStatsAggregator));
+
+            RangeSet<Integer> pixelColumnErrorPixels = TreeRangeSet.create();
+            pixelColumnErrorPixels.addAll(pixelColumnFalsePixels);
+            pixelColumnErrorPixels.addAll(pixelColumnMissingPixels);
+            // Calculate pixel errors
+            int maxWrongPixels = pixelColumnErrorPixels.asRanges().stream()
                     .mapToInt(range -> range.upperEndpoint() - range.lowerEndpoint() + 1)
                     .sum();
+
+            // Normalize the result
             maxPixelErrorsPerColumn.add(((double) maxWrongPixels / viewPort.getHeight()));
+
+            // Add sets to list for return on queryResults
+            missingPixels.add(pixelColumnMissingPixels);
+            falsePixels.add(pixelColumnFalsePixels);
         }
         LOG.debug("{}", maxPixelErrorsPerColumn);
         return maxPixelErrorsPerColumn;
@@ -98,7 +118,7 @@ public class MaxErrorEvaluator {
      * @return the maximum missing column pixel range or null in case of partially-contained group at the intersection between the two columns.
      */
     private boolean getMaxMissingInterColumnPixels(PixelColumn leftPixelColumn, PixelColumn rightPixelColumn,
-                                                   RangeSet<Integer> pixelErrorRangeSet,
+                                                   RangeSet<Integer> pixelColumnMissingPixels,
                                                    StatsAggregator viewPortStatsAggregator) {
         // check if there is a partially-contained group at the intersection between the two columns
         AggregatedDataPoint leftPartial = leftPixelColumn.getLeftPartial();
@@ -112,14 +132,14 @@ public class MaxErrorEvaluator {
                 int leftMaxPixelId = viewPort.getPixelId(left.getStats().getMaxValue(), viewPortStatsAggregator);
                 int rightMinPixelId = viewPort.getPixelId(right.getStats().getMinValue(), viewPortStatsAggregator);
 
-                pixelErrorRangeSet.add(Range.closed(Math.min(leftMinPixelId, rightMaxPixelId), Math.max(leftMinPixelId, rightMaxPixelId)));
-                pixelErrorRangeSet.add(Range.closed(Math.min(leftMaxPixelId, rightMinPixelId), Math.max(leftMaxPixelId, rightMinPixelId)));
+                pixelColumnMissingPixels.add(Range.closed(Math.min(leftMinPixelId, rightMaxPixelId), Math.max(leftMinPixelId, rightMaxPixelId)));
+                pixelColumnMissingPixels.add(Range.closed(Math.min(leftMaxPixelId, rightMinPixelId), Math.max(leftMaxPixelId, rightMinPixelId)));
 
             } else {
                 return false;
             }
         } else {
-            pixelErrorRangeSet.add(Range.closed(viewPort.getPixelId(leftPartial.getStats().getMinValue(), viewPortStatsAggregator),
+            pixelColumnMissingPixels.add(Range.closed(viewPort.getPixelId(leftPartial.getStats().getMinValue(), viewPortStatsAggregator),
                     viewPort.getPixelId(leftPartial.getStats().getMaxValue(), viewPortStatsAggregator)));
         }
         return true;
@@ -128,6 +148,14 @@ public class MaxErrorEvaluator {
 
     public List<TimeInterval> getMissingRanges() {
         return missingRanges;
+    }
+
+    public List<RangeSet<Integer>> getMissingPixels() {
+        return missingPixels;
+    }
+
+    public List<RangeSet<Integer>> getFalsePixels() {
+        return falsePixels;
     }
 
 

@@ -67,7 +67,6 @@ public class PixelColumn implements TimeInterval {
             }
         }
 
-        // todo: here, in case we add data from time series span, we add the same min-max point twice. This is not a problem, but it's not optimal.
         if (stats.getCount() > 0){
             if (this.contains(stats.getMinTimestamp())) {
                 statsAggregator.accept(dp.getStats().getMinDataPoint());
@@ -76,14 +75,6 @@ public class PixelColumn implements TimeInterval {
             if (this.contains(stats.getMaxTimestamp())) {
                 statsAggregator.accept(dp.getStats().getMaxDataPoint());
             }
-
-//            if (this.contains(stats.getFirstTimestamp())) {
-//                statsAggregator.accept(dp.getStats().getFirstDataPoint());
-//            }
-//
-//            if (this.contains(stats.getLastTimestamp())) {
-//                statsAggregator.accept(dp.getStats().getLastDataPoint());
-//            }
         }
     }
 
@@ -122,10 +113,7 @@ public class PixelColumn implements TimeInterval {
             else {
                 leftPartial = left.stream().filter(aggregatedDataPoint -> aggregatedDataPoint.getTo() >= finalLeftSubRange.upperEndpoint())
                           .min(Comparator.comparingLong(aggregatedDataPoint -> aggregatedDataPoint.getTo() - aggregatedDataPoint.getFrom()))
-                          .orElseGet(() ->  null);
-//                          .orElseThrow(() ->
-//                                new IllegalStateException("Could not determine the left partially contained group " +
-//                                        DateTimeUtil.format(getFrom()) + " - " + DateTimeUtil.format(getTo())));
+                          .orElseGet(() ->  null);                      
             }
         } else {
             leftPartial = null;
@@ -137,9 +125,6 @@ public class PixelColumn implements TimeInterval {
                 rightPartial = right.stream().filter(aggregatedDataPoint -> aggregatedDataPoint.getFrom() <= finalRightSubRange.lowerEndpoint())
                         .min(Comparator.comparingLong(aggregatedDataPoint -> aggregatedDataPoint.getTo() - aggregatedDataPoint.getFrom()))
                         .orElseGet(() ->  null);
-//                      .orElseThrow(() ->
-//                            new IllegalStateException("Could not determine the right partially contained group " +
-//                                    DateTimeUtil.format(getFrom()) + " - "  + DateTimeUtil.format(getTo())));
         } else {
             rightPartial = null;
         }
@@ -179,8 +164,6 @@ public class PixelColumn implements TimeInterval {
     }
 
 
-
-
     /**
      * Returns a closed range of pixel IDs that the line segment intersects within this pixel column.
      *
@@ -210,7 +193,7 @@ public class PixelColumn implements TimeInterval {
         int pixelIdStart = viewPort.getPixelId(vStart, viewPortStats);
         int pixelIdEnd = viewPort.getPixelId(vEnd, viewPortStats);
 
-        // Create a range from the pixel ids and return it
+        // Create aa range from the pixel ids and return it
         return Range.closed(Math.min(pixelIdStart, pixelIdEnd), Math.max(pixelIdStart, pixelIdEnd));
     }
 

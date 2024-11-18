@@ -30,8 +30,7 @@ public class CsvDataset extends AbstractDataset {
     private String timeFormat;
     private String delimiter;
     private boolean hasHeader;
-
-    // private TreeMap<TimeInterval, String> fileTimeRangeMap = new TreeMap<>(Comparator.comparingLong(TimeInterval::getFrom));
+    
     private IntervalTree<TimeSeriesCsv> fileTimeRangeTree = new IntervalTree<TimeSeriesCsv>();
     public CsvDataset(){}
 

@@ -5,6 +5,8 @@ import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.RangeSet;
+
 import java.util.*;
 
 public class ErrorCalculator {
@@ -20,6 +22,7 @@ public class ErrorCalculator {
         maxErrorEvaluator = new MaxErrorEvaluator(viewPort, pixelColumns);
         this.pixelColumnInterval = pixelColumnInterval;
         List<Double> pixelColumnErrors = maxErrorEvaluator.computeMaxPixelErrorsPerColumn();
+
         // Find the part of the query interval that is not covered by the spans in the interval tree.
         int validColumns = 0;
         error = 0.0;
@@ -40,6 +43,14 @@ public class ErrorCalculator {
         missingIntervals = DateTimeUtil.groupIntervals(pixelColumnInterval, missingIntervals);
         LOG.info("Unable to Determine Errors: " + missingIntervals);
         return missingIntervals;
+    }
+
+    public List<RangeSet<Integer>> getMissingPixels() {
+        return maxErrorEvaluator.getMissingPixels();
+    }
+
+    public List<RangeSet<Integer>> getFalsePixels() {
+        return maxErrorEvaluator.getFalsePixels();
     }
 
     public boolean hasError(){

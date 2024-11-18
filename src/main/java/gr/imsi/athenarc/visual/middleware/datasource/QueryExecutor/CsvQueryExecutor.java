@@ -87,7 +87,7 @@ public class CsvQueryExecutor implements QueryExecutor {
                         .collect(Collectors.toList());
 
             for (TimeSeriesCsv overlappingCsvFile : overlappingIntervals) {
-                LOG.info("File range: {}, interval: {}", overlappingCsvFile.getTimeRange(), interval);
+                LOG.debug("File range: {}, interval: {}", overlappingCsvFile.getTimeRange(), interval);
                 // Initialize a reader for the relevant file
                 CsvTimeSeriesRandomAccessReader reader = new CsvTimeSeriesRandomAccessReader(
                     overlappingCsvFile.getFilePath(), dataset.getTimeCol(), dataset.getDelimiter(),

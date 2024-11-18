@@ -32,7 +32,7 @@ public abstract class AbstractDataset implements Serializable {
     private String schema;
     private String tableName;
     private String timeFormat;
-    private TimeInterval timeRange;
+    private TimeRange timeRange;
 
     @Column(name = "sampling_interval")
     private long samplingInterval;
@@ -63,7 +63,7 @@ public abstract class AbstractDataset implements Serializable {
         return timeRange;
     }
 
-    public void setTimeRange(TimeInterval timeRange) {
+    public void setTimeRange(TimeRange timeRange) {
         this.timeRange = timeRange;
     }
 

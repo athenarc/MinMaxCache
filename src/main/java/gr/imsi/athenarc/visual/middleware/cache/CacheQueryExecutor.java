@@ -46,8 +46,10 @@ public class CacheQueryExecutor {
                                      DataProcessor dataProcessor, PrefetchManager prefetchManager){
         LOG.info("Executing Visual Query {}", query);
         if(query.getAccuracy() == 1) return executeM4Query(query, dataProcessor.getQueryExecutor());
-        long from = query.getFrom();
-        long to = query.getTo();
+
+        // Bound from and to to dataset range
+        long from = Math.max(dataset.getTimeRange().getFrom(), query.getFrom());
+        long to = Math.min(dataset.getTimeRange().getTo(), query.getTo());
         QueryResults queryResults = new QueryResults();
 
         ViewPort viewPort = query.getViewPort();

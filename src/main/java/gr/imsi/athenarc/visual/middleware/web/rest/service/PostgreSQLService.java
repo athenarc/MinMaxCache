@@ -1,7 +1,9 @@
 package gr.imsi.athenarc.visual.middleware.web.rest.service;
 
 import java.sql.SQLException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +23,8 @@ import gr.imsi.athenarc.visual.middleware.web.rest.repository.PostgreSQLDatasetR
 public class PostgreSQLService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreSQLService.class);
+
+    private final ConcurrentHashMap<String, CompletableFuture<?>> ongoingRequests = new ConcurrentHashMap<>();
 
     @Value("${postgres.url}")
     private String postgresUrl;
@@ -50,30 +54,32 @@ public class PostgreSQLService {
         LOG.info("PostgreSQL connection established.");
     }
 
-    // Sample method to query the database
-    public QueryResults performQuery(Query query, String schema, String id) throws SQLException {
+    public CompletableFuture<QueryResults> performQuery(Query query, String schema, String id) throws SQLException {
         if (jdbcConnection == null) {
             initializeConnection();
         }
 
-        PostgreSQLDataset dataset;
-        if (datasetRepository.existsById(id)) {
-            // If it exists, return the dataset
-            dataset = datasetRepository.findById(id).orElseThrow(() -> new RuntimeException("Dataset not found."));
-        }
-        else {
-            // Initialize the dataset
-            dataset = initializeDataset(schema, id);
-            datasetRepository.save(dataset);
-        }
-        
-        // Check if cache exists in memory, if not, create it
-        MinMaxCache minMaxCache = cacheMap.computeIfAbsent(id, key -> {
-            SQLQueryExecutor sqlQueryExecutor = jdbcConnection.getQueryExecutor(dataset);
-            return new MinMaxCache(sqlQueryExecutor, dataset, 0.5, 4, 4);
-        });
+        PostgreSQLDataset dataset = datasetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Dataset not found."));
 
-        return minMaxCache.executeQuery(query);
+        // Cancel previous request for this dataset, if any
+        CompletableFuture<?> previousRequest = ongoingRequests.put(id, new CompletableFuture<>());
+        if (previousRequest != null && !previousRequest.isDone()) {
+            previousRequest.cancel(true);
+        }
+
+        CompletableFuture<QueryResults> queryFuture = CompletableFuture.supplyAsync(() -> {
+            // Execute the query asynchronously
+            MinMaxCache minMaxCache = cacheMap.computeIfAbsent(id, key -> {
+                SQLQueryExecutor sqlQueryExecutor = jdbcConnection.getQueryExecutor(dataset);
+                return new MinMaxCache(sqlQueryExecutor, dataset, 0.5, 4, 4);
+            });
+
+            return minMaxCache.executeQuery(query);
+        }).orTimeout(30, TimeUnit.SECONDS); // Timeout after 30 seconds
+
+        ongoingRequests.put(id, queryFuture);
+        return queryFuture;
     }
 
     // Close connection method (optional)
@@ -91,6 +97,27 @@ public class PostgreSQLService {
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public PostgreSQLDataset getDatasetById(String schema, String id) throws SQLException {
+        if (jdbcConnection == null) {
+            initializeConnection();
+        }
+        // Check if the dataset already exists
+        if (datasetRepository.existsById(id)) {
+            return datasetRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Dataset not found."));
+        } else {
+            // Initialize and save a new dataset if it doesn't exist
+            LOG.info("Dataset with id {} does not exist. Initializing...", id);
+            PostgreSQLDataset newDataset = initializeDataset(schema, id); // Use the appropriate schema
+            if (newDataset != null) {
+                datasetRepository.save(newDataset);
+                return newDataset;
+            } else {
+                throw new RuntimeException("Failed to initialize dataset with id " + id);
+            }
         }
     }
 }

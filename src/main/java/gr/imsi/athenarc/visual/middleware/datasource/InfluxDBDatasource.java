@@ -43,12 +43,6 @@ public class InfluxDBDatasource implements DataSource {
     }
 
     @Override
-    public DataPoints getDataPoints(long from, long to, Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure) {
-        return new InfluxDBDatasource.InfluxDBDatapoints(from, to, missingIntervalsPerMeasure);
-
-    }
-
-    @Override
     public DataPoints getAllDataPoints(List<Integer> measures) {
         Map<Integer, List<TimeInterval>> missingTimeIntervalsPerMeasure = new HashMap<>(measures.size());
         for (Integer measure : measures) {
@@ -95,6 +89,7 @@ public class InfluxDBDatasource implements DataSource {
             try {
                 List<FluxTable> fluxTables;
                 fluxTables = influxDBQueryExecutor.executeRawInfluxQuery(influxDBQuery);
+                LOG.info("{} tables fetched", fluxTables);
                 return new InfluxDBDataPointsIterator(influxDBQuery.getMissingIntervalsPerMeasure(), fluxTables);
             } catch (Exception e){
                 LOG.error("No data in a specified query");

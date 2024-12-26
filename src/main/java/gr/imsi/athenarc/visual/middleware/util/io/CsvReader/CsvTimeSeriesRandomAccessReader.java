@@ -3,7 +3,6 @@ package gr.imsi.athenarc.visual.middleware.util.io.CsvReader;
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
 
-import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
 import org.slf4j.Logger;
@@ -81,16 +80,6 @@ public class CsvTimeSeriesRandomAccessReader extends RandomAccessReader {
         LOG.debug("Created reader for file {} with size {} bytes.", filePath, length());
 
     }
-
-    // private void updateMeasures() {
-    //     if(measures != null && !measures.isEmpty() ){
-    //         List<Integer> tmpList = new ArrayList<>();
-    //         tmpList.add(timeColumnIndex);
-    //         tmpList.addAll(measures);
-    //         this.csvParserSettings.selectIndexes(tmpList.toArray(new Integer[0]));
-    //         this.parser = new CsvParser(this.csvParserSettings);
-    //     }
-    // }
 
     private CsvParserSettings createCsvParserSettings() {
         CsvParserSettings parserSettings = new CsvParserSettings();

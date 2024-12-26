@@ -53,7 +53,6 @@ public class DatasetController {
 
             // Wait for the query result (or handle asynchronously for better UX)
             QueryResults queryResults = future.get();
-
             QueryDTO.QueryResponse queryResponse = new QueryDTO.QueryResponse(
                 "PostgresDB query executed successfully.", queryResults);
             return ResponseEntity.ok(queryResponse);

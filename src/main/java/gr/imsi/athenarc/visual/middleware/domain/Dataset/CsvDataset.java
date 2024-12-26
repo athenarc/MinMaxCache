@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -159,6 +161,18 @@ public class CsvDataset extends AbstractDataset {
 
     public IntervalTree<TimeSeriesCsv> getFileTimeRangeTree() {
         return fileTimeRangeTree;
+    }
+
+    /* Returns the interval tree of file names in a map form */
+    public Map<String, TimeInterval> getFileTimeRangeTreeMap() {
+        Iterator<TimeSeriesCsv> fileTimeRangeTreeIterator = fileTimeRangeTree.iterator();
+        Map<String, TimeInterval> fileTimeRangeMap = new java.util.HashMap<>();
+        while(fileTimeRangeTreeIterator.hasNext()){
+            TimeSeriesCsv timeSeriesCsv = fileTimeRangeTreeIterator.next();
+            fileTimeRangeMap.put(timeSeriesCsv.getFilePath(), 
+                new TimeRange(timeSeriesCsv.getTimeRange().getFrom(), timeSeriesCsv.getTimeRange().getTo()));
+        }
+        return fileTimeRangeMap;
     }
 
 

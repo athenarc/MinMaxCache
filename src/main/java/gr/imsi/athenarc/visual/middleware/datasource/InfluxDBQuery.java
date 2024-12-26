@@ -78,6 +78,49 @@ public class InfluxDBQuery extends DataSourceQuery {
 
 
     @Override
+    public String rawQuerySkeleton() {
+        String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+        StringBuilder s = new StringBuilder();
+        int i = 0;
+        int streamCount = 0;
+
+        for (String measureName : missingIntervalsPerMeasure.keySet()) {
+            for (TimeInterval range : missingIntervalsPerMeasure.get(measureName)) {
+                s.append("data_").append(i).append(" = () => from(bucket: \"").append(bucket).append("\") \n")
+                    .append("|> range(start: ").append(range.getFromDate(format)).append(", stop: ").append(range.getToDate(format)).append(")\n")
+                    .append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(measurement).append("\") \n")
+                    .append("|> filter(fn: (r) => r[\"_field\"] == \"").append(measureName).append("\") \n");
+                i++;
+                streamCount++;
+            }
+        }
+
+        if (streamCount > 1) {
+            s.append("union(\n")
+                .append("    tables: [\n");
+            i = 0;
+            for (String measureName : missingIntervalsPerMeasure.keySet()) {
+                for (TimeInterval range : missingIntervalsPerMeasure.get(measureName)) {
+                    s.append("data_").append(i).append("(),\n");
+                    i++;
+                }
+            }
+            s.append("])\n");
+        } else if (streamCount == 1) {
+            s.append("data_0()\n");
+        } else {
+            // Handle the case where there are no streams
+            return "";
+        }
+
+        s.append("|> group(columns: [\"_field\"])\n" +
+                "|> sort(columns: [\"_time\"], desc: false)\n");
+
+        return s.toString();
+    }
+
+
+    @Override
     public String m4QuerySkeleton() {
         String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
         String s = "customAggregateWindow = (every, fn, column=\"_value\", timeSrc=\"_time\", timeDst=\"_time\", offset, tables=<-) =>\n" +
@@ -121,34 +164,6 @@ public class InfluxDBQuery extends DataSourceQuery {
         return s;
     }
 
-
-    @Override
-    public String rawQuerySkeleton() {
-        String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-        String s = "";
-        int i = 0;
-        for (String measureName : missingIntervalsPerMeasure.keySet()) {
-            for(TimeInterval range : missingIntervalsPerMeasure.get(measureName)) {
-                s += "data_" + i + " = () => from(bucket:" + "\"" + bucket + "\"" + ") \n" +
-                        "|> range(start:" + range.getFromDate(format) + ", stop:" + range.getToDate(format) + ")\n" +
-                        "|> filter(fn: (r) => r[\"_measurement\"] ==" + "\"" + measurement + "\"" + ") \n" +
-                        "|> filter(fn: (r) => r[\"_field\"] ==\"" + measureName + "\")" +
-                        " \n";
-                i++;
-            }
-        }
-        s += "union(\n" +
-                "    tables: [\n";
-        for (String measureName : missingIntervalsPerMeasure.keySet()) {
-            for(TimeInterval range : missingIntervalsPerMeasure.get(measureName)) {
-                s += "data_" + i + "(),\n";
-            }
-        }
-        s+= "])\n ";
-        s+= "|>pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")";
-
-        return s;
-    }
 
     @Override
     public int getNoOfQueries() {

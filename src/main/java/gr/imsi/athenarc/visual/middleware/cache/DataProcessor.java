@@ -6,7 +6,6 @@ import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.QueryExecutor
 import gr.imsi.athenarc.visual.middleware.domain.*;
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
-import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,9 +18,6 @@ public class DataProcessor {
     private final int dataReductionRatio;
 
     private final QueryExecutor queryExecutor;
-
-    private final int RAW_FACTOR = 6;
-
 
     public DataProcessor(QueryExecutor queryExecutor, AbstractDataset dataset, int dataReductionRatio){
         this.dataset = dataset;
@@ -96,19 +92,28 @@ public class DataProcessor {
         Map<Integer, Integer> numberOfGroups = new HashMap<>(missingIntervalsPerMeasure.size());
         Map<Integer, Long> aggregateIntervals = new HashMap<>(missingIntervalsPerMeasure.size());
 
-        int rawNoOfGroups = DateTimeUtil.numberOfIntervals(from, to, RAW_FACTOR * dataset.getSamplingInterval());
-
-        for(int measure : aggFactors.keySet()) {
-            int noOfGroups = aggFactors.get(measure) * viewPort.getWidth();
-            if(noOfGroups > rawNoOfGroups) noOfGroups = rawNoOfGroups * RAW_FACTOR; // If its RAW_FACTOR times the sampling interval, fetch with sampling interval.
-            numberOfGroups.put(measure, noOfGroups);
-            aggregateIntervals.put(measure, (to - from) / numberOfGroups.get(measure));
+        long pointsFromAggregation = viewPort.getWidth() * 4;
+        long pointsFromRaw = (to - from) / dataset.getSamplingInterval();   
+        
+        if(pointsFromAggregation > pointsFromRaw * dataReductionRatio) {
+            DataPoints missingDataPoints = null;
+            LOG.info("Fetching missing raw data from data source");
+            missingDataPoints = dataSource.getDataPoints(from, to, new ArrayList<Integer>(missingIntervalsPerMeasure.keySet()));
+            LOG.info("Fetched missing raw data from data source");
+            timeSeriesSpans = TimeSeriesSpanFactory.createRaw(missingDataPoints, missingIntervalsPerMeasure);
         }
-        AggregatedDataPoints missingDataPoints = null;
-        LOG.info("Fetching missing data from data source");
-        missingDataPoints = dataSource.getAggregatedDataPoints(from, to, missingIntervalsPerMeasure, numberOfGroups, queryMethod);
-        LOG.info("Fetched missing data from data source");
-        timeSeriesSpans = TimeSeriesSpanFactory.createAggregate(missingDataPoints, missingIntervalsPerMeasure, aggregateIntervals);
+        else {
+            for(int measure : aggFactors.keySet()) {
+                int noOfGroups = aggFactors.get(measure) * viewPort.getWidth();
+                numberOfGroups.put(measure, noOfGroups);
+                aggregateIntervals.put(measure, (to - from) / numberOfGroups.get(measure));
+            }
+            AggregatedDataPoints missingDataPoints = null;
+            LOG.info("Fetching missing data from data source");
+            missingDataPoints = dataSource.getAggregatedDataPoints(from, to, missingIntervalsPerMeasure, numberOfGroups, queryMethod);
+            LOG.info("Fetched missing data from data source");
+            timeSeriesSpans = TimeSeriesSpanFactory.createAggregate(missingDataPoints, missingIntervalsPerMeasure, aggregateIntervals);
+        }
         return timeSeriesSpans;
     }
 

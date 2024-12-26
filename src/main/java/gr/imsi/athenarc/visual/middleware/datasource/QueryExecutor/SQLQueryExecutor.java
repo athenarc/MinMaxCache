@@ -152,7 +152,7 @@ public class SQLQueryExecutor implements QueryExecutor {
     }
 
     public ResultSet execute(String query) throws SQLException {
-        LOG.info("Executing Query: \n" + query);
+        LOG.debug("Executing Query: \n" + query);
         PreparedStatement preparedStatement =  connection.prepareStatement(query);
         return preparedStatement.executeQuery();
     }

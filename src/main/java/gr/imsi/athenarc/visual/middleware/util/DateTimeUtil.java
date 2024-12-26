@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,23 +20,33 @@ public class DateTimeUtil {
     private static final  int[] millisDivisors = {1, 2, 4, 5, 8, 10, 20, 25, 40, 50, 100, 125, 200, 250, 500, 1000};
 
 
-    public static long parseDateTimeString(String s, String timeFormat) {
-        return LocalDateTime.parse(s, DateTimeFormatter.ofPattern(timeFormat)).atZone(UTC).toInstant().toEpochMilli();
+     public static long parseDateTimeString(String s, String timeFormat) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(timeFormat);
+        return parseDateTimeStringInternal(s, formatter, UTC);
     }
 
-
-
     public static long parseDateTimeString(String s, DateTimeFormatter formatter) {
-        return LocalDateTime.parse(s, formatter).atZone(UTC).toInstant().toEpochMilli();
+        return parseDateTimeStringInternal(s, formatter, UTC);
     }
 
     public static long parseDateTimeString(String s, DateTimeFormatter formatter, ZoneId zoneId) {
-        return LocalDateTime.parse(s, formatter).atZone(zoneId).toInstant().toEpochMilli();
+        return parseDateTimeStringInternal(s, formatter, zoneId);
     }
 
     public static long parseDateTimeString(String s) {
-        return LocalDateTime.parse(s, DEFAULT_FORMATTER).atZone(UTC).toInstant().toEpochMilli();
+        return parseDateTimeStringInternal(s, DEFAULT_FORMATTER, UTC);
     }
+
+    private static long parseDateTimeStringInternal(String s, DateTimeFormatter formatter, ZoneId zoneId) {
+        try {
+            // Try parsing as LocalDateTime
+            return LocalDateTime.parse(s, formatter).atZone(zoneId).toInstant().toEpochMilli();
+        } catch (DateTimeParseException e) {
+            // If parsing as LocalDateTime fails, try parsing as LocalDate
+            return LocalDate.parse(s, formatter).atStartOfDay(zoneId).toInstant().toEpochMilli();
+        }
+    }
+
     public static String format(final long timeStamp) {
         return formatTimeStamp(DEFAULT_FORMATTER, timeStamp);
     }

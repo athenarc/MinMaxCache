@@ -24,6 +24,17 @@ public class Query implements TimeInterval {
 
     public Query() {}
 
+    public Query(long from, long to, List<Integer> measures, float accuracy, int width, int height, HashMap<Integer, Double[]> filter) {
+        this.from = from;
+        this.to = to;
+        this.measures = measures;
+        this.filter = filter;
+        this.accuracy = accuracy;
+        this.viewPort = new ViewPort(width, height);
+        this.queryMethod = QueryMethod.MIN_MAX;
+        this.opType = null;
+    }
+
     public Query(long from, long to, float accuracy, HashMap<Integer, Double[]> filter,
                  QueryMethod queryMethod, List<Integer> measures, ViewPort viewPort, UserOpType opType) {
         this.from = from;

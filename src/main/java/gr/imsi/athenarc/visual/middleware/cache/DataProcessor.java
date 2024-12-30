@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
+import com.google.common.collect.TreeRangeSet;
 
 import java.util.*;
 
@@ -30,22 +32,21 @@ public class DataProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(DataProcessor.class);
 
-    private Range<Long> getRawTimeSeriesSpanRange(List<TimeSeriesSpan> timeSeriesSpans) {
-        long minTimestamp = Long.MAX_VALUE;
-        long maxTimestamp = Long.MIN_VALUE;
+    
+    private RangeSet<Long> getRawTimeSeriesSpanRanges(List<TimeSeriesSpan> timeSeriesSpans) {
+        RangeSet<Long> rangeSet = TreeRangeSet.create();
 
         for (TimeSeriesSpan span : timeSeriesSpans) {
             if (span instanceof RawTimeSeriesSpan) {
-                if(span.getFrom() < minTimestamp) minTimestamp = span.getFrom();
-                if(span.getTo() > maxTimestamp) maxTimestamp = span.getTo();
+                long spanFrom = span.getFrom();
+                long spanTo = span.getTo();
+                rangeSet.add(Range.closedOpen(spanFrom, spanTo));
             }
         }
-        if (minTimestamp == Long.MAX_VALUE || maxTimestamp == Long.MIN_VALUE) {
-            // No valid RawTimeSeriesSpan found, return an empty range
-            return Range.closed(0L, 0L);
-        }
-        return Range.closed(minTimestamp, maxTimestamp);
+
+        return rangeSet;
     }
+    
 
     /**
      * Add a list of timeseriesspans to their respective pixel columns.
@@ -60,12 +61,14 @@ public class DataProcessor {
                                    List<PixelColumn> pixelColumns, List<TimeSeriesSpan> timeSeriesSpans) {
 
 
-        // Get the range from raw time series spans
-        Range<Long> rawSpanRange = getRawTimeSeriesSpanRange(timeSeriesSpans);
+        // Get the ranges from raw time series spans
+        RangeSet<Long> rawSpanRanges = getRawTimeSeriesSpanRanges(timeSeriesSpans);
+        LOG.info("Raw span ranges: {}", rawSpanRanges);
 
-        // Mark pixel columns that fall completely within the raw span range
+        // Mark pixel columns that fall completely within any of the raw span ranges
         for (PixelColumn pixelColumn : pixelColumns) {
-            if (rawSpanRange.encloses(Range.closed(pixelColumn.getFrom(), pixelColumn.getTo()))) {
+            Range<Long> pixelColumnRange = Range.closed(pixelColumn.getFrom(), pixelColumn.getTo());
+            if (rawSpanRanges.encloses(pixelColumnRange)) {
                 pixelColumn.markAsNoError();
             }
         }

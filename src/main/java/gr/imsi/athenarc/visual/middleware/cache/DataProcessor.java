@@ -9,6 +9,8 @@ import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Range;
+
 import java.util.*;
 
 public class DataProcessor {
@@ -28,6 +30,23 @@ public class DataProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(DataProcessor.class);
 
+    private Range<Long> getRawTimeSeriesSpanRange(List<TimeSeriesSpan> timeSeriesSpans) {
+        long minTimestamp = Long.MAX_VALUE;
+        long maxTimestamp = Long.MIN_VALUE;
+
+        for (TimeSeriesSpan span : timeSeriesSpans) {
+            if (span instanceof RawTimeSeriesSpan) {
+                if(span.getFrom() < minTimestamp) minTimestamp = span.getFrom();
+                if(span.getTo() > maxTimestamp) maxTimestamp = span.getTo();
+            }
+        }
+        if (minTimestamp == Long.MAX_VALUE || maxTimestamp == Long.MIN_VALUE) {
+            // No valid RawTimeSeriesSpan found, return an empty range
+            return Range.closed(0L, 0L);
+        }
+        return Range.closed(minTimestamp, maxTimestamp);
+    }
+
     /**
      * Add a list of timeseriesspans to their respective pixel columns.
      * Each span and pixel column list represents a specific measure.
@@ -37,24 +56,35 @@ public class DataProcessor {
      * @param pixelColumns pixel columns of measure
      * @param timeSeriesSpans time series spans for measure
      */
-    public void processDatapoints(long from, long to, ViewPort viewPort,
+     public void processDatapoints(long from, long to, ViewPort viewPort,
                                    List<PixelColumn> pixelColumns, List<TimeSeriesSpan> timeSeriesSpans) {
-        for (TimeSeriesSpan span : timeSeriesSpans) {
-            if (span instanceof AggregateTimeSeriesSpan) {
-                Iterator<AggregatedDataPoint> iterator = ((AggregateTimeSeriesSpan) span).iterator(from, to);
-                while (iterator.hasNext()) {
-                    AggregatedDataPoint aggregatedDataPoint = iterator.next();
-                    addAggregatedDataPointToPixelColumns(from, to, viewPort, pixelColumns, aggregatedDataPoint);
-                }
+
+
+        // Get the range from raw time series spans
+        Range<Long> rawSpanRange = getRawTimeSeriesSpanRange(timeSeriesSpans);
+
+        // Mark pixel columns that fall completely within the raw span range
+        for (PixelColumn pixelColumn : pixelColumns) {
+            if (rawSpanRange.encloses(Range.closed(pixelColumn.getFrom(), pixelColumn.getTo()))) {
+                pixelColumn.markAsNoError();
             }
-            else if (span instanceof RawTimeSeriesSpan){
+        }
+
+        for (TimeSeriesSpan span : timeSeriesSpans) {
+            if (span instanceof RawTimeSeriesSpan) {
                 Iterator<DataPoint> iterator = ((RawTimeSeriesSpan) span).iterator(from, to);
                 while (iterator.hasNext()) {
                     DataPoint dataPoint = iterator.next();
                     addDataPointToPixelColumns(from, to, viewPort, pixelColumns, dataPoint);
                 }
-            }
-            else{
+            } else if (span instanceof AggregateTimeSeriesSpan) {
+                // Add aggregated data points to pixel columns with errors
+                Iterator<AggregatedDataPoint> iterator = ((AggregateTimeSeriesSpan) span).iterator(from, to);
+                while (iterator.hasNext()) {
+                    AggregatedDataPoint aggregatedDataPoint = iterator.next();
+                    addAggregatedDataPointToPixelColumns(from, to, viewPort, pixelColumns, aggregatedDataPoint);
+                }
+            } else {
                 throw new IllegalArgumentException("Time Series Span Read Error");
             }
         }
@@ -95,7 +125,7 @@ public class DataProcessor {
         long pointsFromAggregation = viewPort.getWidth() * 4;
         long pointsFromRaw = (to - from) / dataset.getSamplingInterval();   
         
-        if(pointsFromAggregation > pointsFromRaw * dataReductionRatio) {
+        if(pointsFromAggregation * dataReductionRatio > pointsFromRaw ) {
             DataPoints missingDataPoints = null;
             LOG.info("Fetching missing raw data from data source");
             missingDataPoints = dataSource.getDataPoints(from, to, new ArrayList<Integer>(missingIntervalsPerMeasure.keySet()));
@@ -124,11 +154,12 @@ public class DataProcessor {
 
     private void addAggregatedDataPointToPixelColumns(long from, long to, ViewPort viewPort, List<PixelColumn> pixelColumns, AggregatedDataPoint aggregatedDataPoint) {
         int pixelColumnIndex = getPixelColumnForTimestamp(aggregatedDataPoint.getFrom(), from, to, viewPort.getWidth());
-        if (pixelColumnIndex < viewPort.getWidth()) {
+        if (pixelColumnIndex < viewPort.getWidth() && !pixelColumns.get(pixelColumnIndex).hasNoError()) {
             pixelColumns.get(pixelColumnIndex).addAggregatedDataPoint(aggregatedDataPoint);
         }
         // Since we only consider spans with intervals smaller than the pixel column interval, we know that the data point will not overlap more than two pixel columns.
-        if (pixelColumnIndex <  viewPort.getWidth() - 1 && pixelColumns.get(pixelColumnIndex + 1).overlaps(aggregatedDataPoint)) {
+        if (pixelColumnIndex <  viewPort.getWidth() - 1 && pixelColumns.get(pixelColumnIndex + 1).overlaps(aggregatedDataPoint) 
+            && !pixelColumns.get(pixelColumnIndex + 1).hasNoError()) {
             // If the next pixel column overlaps the data point, then we need to add the data point to the next pixel column as well.
             pixelColumns.get(pixelColumnIndex + 1).addAggregatedDataPoint(aggregatedDataPoint);
         }

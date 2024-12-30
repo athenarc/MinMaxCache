@@ -32,7 +32,7 @@ public class ErrorCalculator {
                 error += pixelColumnError;
             }
         }
-        LOG.debug("Valid columns: {}", validColumns);
+        LOG.info("Valid columns: {}", validColumns);
         error /= validColumns;
         hasError = error > 1 - accuracy;
         return error;

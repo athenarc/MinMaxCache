@@ -125,7 +125,7 @@ public class RawTimeSeriesSpan implements TimeSeriesSpan {
 
     @Override
     public String getFromDate(String format) {
-        return Instant.ofEpochMilli(getTo()).atZone(ZoneId.of("UTC"))
+        return Instant.ofEpochMilli(getFrom()).atZone(ZoneId.of("UTC"))
                 .format(DateTimeFormatter.ofPattern(format));
     }
 

@@ -74,6 +74,7 @@ public class DatasetController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
@@ -93,6 +94,7 @@ public class DatasetController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(
                 new QueryDTO.QueryResponse("Query was canceled.", null));
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }

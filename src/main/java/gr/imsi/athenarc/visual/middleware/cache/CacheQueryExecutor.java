@@ -133,7 +133,7 @@ public class CacheQueryExecutor {
                 missingIntervalsPerMeasure.put(measure, missingIntervalsForMeasure);
             }
         }
-        LOG.info("Errors: {}", errorPerMeasure);
+        LOG.debug("Errors: {}", errorPerMeasure);
         LOG.info("Agg factors: {}", aggFactors);
 
         // Fetch the missing data from the data source.

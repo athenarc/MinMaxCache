@@ -35,6 +35,20 @@ public class PixelColumn implements TimeInterval {
     private List<AggregatedDataPoint> left = new ArrayList<>();
     private List<AggregatedDataPoint> right = new ArrayList<>();
 
+    private boolean hasNoError = false;
+
+    public void markAsNoError() {
+        this.hasNoError = true;
+    }
+
+    public void markAsHasError() {
+        this.hasNoError = false;
+    }
+
+    public boolean hasNoError() {
+        return hasNoError;
+    }
+
     public PixelColumn(long from, long to, ViewPort viewPort) {
         this.from = from;
         this.to = to;
@@ -45,8 +59,6 @@ public class PixelColumn implements TimeInterval {
 
     public void addDataPoint(DataPoint dp){
         statsAggregator.accept(dp);
-        fullyContainedStatsAggregator.accept(dp);
-        fullyContainedRangeSet.add(TimeInterval.toGuavaRange(new TimeRange(from, dp.getTimestamp())));
     }
 
     public void addAggregatedDataPoint(AggregatedDataPoint dp) {
@@ -130,8 +142,6 @@ public class PixelColumn implements TimeInterval {
         }
     }
 
-
-
     /**
      * Computes the maximum inner pixel range for this Pixel Column. For this we consider both the fully contained and the partially contained groups.
      * @param viewPortStats
@@ -140,7 +150,11 @@ public class PixelColumn implements TimeInterval {
 
     public Range<Integer> computeMaxInnerPixelRange(Stats viewPortStats) {
         Set<Range<Long>> fullyContainedDisjointRanges = fullyContainedRangeSet.asRanges();
-        if (fullyContainedDisjointRanges.size() > 1) {
+        if(hasNoError){
+            LOG.debug("This pixel column is composed of only raw data.");
+            return null;
+        }
+        else if (fullyContainedDisjointRanges.size() > 1) {
             LOG.info("There are gaps in the fully contained ranges of this pixel column.");
             return null;
         } else if (fullyContainedDisjointRanges.size() == 0) {
@@ -160,7 +174,9 @@ public class PixelColumn implements TimeInterval {
                 maxPixelId = Math.max(maxPixelId, viewPort.getPixelId(rightPartial.getStats().getMaxValue(), viewPortStats));
             }
             return Range.closed(minPixelId, maxPixelId);
-        } else return null;
+        } else {
+            return null;
+        }
     }
 
 
@@ -205,8 +221,7 @@ public class PixelColumn implements TimeInterval {
      * @return A Range object representing the range of inner-column pixel IDs
      */
     public Range<Integer> getActualInnerColumnPixelRange(Stats viewPortStats) {
-        if(fullyContainedStatsAggregator.getCount() <= 0) return Range.closed(0, 0); // If not initialized or empty
-//        LOG.info("Fully contained stats: {}", fullyContainedStatsAggregator);
+        if(fullyContainedStatsAggregator.getCount() <= 0) return Range.open(0, viewPort.getHeight()); // If not initialized or empty
         return Range.closed(viewPort.getPixelId(fullyContainedStatsAggregator.getMinValue(), viewPortStats),
                 viewPort.getPixelId(fullyContainedStatsAggregator.getMaxValue(), viewPortStats));
     }

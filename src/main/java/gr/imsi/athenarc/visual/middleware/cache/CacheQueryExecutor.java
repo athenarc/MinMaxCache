@@ -120,7 +120,7 @@ public class CacheQueryExecutor {
                 coveragePercentages += coveragePercentage;
             }
             int meanWeightAggFactor = coveragePercentages != 0 ? (int) Math.ceil(totalAggFactors / coveragePercentages) : aggFactors.get(measure);
-
+            aggFactors.put(measure, meanWeightAggFactor);
             // Update aggFactor if there is an error
             if(errorCalculator.hasError()){
                 updateAggFactor(measure);

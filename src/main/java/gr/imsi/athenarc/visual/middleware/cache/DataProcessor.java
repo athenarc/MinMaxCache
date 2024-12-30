@@ -6,6 +6,8 @@ import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.QueryExecutor
 import gr.imsi.athenarc.visual.middleware.domain.*;
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
+import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,21 +127,47 @@ public class DataProcessor {
         Map<Integer, Integer> numberOfGroups = new HashMap<>(missingIntervalsPerMeasure.size());
         Map<Integer, Long> aggregateIntervals = new HashMap<>(missingIntervalsPerMeasure.size());
 
-        long pointsFromAggregation = viewPort.getWidth() * 4;
-        long pointsFromRaw = (to - from) / dataset.getSamplingInterval();   
-        
-        if(pointsFromAggregation * dataReductionRatio > pointsFromRaw ) {
+        long rawAggregateInterval = dataset.getSamplingInterval();  
+        boolean fetchRaw = false;
+        for (Map.Entry<Integer, List<TimeInterval>> entry : missingIntervalsPerMeasure.entrySet()) {
+            int measure = entry.getKey();
+            List<TimeInterval> missingIntervals = entry.getValue();
+            int aggFactor = aggFactors.get(measure);
+
+            // Find the largest time interval
+            TimeInterval largestInterval = null;
+            for (TimeInterval interval : missingIntervals) {
+                if (largestInterval == null || (interval.getTo() - interval.getFrom()) > (largestInterval.getTo() - largestInterval.getFrom())) {
+                    largestInterval = interval;
+                }
+            }
+
+            if (largestInterval != null) {
+                long intervalFrom = largestInterval.getFrom();
+                long intervalTo = largestInterval.getTo();
+                int noOfGroups = viewPort.getWidth() * aggFactor;
+                long aggInterval = (intervalTo - intervalFrom) / noOfGroups;
+                LOG.info("Agg interval: {}", aggInterval);
+                LOG.info("Raw aggregate interval: {}", rawAggregateInterval);
+                if (aggInterval < dataReductionRatio * rawAggregateInterval) {
+                    fetchRaw = true;
+                    break;
+                }
+            }
+        }
+        if(fetchRaw) {
             DataPoints missingDataPoints = null;
             LOG.info("Fetching missing raw data from data source");
-            missingDataPoints = dataSource.getDataPoints(from, to, new ArrayList<Integer>(missingIntervalsPerMeasure.keySet()));
+            missingDataPoints = dataSource.getDataPoints(from, to, missingIntervalsPerMeasure);
             LOG.info("Fetched missing raw data from data source");
             timeSeriesSpans = TimeSeriesSpanFactory.createRaw(missingDataPoints, missingIntervalsPerMeasure);
         }
         else {
             for(int measure : aggFactors.keySet()) {
                 int noOfGroups = aggFactors.get(measure) * viewPort.getWidth();
+                long aggInterval = (to - from) / noOfGroups;
                 numberOfGroups.put(measure, noOfGroups);
-                aggregateIntervals.put(measure, (to - from) / numberOfGroups.get(measure));
+                aggregateIntervals.put(measure, aggInterval);
             }
             AggregatedDataPoints missingDataPoints = null;
             LOG.info("Fetching missing data from data source");

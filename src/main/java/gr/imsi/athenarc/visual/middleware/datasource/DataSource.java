@@ -36,6 +36,8 @@ public interface DataSource {
      */
     public DataPoints getDataPoints(long from, long to, List<Integer> measures);
 
+
+    public DataPoints getDataPoints(long from, long to, Map<Integer, List<TimeInterval>> missingTimeIntervalsPerMeasure);
     /**
      * Returns a {@link DataPoints} instance to access all the data points in the time series.
      *

@@ -76,7 +76,7 @@ public class InfluxDBService {
             // Check if cache exists, if not, create it
             MinMaxCache minMaxCache = cacheMap.computeIfAbsent(id, key -> {
                 InfluxDBQueryExecutor influxDBQueryExecutor = influxDBConnection.getQueryExecutor(dataset);
-                return new MinMaxCache(influxDBQueryExecutor, dataset, 0, 4, 6);
+                return new MinMaxCache(influxDBQueryExecutor, dataset, 0, 4, 2);
             });
 
             return minMaxCache.executeQuery(query);

@@ -43,6 +43,11 @@ public class InfluxDBDatasource implements DataSource {
     }
 
     @Override
+    public DataPoints getDataPoints(long from, long to, Map<Integer, List<TimeInterval>> missingTimeIntervalsPerMeasure) {
+        return new InfluxDBDatasource.InfluxDBDatapoints(from, to, missingTimeIntervalsPerMeasure);
+    }
+
+    @Override
     public DataPoints getAllDataPoints(List<Integer> measures) {
         Map<Integer, List<TimeInterval>> missingTimeIntervalsPerMeasure = new HashMap<>(measures.size());
         for (Integer measure : measures) {

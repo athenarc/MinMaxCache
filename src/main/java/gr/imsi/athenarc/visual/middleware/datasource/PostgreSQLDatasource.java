@@ -35,13 +35,19 @@ public class PostgreSQLDatasource implements DataSource {
 
     @Override
     public DataPoints getDataPoints(long from, long to, List<Integer> measures) {
-        Map<Integer, List<TimeInterval>> missingTimeIntervalsPerMeasure = new HashMap<>();
+        Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure = new HashMap<>();
         for (Integer measure : measures) {
             List<TimeInterval> timeIntervalsForMeasure = new ArrayList<>();
             timeIntervalsForMeasure.add(new TimeRange(from, to));
-            missingTimeIntervalsPerMeasure.put(measure, timeIntervalsForMeasure);
+            missingIntervalsPerMeasure.put(measure, timeIntervalsForMeasure);
         }
-        return new PostgreSQLDatasource.SQLDataPoints(from, to, missingTimeIntervalsPerMeasure);
+        return new PostgreSQLDatasource.SQLDataPoints(from, to, missingIntervalsPerMeasure);
+    }
+
+    @Override
+    public DataPoints getDataPoints(long from, long to, Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override

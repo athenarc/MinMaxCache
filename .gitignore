@@ -3,3 +3,4 @@ target/*
 outputs/*
 logs.log
 .DS_Store
+.vscode/*

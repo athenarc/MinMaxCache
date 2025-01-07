@@ -76,6 +76,8 @@ public class MaxErrorEvaluator {
                     if (!getMaxMissingInterColumnPixels(previousPixelColumn, currentPixelColumn, pixelColumnMissingPixels, viewPortStatsAggregator)){
                         maxPixelErrorsPerColumn.add(null);
                         missingRanges.add(currentPixelColumn.getRange()); // add range as missing
+                        missingPixels.add(pixelColumnMissingPixels);
+                        falsePixels.add(pixelColumnFalsePixels);
                         continue;
                     }
                 }
@@ -91,6 +93,8 @@ public class MaxErrorEvaluator {
                     if (!getMaxMissingInterColumnPixels(currentPixelColumn, nextPixelColumn, pixelColumnMissingPixels, viewPortStatsAggregator)){
                         maxPixelErrorsPerColumn.add(null);
                         missingRanges.add(currentPixelColumn.getRange()); // add range as missing
+                        missingPixels.add(pixelColumnMissingPixels);
+                        falsePixels.add(pixelColumnFalsePixels);    
                         continue;
                     }
                 }

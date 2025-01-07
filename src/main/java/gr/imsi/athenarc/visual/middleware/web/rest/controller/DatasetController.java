@@ -72,6 +72,7 @@ public class DatasetController {
             InfluxDBDataset dataset = influxService.getDatasetById(schema, id);
             return ResponseEntity.ok(dataset);
         } catch (RuntimeException e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         } catch (Exception e) {
             e.printStackTrace();

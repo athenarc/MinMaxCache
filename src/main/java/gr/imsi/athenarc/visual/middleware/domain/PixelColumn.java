@@ -150,12 +150,8 @@ public class PixelColumn implements TimeInterval {
 
     public Range<Integer> computeMaxInnerPixelRange(Stats viewPortStats) {
         Set<Range<Long>> fullyContainedDisjointRanges = fullyContainedRangeSet.asRanges();
-        if(hasNoError){
-            LOG.debug("This pixel column is composed of only raw data.");
-            return null;
-        }
-        else if (fullyContainedDisjointRanges.size() > 1) {
-            LOG.info("There are gaps in the fully contained ranges of this pixel column.");
+        if (fullyContainedDisjointRanges.size() > 1) {
+            LOG.debug("There are gaps in the fully contained ranges of this pixel column.");
             return null;
         } else if (fullyContainedDisjointRanges.size() == 0) {
             LOG.debug("There is no fully contained range in this pixel column.");

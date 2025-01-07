@@ -42,7 +42,7 @@ public class DataProcessor {
             if (span instanceof RawTimeSeriesSpan) {
                 long spanFrom = span.getFrom();
                 long spanTo = span.getTo();
-                rangeSet.add(Range.closedOpen(spanFrom, spanTo));
+                rangeSet.add(Range.closed(spanFrom, spanTo)); // closed in order for the enclosed check to work
             }
         }
 

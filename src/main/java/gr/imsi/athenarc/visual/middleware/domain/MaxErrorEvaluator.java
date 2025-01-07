@@ -57,18 +57,22 @@ public class MaxErrorEvaluator {
             
             if (maxInnerColumnPixelRanges == null) {
                 maxPixelErrorsPerColumn.add(null);
+                missingPixels.add(pixelColumnMissingPixels);
+                falsePixels.add(pixelColumnFalsePixels);
                 missingRanges.add(currentPixelColumn.getRange()); // add range as missing
                 continue;
             }
-            
+            Range<Integer> leftMaxFalsePixels = null;
+            Range<Integer> rightMaxFalsePixels = null;
+
             // Check if there is a previous PixelColumn
             if (i > 0) {
                 PixelColumn previousPixelColumn = pixelColumns.get(i - 1);
                 if (previousPixelColumn.getStats().getCount() != 0) {
-                    Range<Integer> leftMaxFalsePixels = currentPixelColumn.getPixelIdsForLineSegment(previousPixelColumn.getStats().getLastTimestamp(), previousPixelColumn.getStats().getLastValue(),
+                    leftMaxFalsePixels = currentPixelColumn.getPixelIdsForLineSegment(previousPixelColumn.getStats().getLastTimestamp(), previousPixelColumn.getStats().getLastValue(),
                             currentPixelColumn.getStats().getFirstTimestamp(), currentPixelColumn.getStats().getFirstValue(), viewPortStatsAggregator);
                             pixelColumnFalsePixels.add(leftMaxFalsePixels);
-
+                    
                     if (!getMaxMissingInterColumnPixels(previousPixelColumn, currentPixelColumn, pixelColumnMissingPixels, viewPortStatsAggregator)){
                         maxPixelErrorsPerColumn.add(null);
                         missingRanges.add(currentPixelColumn.getRange()); // add range as missing
@@ -80,7 +84,7 @@ public class MaxErrorEvaluator {
             if (i < pixelColumns.size() - 1) {
                 PixelColumn nextPixelColumn = pixelColumns.get(i + 1);
                 if (nextPixelColumn.getStats().getCount() != 0) {
-                    Range<Integer> rightMaxFalsePixels = currentPixelColumn.getPixelIdsForLineSegment(currentPixelColumn.getStats().getLastTimestamp(), currentPixelColumn.getStats().getLastValue(),
+                    rightMaxFalsePixels = currentPixelColumn.getPixelIdsForLineSegment(currentPixelColumn.getStats().getLastTimestamp(), currentPixelColumn.getStats().getLastValue(),
                             nextPixelColumn.getStats().getFirstTimestamp(), nextPixelColumn.getStats().getFirstValue(), viewPortStatsAggregator);
                             pixelColumnFalsePixels.add(rightMaxFalsePixels);
 
@@ -107,6 +111,13 @@ public class MaxErrorEvaluator {
             // Normalize the result
             maxPixelErrorsPerColumn.add(((double) maxWrongPixels / viewPort.getHeight()));
 
+            // Remove the left and right max false pixels from the missing pixels, since these will be included in the foreground pixels
+            if (leftMaxFalsePixels != null) {
+                pixelColumnMissingPixels.remove(leftMaxFalsePixels);
+            }
+            if (rightMaxFalsePixels != null) {
+                pixelColumnMissingPixels.remove(rightMaxFalsePixels);
+            }
             // Add sets to list for return on queryResults
             missingPixels.add(pixelColumnMissingPixels);
             falsePixels.add(pixelColumnFalsePixels);

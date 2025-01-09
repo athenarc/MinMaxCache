@@ -152,6 +152,7 @@ public class PixelColumn implements TimeInterval {
         Set<Range<Long>> fullyContainedDisjointRanges = fullyContainedRangeSet.asRanges();
         if (fullyContainedDisjointRanges.size() > 1) {
             LOG.debug("There are gaps in the fully contained ranges of this pixel column.");
+            this.markAsNoError();
             return null;
         } else if (fullyContainedDisjointRanges.size() == 0) {
             LOG.debug("There is no fully contained range in this pixel column.");
@@ -170,7 +171,8 @@ public class PixelColumn implements TimeInterval {
                 maxPixelId = Math.max(maxPixelId, viewPort.getPixelId(rightPartial.getStats().getMaxValue(), viewPortStats));
             }
             return Range.closed(minPixelId, maxPixelId);
-        } else {
+        } else { // There are no data in this pixel column
+            this.markAsNoError();
             return null;
         }
     }
@@ -205,7 +207,7 @@ public class PixelColumn implements TimeInterval {
         int pixelIdStart = viewPort.getPixelId(vStart, viewPortStats);
         int pixelIdEnd = viewPort.getPixelId(vEnd, viewPortStats);
 
-        // Create aa range from the pixel ids and return it
+        // Create a range from the pixel ids and return it
         return Range.closed(Math.min(pixelIdStart, pixelIdEnd), Math.max(pixelIdStart, pixelIdEnd));
     }
 

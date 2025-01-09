@@ -15,6 +15,8 @@ import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
 import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
+import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,6 +182,7 @@ public class CacheQueryExecutor {
         List<Integer> measuresWithoutError = new ArrayList<>(measures);
         measuresWithoutError.removeAll(measuresWithError); // remove measures handled with m4 query
         Map<Integer, DoubleSummaryStatistics> measureStatsMap = new HashMap<>(measures.size());
+
         for (int measure : measuresWithoutError) {
             int count = 0;
             double max = Double.MIN_VALUE;
@@ -187,8 +190,11 @@ public class CacheQueryExecutor {
             double sum = 0;
             List<PixelColumn> pixelColumns = pixelColumnsPerMeasure.get(measure);
             List<DataPoint> dataPoints = new ArrayList<>();
-
+            int i =0;
             for (PixelColumn pixelColumn : pixelColumns) {
+                if(i == 0)
+                    LOG.info("Pixel column: {}, start: {}, end: {}", i, DateTimeUtil.format(pixelColumn.getFrom()), DateTimeUtil.format(pixelColumn.getTo()));
+                i++;
                 Stats pixelColumnStats = pixelColumn.getStats();
                 if (pixelColumnStats.getCount() <= 0) {
                     continue;

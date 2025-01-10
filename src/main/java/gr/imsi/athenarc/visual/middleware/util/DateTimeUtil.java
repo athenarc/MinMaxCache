@@ -190,7 +190,6 @@ public class DateTimeUtil {
     }
 
     public static int indexInInterval(final long startTime, final long endTime, final long aggregateInterval, final long time) {
-//        int intervalLength = (int) Math.floor((double)(endTime - startTime) / intervals);
         return (int) ((time - startTime ) / aggregateInterval);
     }
     /**

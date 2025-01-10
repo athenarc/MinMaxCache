@@ -79,6 +79,7 @@ public class MaxErrorEvaluator {
                             falsePixels.add(pixelColumnFalsePixels);
                             continue;
                         }
+                        pixelColumnMissingPixels.remove(leftMaxFalsePixels); // Remove left max false pixels from the missing pixels, since these will be included in the foreground pixels
                         pixelColumnFalsePixels.add(leftMaxFalsePixels);
 
                     }
@@ -95,6 +96,7 @@ public class MaxErrorEvaluator {
                             falsePixels.add(pixelColumnFalsePixels);
                             continue;
                         }
+                        pixelColumnMissingPixels.remove(rightMaxFalsePixels);  // Remove right max false pixels from the missing pixels, since these will be included in the foreground pixels
                         pixelColumnFalsePixels.add(rightMaxFalsePixels);
 
                     }
@@ -116,14 +118,6 @@ public class MaxErrorEvaluator {
                 // Normalize the result
                 maxPixelErrorsPerColumn.add(((double) maxWrongPixels / viewPort.getHeight()));
 
-                // Remove the left and right max false pixels from the missing pixels, since these will be included in the foreground pixels
-                if (leftMaxFalsePixels != null) {
-                    pixelColumnMissingPixels.remove(leftMaxFalsePixels);
-                }
-                if (rightMaxFalsePixels != null) {
-                    pixelColumnMissingPixels.remove(rightMaxFalsePixels);
-                }
-            
                 // Add sets to list for return on queryResults
                 missingPixels.add(pixelColumnMissingPixels);
                 falsePixels.add(pixelColumnFalsePixels);

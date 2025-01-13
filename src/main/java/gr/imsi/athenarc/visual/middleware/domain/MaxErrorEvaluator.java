@@ -165,7 +165,6 @@ public class MaxErrorEvaluator {
         return true;
     }
 
-
     public List<TimeInterval> getMissingRanges() {
         return missingRanges;
     }

@@ -36,7 +36,7 @@ public class ViewPort {
      * @return the vertical pixel id of the given value for the specified measure
      */
     public int getPixelId(double value, Stats viewPortStats) {
-        return (int) ((double) this.getHeight() * (value - viewPortStats.getMinValue()) / (viewPortStats.getMaxValue() - viewPortStats.getMinValue()));
+        return (int) ((double) (this.getHeight() - 1) * (value - viewPortStats.getMinValue()) / (viewPortStats.getMaxValue() - viewPortStats.getMinValue()));
     }
 
     @Override

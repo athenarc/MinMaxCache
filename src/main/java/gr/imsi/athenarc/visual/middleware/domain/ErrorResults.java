@@ -14,7 +14,7 @@ public class ErrorResults {
     private double error;
     private List<RangeSet<Integer>> missingPixels;
     private List<RangeSet<Integer>> falsePixels;
-
+    
     
     public ErrorResults() {
         this.error = 0.0;

@@ -200,13 +200,12 @@ public class PixelColumn implements TimeInterval {
         double tEnd = Math.min(to, Math.max(t1, t2));
 
         // Calculate the values at the start and end timestamps
-        double vStart = slope * tStart + yIntercept;
-        double vEnd = slope * tEnd + yIntercept;
+        double vStart = Math.max(viewPortStats.getMinValue(), slope * tStart + yIntercept);
+        double vEnd = Math.min(viewPortStats.getMaxValue(), slope * tEnd + yIntercept);
 
         // Convert the values to pixel ids
         int pixelIdStart = viewPort.getPixelId(vStart, viewPortStats);
         int pixelIdEnd = viewPort.getPixelId(vEnd, viewPortStats);
-
         // Create a range from the pixel ids and return it
         return Range.closed(Math.min(pixelIdStart, pixelIdEnd), Math.max(pixelIdStart, pixelIdEnd));
     }

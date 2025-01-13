@@ -1,6 +1,9 @@
 package gr.imsi.athenarc.visual.middleware.cache;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
+import com.google.common.collect.TreeRangeSet;
 
 import gr.imsi.athenarc.visual.middleware.datasource.CsvQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.DataSourceQuery;
@@ -64,7 +67,6 @@ public class CacheQueryExecutor {
         LOG.debug("Pixel column interval: " + pixelColumnInterval + " ms");
         List<Integer> measures = Optional.ofNullable(query.getMeasures()).orElse(dataset.getMeasures());
         Map<Integer, List<DataPoint>> resultData = new HashMap<>(measures.size());
-
         // Initialize Pixel Columns
         Map<Integer, List<PixelColumn>> pixelColumnsPerMeasure = new HashMap<>(measures.size()); // Lists of pixel columns. One list for every measure.
         for (int measure : measures) {
@@ -161,6 +163,7 @@ public class CacheQueryExecutor {
             errorResults.setError(errorForMeasure);
             errorResults.setFalsePixels(errorCalculator.getFalsePixels());
             errorResults.setMissingPixels(errorCalculator.getMissingPixels());
+
             errorPerMeasure.put(measureWithMiss, errorResults);
             pixelColumnsPerMeasure.put(measureWithMiss, pixelColumns);
             // Add them all to the cache.
@@ -182,13 +185,16 @@ public class CacheQueryExecutor {
         List<Integer> measuresWithoutError = new ArrayList<>(measures);
         measuresWithoutError.removeAll(measuresWithError); // remove measures handled with m4 query
         Map<Integer, DoubleSummaryStatistics> measureStatsMap = new HashMap<>(measures.size());
-
+        Map<Integer, List<Range<Integer>>> litPixelsPerMeasure = new HashMap<>(measures.size());
         for (int measure : measuresWithoutError) {
             int count = 0;
             double max = Double.MIN_VALUE;
             double min = Double.MAX_VALUE;
             double sum = 0;
             List<PixelColumn> pixelColumns = pixelColumnsPerMeasure.get(measure);
+            List<Range<Integer>> litPixels = computeLitPixels(pixelColumns);
+            LOG.debug("Lit pixels for measure {}: {}", measure, litPixels);
+            litPixelsPerMeasure.put(measure, litPixels);
             List<DataPoint> dataPoints = new ArrayList<>();
             int i =0;
             for (PixelColumn pixelColumn : pixelColumns) {
@@ -242,6 +248,7 @@ public class CacheQueryExecutor {
         queryResults.setQueryTime(queryTime);
         queryResults.setTimeRange(new TimeRange(from, to));
         queryResults.setAggFactors(aggFactors);
+        queryResults.setLitPixels(litPixelsPerMeasure);
         return queryResults;
     }
 
@@ -296,5 +303,64 @@ public class CacheQueryExecutor {
         queryResults.setQueryTime(queryTime);
 
         return queryResults;
+    }
+
+
+    private List<Range<Integer>> computeLitPixels(List<PixelColumn> pixelColumns) {
+        // Combine stats across all pixel columns
+        StatsAggregator viewPortStatsAggregator = new StatsAggregator();
+        pixelColumns.forEach(pc -> viewPortStatsAggregator.combine(pc.getStats()));
+    
+        List<Range<Integer>> litPixels = new ArrayList<>();
+        // For each pixel column, gather its "inner" lit pixels
+        for (int i = 0; i < pixelColumns.size(); i++) {
+            RangeSet<Integer> pixelColumnLitPixels = TreeRangeSet.create();
+
+            PixelColumn currentColumn = pixelColumns.get(i);
+    
+            // Get the column's inner pixel range
+            Range<Integer> innerRange = currentColumn.computeMaxInnerPixelRange(viewPortStatsAggregator);
+            if (innerRange != null) {
+                pixelColumnLitPixels.add(innerRange);
+            }
+    
+            // Also connect with the previous column, if present
+            if (i > 0) {
+                PixelColumn previousColumn = pixelColumns.get(i - 1);
+                if (previousColumn.getStats().getCount() != 0) {
+                    Range<Integer> leftLine = currentColumn.getPixelIdsForLineSegment(
+                        previousColumn.getStats().getLastTimestamp(),
+                        previousColumn.getStats().getLastValue(),
+                        currentColumn.getStats().getFirstTimestamp(),
+                        currentColumn.getStats().getFirstValue(),
+                        viewPortStatsAggregator
+                    );
+                    if (leftLine != null) {
+                        pixelColumnLitPixels.add(leftLine);
+                    }
+                }
+            }
+    
+            // Connect with the next column as well, if present
+            if (i < pixelColumns.size() - 1) {
+                PixelColumn nextColumn = pixelColumns.get(i + 1);
+                if (nextColumn.getStats().getCount() != 0) {
+                    Range<Integer> rightLine = currentColumn.getPixelIdsForLineSegment(
+                        currentColumn.getStats().getLastTimestamp(),
+                        currentColumn.getStats().getLastValue(),
+                        nextColumn.getStats().getFirstTimestamp(),
+                        nextColumn.getStats().getFirstValue(),
+                        viewPortStatsAggregator
+                    );
+                    if (rightLine != null) {
+                        pixelColumnLitPixels.add(rightLine);
+                    }
+                }
+            }            
+            if(!pixelColumnLitPixels.isEmpty()) litPixels.add(pixelColumnLitPixels.span());
+            else litPixels.add(null);
+        }
+    
+        return litPixels;
     }
 }

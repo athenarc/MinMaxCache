@@ -1,5 +1,8 @@
 package gr.imsi.athenarc.visual.middleware.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Range;
 import com.opencsv.CSVWriter;
 
 import java.io.File;
@@ -11,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class QueryResults implements Serializable {
 
@@ -35,7 +39,19 @@ public class QueryResults implements Serializable {
     private Map<Integer, Integer> aggFactors;
 
     private boolean flag;
+
+    @JsonIgnore
+    private Map<Integer, List<Range<Integer>>> litPixels;
     
+
+    @JsonProperty("litPixels")
+    public Map<Integer, List<List<String>>> getLitPixelsAsString() {
+        return litPixels.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream()
+                        .map(range -> List.of(range.toString()))
+                        .collect(Collectors.toList())));
+    }
+
     public TimeInterval getTimeRange() {
         return this.timeRange;
     }
@@ -86,6 +102,14 @@ public class QueryResults implements Serializable {
 
     public void setAggFactors(Map<Integer, Integer> aggFactors) {
         this.aggFactors = aggFactors;
+    }
+
+    public Map<Integer, List<Range<Integer>>> getLitPixels() {
+        return litPixels;
+    }
+
+    public void setLitPixels(Map<Integer, List<Range<Integer>>> litPixels) {
+        this.litPixels = litPixels;
     }
 
     public void toCsv(String path) {

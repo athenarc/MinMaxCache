@@ -68,6 +68,7 @@ public class InfluxDBDatasource implements DataSource {
     final class InfluxDBDatapoints implements DataPoints {
 
         private final InfluxDBQuery influxDBQuery;
+        private final Map<String, Integer> measuresMap;
 
         public InfluxDBDatapoints(long from, long to, Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure) {
             Map<String, List<TimeInterval>> missingIntervalsPerMeasureName = missingIntervalsPerMeasure.entrySet().stream()
@@ -75,6 +76,15 @@ public class InfluxDBDatasource implements DataSource {
                             entry -> dataset.getHeader()[entry.getKey()], // Key mapping is the measure name
                             Map.Entry::getValue // Value remains the same
                     ));
+
+            this.measuresMap = missingIntervalsPerMeasure.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            entry -> dataset.getHeader()[entry.getKey()], // Key mapping is the measure name
+                            Map.Entry::getKey, // Value is the key of the measure
+                            (v1, v2) -> v1, // Merge function to keep the first value in case of key collision
+                            LinkedHashMap::new // Specify LinkedHashMap to maintain insertion order
+                    ));
+
             this.influxDBQuery = new InfluxDBQuery(dataset.getSchema(), dataset.getTableName(), dataset.getTimeFormat(), from, to, missingIntervalsPerMeasureName);
         }
 
@@ -95,7 +105,8 @@ public class InfluxDBDatasource implements DataSource {
                 List<FluxTable> fluxTables;
                 fluxTables = influxDBQueryExecutor.executeRawInfluxQuery(influxDBQuery);
                 LOG.info("{} tables fetched", fluxTables);
-                return new InfluxDBDataPointsIterator(influxDBQuery.getMissingIntervalsPerMeasure(), fluxTables);
+                
+                return new InfluxDBDataPointsIterator(influxDBQuery.getMissingIntervalsPerMeasure(), measuresMap, fluxTables);
             } catch (Exception e){
                 LOG.error("No data in a specified query");
             }

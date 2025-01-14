@@ -318,7 +318,7 @@ public class InfluxDBQueryExecutor implements QueryExecutor {
                 Integer fieldId = Arrays.asList(dataset.getHeader()).indexOf(fluxRecord.getField());
                 data.computeIfAbsent(fieldId, k -> new ArrayList<>()).add(
                         new ImmutableDataPoint(Objects.requireNonNull(fluxRecord.getTime()).toEpochMilli(),
-                                Double.parseDouble(Objects.requireNonNull(fluxRecord.getValue()).toString())));
+                                Double.parseDouble(Objects.requireNonNull(fluxRecord.getValue()).toString()), fieldId));
             }
         }
         data.forEach((k, v) -> v.sort(Comparator.comparingLong(DataPoint::getTimestamp)));

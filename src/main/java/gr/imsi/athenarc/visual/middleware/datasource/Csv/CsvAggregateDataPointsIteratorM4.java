@@ -114,7 +114,7 @@ public class CsvAggregateDataPointsIteratorM4 implements Iterator<AggregatedData
                             String valueStr = row[measureIndex];
                             try {
                                 double value = Double.parseDouble(valueStr);
-                                state.aggregator.accept(new ImmutableDataPoint(timestamp, value));
+                                state.aggregator.accept(new ImmutableDataPoint(timestamp, value, measureIndex));
                             } catch (NumberFormatException e) {
                                 // Handle invalid number formats
                             }

@@ -142,6 +142,7 @@ public class DataProcessor {
                 }
             }
 
+            // Fetch raw if the largest portion of data to be fetched is close to raw data
             if (largestInterval != null) {
                 long intervalFrom = largestInterval.getFrom();
                 long intervalTo = largestInterval.getTo();

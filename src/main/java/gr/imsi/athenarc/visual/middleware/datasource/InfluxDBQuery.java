@@ -159,7 +159,7 @@ public class InfluxDBQuery extends DataSourceQuery {
             }
         }
         s += "])\n";
-        s +=    "|> group(columns: [\"table\"])\n" +
+        s +=    "|> group(columns: [\"_field\"])\n" +
                 "|> sort(columns: [\"_time\"], desc: false)\n";
         return s;
     }

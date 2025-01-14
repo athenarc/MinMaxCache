@@ -81,7 +81,7 @@ public class InfluxDBAggregateDataPointsIteratorM4 implements Iterator<Aggregate
             if(record.getValue() != null) { // check for empty value
                 double value = (double) record.getValue();
                 long timestamp = ((Instant) record.getValues().get("_time")).toEpochMilli();
-                statsAggregator.accept(new ImmutableDataPoint(timestamp, value));
+                statsAggregator.accept(new ImmutableDataPoint(timestamp, value, measuresMap.get(measure)));
             }
             currentGroupTimestamp = ((Instant) currentRecords.get(current).getValues().get("_stop")).toEpochMilli();
             current++;

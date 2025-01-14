@@ -1,5 +1,19 @@
 package gr.imsi.athenarc.visual.middleware.cache;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.DoubleSummaryStatistics;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
@@ -8,25 +22,25 @@ import com.google.common.collect.TreeRangeSet;
 import gr.imsi.athenarc.visual.middleware.datasource.CsvQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.InfluxDBQuery;
+import gr.imsi.athenarc.visual.middleware.datasource.SQLQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.CsvQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.InfluxDBQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.SQLQueryExecutor;
-import gr.imsi.athenarc.visual.middleware.datasource.SQLQuery;
-import gr.imsi.athenarc.visual.middleware.domain.*;
+import gr.imsi.athenarc.visual.middleware.domain.DataPoint;
+import gr.imsi.athenarc.visual.middleware.domain.ErrorResults;
+import gr.imsi.athenarc.visual.middleware.domain.ImmutableDataPoint;
+import gr.imsi.athenarc.visual.middleware.domain.PixelColumn;
+import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
+import gr.imsi.athenarc.visual.middleware.domain.Stats;
+import gr.imsi.athenarc.visual.middleware.domain.StatsAggregator;
+import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
+import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
+import gr.imsi.athenarc.visual.middleware.domain.ViewPort;
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
 import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
-import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 public class CacheQueryExecutor {
 
@@ -192,35 +206,34 @@ public class CacheQueryExecutor {
             double min = Double.MAX_VALUE;
             double sum = 0;
             List<PixelColumn> pixelColumns = pixelColumnsPerMeasure.get(measure);
+
+            // Lit pixel assertion
             List<Range<Integer>> litPixels = computeLitPixels(pixelColumns);
-            LOG.debug("Lit pixels for measure {}: {}", measure, litPixels);
             litPixelsPerMeasure.put(measure, litPixels);
+            // debugLitPixels(litPixels, errorPerMeasure.get(measure));
+
             List<DataPoint> dataPoints = new ArrayList<>();
-            int i =0;
             for (PixelColumn pixelColumn : pixelColumns) {
-                if(i == 0)
-                    LOG.info("Pixel column: {}, start: {}, end: {}", i, DateTimeUtil.format(pixelColumn.getFrom()), DateTimeUtil.format(pixelColumn.getTo()));
-                i++;
                 Stats pixelColumnStats = pixelColumn.getStats();
                 if (pixelColumnStats.getCount() <= 0) {
                     continue;
                 }
                 // filter
                 if(query.getFilter() == null || query.getFilter().isEmpty()){
-                    dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getFirstTimestamp(), pixelColumnStats.getFirstValue()));
-                    dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getMinTimestamp(), pixelColumnStats.getMinValue()));
-                    dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getMaxTimestamp(), pixelColumnStats.getMaxValue()));
-                    dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getLastTimestamp(), pixelColumnStats.getLastValue()));
+                    dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getFirstTimestamp(), pixelColumnStats.getFirstValue(), measure));
+                    dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getMinTimestamp(), pixelColumnStats.getMinValue(), measure));
+                    dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getMaxTimestamp(), pixelColumnStats.getMaxValue(), measure));
+                    dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getLastTimestamp(), pixelColumnStats.getLastValue(), measure));
                 }
                 else {
                     double filterMin = query.getFilter().get(measure)[0];
                     double filterMax = query.getFilter().get(measure)[1];
                     if (filterMin < pixelColumnStats.getMinValue() &&
                             filterMax > pixelColumnStats.getMaxValue()) {
-                        dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getFirstTimestamp(), pixelColumnStats.getFirstValue()));
-                        dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getMinTimestamp(), pixelColumnStats.getMinValue()));
-                        dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getMaxTimestamp(), pixelColumnStats.getMaxValue()));
-                        dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getLastTimestamp(), pixelColumnStats.getLastValue()));
+                        dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getFirstTimestamp(), pixelColumnStats.getFirstValue(), measure));
+                        dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getMinTimestamp(), pixelColumnStats.getMinValue(), measure));
+                        dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getMaxTimestamp(), pixelColumnStats.getMaxValue(), measure));
+                        dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getLastTimestamp(), pixelColumnStats.getLastValue(), measure));
                     }
                 }
                 // compute statistics
@@ -305,6 +318,31 @@ public class CacheQueryExecutor {
         return queryResults;
     }
 
+    private void debugLitPixels(List<Range<Integer>> litPixels, ErrorResults errors ){ 
+    
+        for(int ii = 0; ii < litPixels.size(); ii ++) {
+            Range<Integer> pixelColumn = litPixels.get(ii);
+            RangeSet<Integer> pixelColumnMissing = errors.getMissingPixels().get(ii);
+            RangeSet<Integer> pixelColumnFalse = errors.getFalsePixels().get(ii);
+
+            if(pixelColumnMissing.isEmpty()) continue;
+
+            for(Range<Integer> missingRange : pixelColumnMissing.asRanges()){
+                if(pixelColumn.encloses(missingRange)){
+                    LOG.error("There are missing pixels inside the pixel range of this pixel column");
+                }
+            }
+
+            if(pixelColumnFalse.isEmpty()) continue;
+
+            for(Range<Integer> falseRange : pixelColumnFalse.asRanges()){
+                // if(pixelColumn.isConnected(falseRange) && !pixelColumn.intersection(falseRange).isEmpty()){
+                if(!pixelColumn.encloses(falseRange)){
+                    LOG.error("There are false pixels outside the pixel range of this pixel column");
+                }
+            }
+        }    
+    }
 
     private List<Range<Integer>> computeLitPixels(List<PixelColumn> pixelColumns) {
         // Combine stats across all pixel columns
@@ -319,7 +357,7 @@ public class CacheQueryExecutor {
             PixelColumn currentColumn = pixelColumns.get(i);
     
             // Get the column's inner pixel range
-            Range<Integer> innerRange = currentColumn.computeMaxInnerPixelRange(viewPortStatsAggregator);
+            Range<Integer> innerRange = currentColumn.getActualInnerColumnPixelRange(viewPortStatsAggregator);
             if (innerRange != null) {
                 pixelColumnLitPixels.add(innerRange);
             }

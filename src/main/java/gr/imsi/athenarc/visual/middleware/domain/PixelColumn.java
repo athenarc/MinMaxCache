@@ -198,12 +198,12 @@ public class PixelColumn implements TimeInterval {
         // Find the first and last timestamps of the line segment within the pixel column
         double tStart = Math.max(from, Math.min(t1, t2));
         double tEnd = Math.min(to, Math.max(t1, t2));
-
+        
         // Calculate the values at the start and end timestamps
         double vStart = Math.max(viewPortStats.getMinValue(), slope * tStart + yIntercept);
         double vEnd = Math.min(viewPortStats.getMaxValue(), slope * tEnd + yIntercept);
 
-        // Convert the values to pixel ids
+        // Convert the values to pixel ids       
         int pixelIdStart = viewPort.getPixelId(vStart, viewPortStats);
         int pixelIdEnd = viewPort.getPixelId(vEnd, viewPortStats);
         // Create a range from the pixel ids and return it
@@ -221,6 +221,20 @@ public class PixelColumn implements TimeInterval {
         if(fullyContainedStatsAggregator.getCount() <= 0) return Range.open(0, viewPort.getHeight()); // If not initialized or empty
         return Range.closed(viewPort.getPixelId(fullyContainedStatsAggregator.getMinValue(), viewPortStats),
                 viewPort.getPixelId(fullyContainedStatsAggregator.getMaxValue(), viewPortStats));
+    }
+
+    
+    public RangeSet<Integer>  getActualIntraColumnPixelRanges(StatsAggregator viewPortStatsAggregator,
+            PixelColumn previousPixelColumn, PixelColumn nextPixelColumn) {
+        RangeSet<Integer> intraColumnPixelRangeSet = TreeRangeSet.create();
+        if(previousPixelColumn != null){
+            intraColumnPixelRangeSet.add(this.getPixelIdsForLineSegment(previousPixelColumn.getStats().getLastTimestamp(), previousPixelColumn.getStats().getLastValue(), this.getStats().getFirstTimestamp(), this.getStats().getFirstValue(), viewPortStatsAggregator));
+        }
+        if(nextPixelColumn != null){
+            intraColumnPixelRangeSet.add(this.getPixelIdsForLineSegment(this.getStats().getLastTimestamp(), this.getStats().getLastValue(), nextPixelColumn.getStats().getFirstTimestamp(), nextPixelColumn.getStats().getFirstValue(), viewPortStatsAggregator));
+                        
+        }
+        return intraColumnPixelRangeSet;
     }
 
 

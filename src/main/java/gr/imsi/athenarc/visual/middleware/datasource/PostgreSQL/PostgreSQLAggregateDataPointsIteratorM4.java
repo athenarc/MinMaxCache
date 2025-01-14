@@ -72,8 +72,8 @@ public class PostgreSQLAggregateDataPointsIteratorM4 implements Iterator<Aggrega
             if(firstTimestamp + aggregateInterval > correspondingInterval.getTo()) {
                 lastTimestamp = correspondingInterval.getTo();
             }
-            DataPoint dataPoint1 = new ImmutableDataPoint(t_min, value);
-            DataPoint dataPoint2 = new ImmutableDataPoint(t_max, value);
+            DataPoint dataPoint1 = new ImmutableDataPoint(t_min, value, measuresMap.get(measure));
+            DataPoint dataPoint2 = new ImmutableDataPoint(t_max, value, measuresMap.get(measure));
             statsAggregator.accept(dataPoint1);
             statsAggregator.accept(dataPoint2);
             LOG.debug("Created aggregate Datapoint {} - {} with firsts: {}, last: {}, min: {} and max: {} ",

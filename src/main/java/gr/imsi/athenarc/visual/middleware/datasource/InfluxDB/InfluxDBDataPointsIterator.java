@@ -20,15 +20,17 @@ public class InfluxDBDataPointsIterator implements Iterator<DataPoint> {
     private int current;
     private List<FluxRecord> currentRecords;    
     private final Map<String, List<TimeInterval>> missingIntervalsPerMeasureName;
+    Map<String, Integer> measuresMap;
     private final List<FluxTable> tables;
 
-    public InfluxDBDataPointsIterator(Map<String, List<TimeInterval>> missingIntervalsPerMeasureName, List<FluxTable> tables) {
+    public InfluxDBDataPointsIterator(Map<String, List<TimeInterval>> missingIntervalsPerMeasureName, Map<String, Integer> measuresMap, List<FluxTable> tables) {
         this.missingIntervalsPerMeasureName = missingIntervalsPerMeasureName;
         this.currentTable = 0;
         this.tables = tables;
         this.currentRecords = tables.get(currentTable).getRecords();
         this.currentSize = this.currentRecords.size();
         this.numberOfTables = tables.size();
+        this.measuresMap = measuresMap;
         this.current = 0;
     }
 
@@ -49,6 +51,7 @@ public class InfluxDBDataPointsIterator implements Iterator<DataPoint> {
     @Override
     public DataPoint next() {
         FluxRecord fluxRecord = tables.get(currentTable).getRecords().get(current++);
-        return new ImmutableDataPoint(Objects.requireNonNull(fluxRecord.getTime()).toEpochMilli(), (double) Objects.requireNonNull(fluxRecord.getValue()));
+        String measure = Objects.requireNonNull(fluxRecord.getField());
+        return new ImmutableDataPoint(Objects.requireNonNull(fluxRecord.getTime()).toEpochMilli(), (double) Objects.requireNonNull(fluxRecord.getValue()), measuresMap.get(measure));
     }
 }

@@ -32,7 +32,8 @@ public class TimeSeriesSpanFactory {
                 while (it.hasNext()) {
                     if (!changed) dataPoint = it.next();
                     else changed = false;
-                    if (dataPoint.getTimestamp() >= range.getTo() ) {
+                    if (dataPoint.getTimestamp() < range.getFrom() || dataPoint.getTimestamp() >= range.getTo()
+                        || dataPoint.getMeasure() != measure) {
                         changed = true;
                         break;
                     }

@@ -215,6 +215,11 @@ public class RawTimeSeriesSpan implements TimeSeriesSpan {
                 public double getValue() {
                     return value;
                 }
+
+                @Override
+                public int getMeasure() {
+                    return measure;
+                }
             };
         }
     }

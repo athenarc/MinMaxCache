@@ -142,9 +142,9 @@ public class SQLQueryExecutor implements QueryExecutor {
             Double val = resultSet.getObject(4) == null ? null : resultSet.getDouble(4); // value
             if(val == null) continue;
             data.computeIfAbsent(measure, m -> new ArrayList<>()).add(
-                    new ImmutableDataPoint(epoch, val));
+                    new ImmutableDataPoint(epoch, val, measure));
             data.computeIfAbsent(measure, m -> new ArrayList<>()).add(
-                    new ImmutableDataPoint(epoch2, val));
+                    new ImmutableDataPoint(epoch2, val, measure));
         }
         data.forEach((k, v) -> v.sort(Comparator.comparingLong(DataPoint::getTimestamp)));
         queryResults.setData(data);

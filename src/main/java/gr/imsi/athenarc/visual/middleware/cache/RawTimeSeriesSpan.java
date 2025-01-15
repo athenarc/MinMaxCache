@@ -137,7 +137,7 @@ public class RawTimeSeriesSpan implements TimeSeriesSpan {
 
     @Override
     public String toString() {
-        return getFromDate() + " - " + getToDate();
+        return getFromDate() + " - " + getToDate() + " for measure: " + measure;
     }
 
     public int getCount() {

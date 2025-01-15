@@ -41,6 +41,7 @@ import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
 import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
+import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
 
 public class CacheQueryExecutor {
 
@@ -98,6 +99,11 @@ public class CacheQueryExecutor {
         LOG.debug("Overlapping intervals per measure {}", overlappingSpansPerMeasure);
         Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure = new HashMap<>(measures.size());
         Map<Integer, ErrorResults> errorPerMeasure = new HashMap<>(measures.size());
+        long aggInterval = (query.getTo() - query.getFrom()) / query.getViewPort().getWidth();
+       
+        // These is where the pixel columns start and end, as the agg interval is not a float.
+        long startPixelColumn = from;
+        long endPixelColumn = query.getFrom() + aggInterval * (query.getViewPort().getWidth());
 
         // For each measure, get the overlapping spans, add them to pixel columns and calculate the error
         // Compute the aggFactor, and if there is an error double it.
@@ -200,6 +206,7 @@ public class CacheQueryExecutor {
         measuresWithoutError.removeAll(measuresWithError); // remove measures handled with m4 query
         Map<Integer, DoubleSummaryStatistics> measureStatsMap = new HashMap<>(measures.size());
         Map<Integer, List<Range<Integer>>> litPixelsPerMeasure = new HashMap<>(measures.size());
+
         for (int measure : measuresWithoutError) {
             int count = 0;
             double max = Double.MIN_VALUE;
@@ -208,11 +215,12 @@ public class CacheQueryExecutor {
             List<PixelColumn> pixelColumns = pixelColumnsPerMeasure.get(measure);
 
             // Lit pixel assertion
-            List<Range<Integer>> litPixels = computeLitPixels(pixelColumns);
-            litPixelsPerMeasure.put(measure, litPixels);
+            // List<Range<Integer>> litPixels = computeLitPixels(pixelColumns);
+            // litPixelsPerMeasure.put(measure, litPixels);
             // debugLitPixels(litPixels, errorPerMeasure.get(measure));
 
             List<DataPoint> dataPoints = new ArrayList<>();
+            int i = 0;
             for (PixelColumn pixelColumn : pixelColumns) {
                 Stats pixelColumnStats = pixelColumn.getStats();
                 if (pixelColumnStats.getCount() <= 0) {
@@ -259,7 +267,7 @@ public class CacheQueryExecutor {
         queryResults.setError(errorPerMeasure);
         queryResults.setFlag(measuresWithError.size() > 0);
         queryResults.setQueryTime(queryTime);
-        queryResults.setTimeRange(new TimeRange(from, to));
+        queryResults.setTimeRange(new TimeRange(startPixelColumn, endPixelColumn));
         queryResults.setAggFactors(aggFactors);
         queryResults.setLitPixels(litPixelsPerMeasure);
         return queryResults;
@@ -279,7 +287,8 @@ public class CacheQueryExecutor {
         for (Integer measure : query.getMeasures()) {
             String measureName = dataset.getHeader()[measure];
             List<TimeInterval> timeIntervalsForMeasure = new ArrayList<>();
-            timeIntervalsForMeasure.add(new TimeRange(query.getFrom(), query.getTo()));
+            long aggInterval = (query.getTo() - query.getFrom()) / query.getViewPort().getWidth();
+            timeIntervalsForMeasure.add(new TimeRange(query.getFrom(), query.getFrom() + aggInterval * (query.getViewPort().getWidth())));
             missingTimeIntervalsPerMeasure.put(measure, timeIntervalsForMeasure);
             missingTimeIntervalsPerMeasureName.put(measureName, timeIntervalsForMeasure);
             numberOfGroups.put(measure, query.getViewPort().getWidth());

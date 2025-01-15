@@ -18,7 +18,6 @@ import gr.imsi.athenarc.visual.middleware.domain.ImmutableDataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.InfluxDB.InitQueries.*;
 import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
-import gr.imsi.athenarc.visual.middleware.domain.TableInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -330,54 +329,5 @@ public class InfluxDBQueryExecutor implements QueryExecutor {
         QueryApi queryApi = influxDBClient.getQueryApi();
         LOG.info("Executing Query: \n" + query);
         return queryApi.query(query);
-    }
-
-    @Override
-    public List<TableInfo>  getTableInfo() {
-        String fluxQuery = "import \"influxdata/influxdb/schema\"\n"
-            + "schema.measurements(bucket: \"" + bucket + "\")";;
-        List<FluxTable> fluxTables;
-        List<TableInfo> tableInfoArray = new ArrayList<TableInfo>();
-        try {
-            fluxTables = execute(fluxQuery);
-            for (FluxTable table : fluxTables) {
-                table.getRecords().forEach(record -> {
-                    TableInfo tableInfo = new TableInfo();
-                    String tableName = (String) record.getValue();
-                    tableInfo.setTable(tableName);
-                    tableInfo.setSchema(bucket);
-                    tableInfoArray.add(tableInfo);
-                });
-            }            
-            return tableInfoArray;
-        } catch(Exception e) {
-            throw e;
-        }
-    }
-
-    @Override
-    public List<String> getColumns(String tableName) { //not needed for influx
-        List<String> fields = new ArrayList<String>();
-        String fluxQuery = "from(bucket: \"" + bucket + "\") |> range(start: -1h) |> filter(fn: (r) => r[\"_measurement\"] == \"" + tableName + "\") |> limit(n: 1) |> group(columns: [\"_field\"]) |> distinct(column: \"_field\")";
-        List<FluxTable> fluxTables;
-        try {
-            fluxTables = execute(fluxQuery);
-            for (FluxTable table : fluxTables) {
-                List<FluxRecord> fluxRecords = table.getRecords();
-                for (FluxRecord fluxRecord : fluxRecords) {
-                    String fieldName =  fluxRecord.getField();
-                    LOG.debug("field: " + fieldName);
-                    fields.add(fieldName);
-                }
-            }
-            return fields;
-        } catch (Exception e) {
-            throw e;
-        }
-    }
-    @Override
-    public List<Object[]> getSample(String schema, String tableName) {
-        List<Object[]> resultList = new ArrayList<>();
-        return resultList;
     }
 }

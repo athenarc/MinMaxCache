@@ -1,14 +1,14 @@
 package gr.imsi.athenarc.visual.middleware.domain;
 
-import com.google.common.collect.ImmutableRangeSet;
-import com.google.common.collect.Range;
-import com.google.common.collect.RangeSet;
-import com.google.common.collect.TreeRangeSet;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
+import com.google.common.collect.TreeRangeSet;
 
 /**
  * Class that computes the maximum number of pixel errors.
@@ -63,6 +63,7 @@ public class MaxErrorEvaluator {
                 missingPixels.add(pixelColumnMissingPixels);
                 falsePixels.add(pixelColumnFalsePixels);
                 missingRanges.add(currentPixelColumn.getRange()); // add range as missing to fetch
+                // LOG.info("Missing range: {}-{}", currentPixelColumn.getRange().getFromDate("yyyy-MM-dd HH:mm:ss.SSS"), currentPixelColumn.getRange().getToDate("yyyy-MM-dd HH:mm:ss.SSS"));
                 continue;
             }
             else {

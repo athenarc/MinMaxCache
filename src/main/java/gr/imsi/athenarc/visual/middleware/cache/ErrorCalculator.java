@@ -5,7 +5,6 @@ import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 
 import java.util.*;

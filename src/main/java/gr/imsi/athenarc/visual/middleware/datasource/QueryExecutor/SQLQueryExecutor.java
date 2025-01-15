@@ -8,7 +8,6 @@ import gr.imsi.athenarc.visual.middleware.domain.Dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.domain.ImmutableDataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
-import gr.imsi.athenarc.visual.middleware.domain.TableInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -163,71 +162,6 @@ public class SQLQueryExecutor implements QueryExecutor {
 
     public String getSchema() {
         return schema;
-    }
-
-    @Override
-    public List<TableInfo> getTableInfo() throws SQLException {
-        DatabaseMetaData databaseMetaData = null;
-        List<TableInfo> tableInfoArray = new ArrayList<TableInfo>();
-        try {
-            databaseMetaData = connection.getMetaData();
-            ResultSet resultSet = databaseMetaData.getTables(null, null, null, new String[]{"TABLE"});
-            while(resultSet.next()) {
-                TableInfo tableInfo = new TableInfo();
-                String tableName = resultSet.getString("TABLE_NAME");
-                String schemaName = resultSet.getString("TABLE_SCHEM");
-                tableInfo.setSchema(schemaName);
-                tableInfo.setTable(tableName);
-                tableInfoArray.add(tableInfo);
-            }
-            return tableInfoArray;
-        } catch (Exception e) {
-            throw e;
-        }
-    }
-
-    @Override
-    public List<String> getColumns(String tableName) throws SQLException {
-        DatabaseMetaData databaseMetaData = null;
-        List<String> columns = new ArrayList<String>();
-        try {
-            databaseMetaData = connection.getMetaData();
-            ResultSet resultSet = databaseMetaData.getColumns(null, null, tableName, null);
-            while (resultSet.next()) {
-                String columnName = resultSet.getString("COLUMN_NAME");
-                columns.add(columnName);
-            }
-            return columns;
-        } catch(Exception e) {
-            throw e;
-        }
-
-    }
-    @Override
-    public List<Object[]> getSample(String schema, String tableName) throws SQLException {
-        String query = "SELECT * FROM " + schema + "." + tableName + " LIMIT 10;";
-        List<Object[]> resultList = new ArrayList<>();
-        ResultSet resultSet = this.execute(query);
-        ResultSetMetaData metaData = resultSet.getMetaData();
-        int columnCount = metaData.getColumnCount();
-        String[] columnNames = new String[columnCount];
-
-        for (int i = 1; i <= columnCount; i++) {
-            columnNames[i - 1] = metaData.getColumnName(i);
-        }
-
-        while (resultSet.next()) {
-            Object[] row = new Object[columnCount];
-
-            for (int i = 1; i <= columnCount; i++) {
-                row[i - 1] = resultSet.getObject(i);
-            }
-
-            resultList.add(row);
-        }
-
-        return resultList;
-
     }
 }
 

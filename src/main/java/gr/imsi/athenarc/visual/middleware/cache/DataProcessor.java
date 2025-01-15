@@ -148,8 +148,7 @@ public class DataProcessor {
                 long intervalTo = largestInterval.getTo();
                 int noOfGroups = viewPort.getWidth() * aggFactor;
                 long aggInterval = (intervalTo - intervalFrom) / noOfGroups;
-                LOG.info("Agg interval: {}", aggInterval);
-                LOG.info("Raw aggregate interval: {}", rawAggregateInterval);
+
                 if (aggInterval < dataReductionRatio * rawAggregateInterval) {
                     fetchRaw = true;
                     break;

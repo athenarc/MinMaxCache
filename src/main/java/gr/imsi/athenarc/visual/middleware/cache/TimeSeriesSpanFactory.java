@@ -30,19 +30,24 @@ public class TimeSeriesSpanFactory {
                 RawTimeSeriesSpan timeSeriesSpan = new RawTimeSeriesSpan(range.getFrom(), range.getTo(), measure);
                 List<DataPoint> dataPointsList = new ArrayList<>();
                 while (it.hasNext()) {
-                    if (!changed) dataPoint = it.next();
-                    else changed = false;
+                    if (!changed){ // if there is a change keep the previous datapoint to process
+                        if(it.hasNext()) dataPoint = it.next();
+                        else break;
+                    }
                     if (dataPoint.getTimestamp() < range.getFrom() || dataPoint.getTimestamp() >= range.getTo()
                         || dataPoint.getMeasure() != measure) {
                         changed = true;
                         break;
                     }
-                    // LOG.info("Adding {} between {}-{}", dataPoint.getTimestamp(), range.getFrom(), range.getTo());
-                    dataPointsList.add(dataPoint);
+                    else{
+                        changed = false;
+                        // LOG.info("Adding {} between {}-{}", dataPoint.getTimestamp(), range.getFrom(), range.getTo());
+                        dataPointsList.add(dataPoint);
+                    }   
                 }
                 timeSeriesSpan.build(dataPointsList);
                 timeSeriesSpansForMeasure.add(timeSeriesSpan);
-                LOG.info("Created raw time series span:" + timeSeriesSpan);
+                LOG.info("Created raw time series span: {}", timeSeriesSpan);
             }
             spans.put(measure, timeSeriesSpansForMeasure);
         }

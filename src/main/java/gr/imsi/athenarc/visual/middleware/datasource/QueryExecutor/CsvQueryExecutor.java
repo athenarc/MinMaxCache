@@ -9,7 +9,6 @@ import gr.imsi.athenarc.visual.middleware.domain.Dataset.CsvDataset;
 import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.util.io.CsvReader.CsvTimeSeriesRandomAccessReader;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
-import gr.imsi.athenarc.visual.middleware.domain.TableInfo;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 import gr.imsi.athenarc.visual.middleware.domain.TimeSeriesCsv;
@@ -188,21 +187,5 @@ public class CsvQueryExecutor implements QueryExecutor {
         return schema;
     }
 
-    @Override
-    public List<TableInfo> getTableInfo() throws SQLException {
-        return null;
-    }
-
-    @Override
-    public List<String> getColumns(String tableName) throws SQLException {
-        return null;
-    
-    }
-
-    @Override
-    public List<Object[]> getSample(String schema, String tableName) throws SQLException {
-        return null;
-    
-    }
 }
 

@@ -36,7 +36,6 @@ public class SQLQuery extends DataSourceQuery {
         this.format = format;
     }
 
-
     private String calculateFilter(TimeInterval range, String measure) {
         return  " (" + timeCol + " >= " + "'" + range.getFromDate(format)  + "'" + " AND " + timeCol + " < " + "'" + range.getToDate(format)  + "'" + " AND " + idCol+ " = '" + measure + "' ) \n" ;
     }

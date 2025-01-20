@@ -3,7 +3,10 @@ package gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.CsvQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.Csv.CsvAggregateDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.Csv.CsvAggregateDataPointsIteratorM4;
+import gr.imsi.athenarc.visual.middleware.domain.AggregatedDataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.DataPoint;
+import gr.imsi.athenarc.visual.middleware.domain.ImmutableDataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.CsvDataset;
 import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
@@ -16,8 +19,8 @@ import gr.imsi.athenarc.visual.middleware.domain.TimeSeriesCsv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 import java.io.IOException;
-import java.sql.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -132,7 +135,18 @@ public class CsvQueryExecutor implements QueryExecutor {
     @Override
     public QueryResults executeM4Query(DataSourceQuery q) throws IOException {
         CsvQuery csvQuery = (CsvQuery) q;
-        return null;
+        Iterable<String[]> csvDataPoints = executeCsvQuery(csvQuery);
+        Map<String, Integer> measuresMap = csvQuery.getMissingIntervalsPerMeasure().entrySet().stream()
+            .collect(Collectors.toMap(
+                    Map.Entry::getKey, // Key mapping is the measure name
+                    entry -> Arrays.asList(dataset.getHeader()).indexOf(entry.getKey()), // Value is the value of the measure
+                    (v1, v2) -> v1, // Merge function to keep the first value in case of key collision
+                    LinkedHashMap::new // Specify LinkedHashMap to maintain insertion order
+            ));
+        CsvAggregateDataPointsIteratorM4 csvAggregateDataPointsIteratorM4 = 
+        new CsvAggregateDataPointsIteratorM4(csvDataPoints, csvQuery.getMissingIntervalsPerMeasure(),
+            measuresMap, csvQuery.getAggregateIntervals(), dataset.getTimeColumnIndex(), DateTimeFormatter.ofPattern(dataset.getTimeFormat()));
+        return collect(csvAggregateDataPointsIteratorM4);
 
     }
 
@@ -153,10 +167,10 @@ public class CsvQueryExecutor implements QueryExecutor {
                     LinkedHashMap::new // Specify LinkedHashMap to maintain insertion order
             ));
         CsvAggregateDataPointsIterator csvAggregateDataPointsIterator = 
-            new CsvAggregateDataPointsIterator(csvDataPoints, csvQuery.getMissingIntervalsPerMeasure(),
-                measuresMap, csvQuery.getAggregateIntervals(), dataset.getTimeColumnIndex(), DateTimeFormatter.ofPattern(dataset.getTimeFormat()));
+        new CsvAggregateDataPointsIterator(csvDataPoints, csvQuery.getMissingIntervalsPerMeasure(),
+            measuresMap, csvQuery.getAggregateIntervals(), dataset.getTimeColumnIndex(), DateTimeFormatter.ofPattern(dataset.getTimeFormat()));
 
-       return null;
+       return collect(csvAggregateDataPointsIterator);
     }
 
     @Override
@@ -186,6 +200,25 @@ public class CsvQueryExecutor implements QueryExecutor {
     public String getSchema() {
         return schema;
     }
+
+
+    private QueryResults collect(Iterator<AggregatedDataPoint> iterator) {
+        QueryResults queryResults = new QueryResults();
+        HashMap<Integer, List<DataPoint>> data = new HashMap<>();
+        while(iterator.hasNext()){
+            AggregatedDataPoint aggregatedDataPoint = iterator.next();
+            Integer measure = aggregatedDataPoint.getMeasure();
+            data.computeIfAbsent(measure, k -> new ArrayList<>()).add(new ImmutableDataPoint(aggregatedDataPoint.getStats().getFirstTimestamp(), aggregatedDataPoint.getStats().getFirstValue(), aggregatedDataPoint.getMeasure()));
+            data.computeIfAbsent(measure, k -> new ArrayList<>()).add(new ImmutableDataPoint(aggregatedDataPoint.getStats().getMinTimestamp(), aggregatedDataPoint.getStats().getMinValue(), aggregatedDataPoint.getMeasure()));
+            data.computeIfAbsent(measure, k -> new ArrayList<>()).add(new ImmutableDataPoint(aggregatedDataPoint.getStats().getMaxTimestamp(), aggregatedDataPoint.getStats().getMaxValue(), aggregatedDataPoint.getMeasure()));
+            data.computeIfAbsent(measure, k -> new ArrayList<>()).add(new ImmutableDataPoint(aggregatedDataPoint.getStats().getLastTimestamp(), aggregatedDataPoint.getStats().getLastValue(), aggregatedDataPoint.getMeasure()));
+        }
+        
+        data.forEach((k, v) -> v.sort(Comparator.comparingLong(DataPoint::getTimestamp)));
+        queryResults.setData(data);
+        return queryResults;
+    }
+
 
 }
 

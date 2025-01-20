@@ -54,7 +54,7 @@ public class PostgreSQLAggregateDataPointsIterator implements Iterator<Aggregate
             double v_max = resultSet.getDouble(4);
             int unionGroup = resultSet.getInt(5); // signifies the union id
 
-            Long aggregateInterval = aggregateIntervals.get(measure);
+            long aggregateInterval = aggregateIntervals.get(measure);
 
             TimeInterval correspondingInterval = unionTimeIntervals.get(unionGroup);
 

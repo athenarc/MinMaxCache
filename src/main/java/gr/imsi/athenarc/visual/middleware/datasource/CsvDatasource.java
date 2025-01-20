@@ -3,11 +3,13 @@ import com.google.common.collect.Iterators;
 
 import gr.imsi.athenarc.visual.middleware.datasource.Csv.CsvAggregateDataPointsIterator;
 import gr.imsi.athenarc.visual.middleware.datasource.Csv.CsvAggregateDataPointsIteratorM4;
-
+import gr.imsi.athenarc.visual.middleware.datasource.Csv.CsvDataPointsIterator;
 import gr.imsi.athenarc.visual.middleware.domain.*;
 import gr.imsi.athenarc.visual.middleware.domain.Dataset.CsvDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.CsvQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
+
+import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -46,8 +48,7 @@ public class CsvDatasource implements DataSource {
 
     @Override
     public DataPoints getDataPoints(long from, long to, Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getDataPoints'");
+        return new CsvDatasource.CsvDataPoints(from, to, missingIntervalsPerMeasure);
     }
 
 
@@ -71,6 +72,7 @@ public class CsvDatasource implements DataSource {
     public class CsvDataPoints implements DataPoints {
 
         private final CsvQuery csvQuery;
+        private final Map<String, Integer> measuresMap;
 
         public CsvDataPoints(long from, long to, Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure) {
             Map<String, List<TimeInterval>> missingIntervalsPerMeasureName = missingIntervalsPerMeasure.entrySet().stream()
@@ -78,11 +80,24 @@ public class CsvDatasource implements DataSource {
                             entry -> dataset.getHeader()[entry.getKey()], // Key mapping is the measure name
                             Map.Entry::getValue // Value remains the same
                     ));
+            this.measuresMap = missingIntervalsPerMeasure.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            entry -> dataset.getHeader()[entry.getKey()], // Key mapping is the measure name
+                            Map.Entry::getKey, // Value is the key of the measure
+                            (v1, v2) -> v1, // Merge function to keep the first value in case of key collision
+                            LinkedHashMap::new // Specify LinkedHashMap to maintain insertion order
+                    ));
             this.csvQuery = new CsvQuery(from, to, missingIntervalsPerMeasureName);
         }
 
         @NotNull
         public Iterator<DataPoint> iterator() {
+            try {
+                Iterable<String[]> csvDataPoints = csvQueryExecutor.executeCsvQuery(csvQuery);
+                return new CsvDataPointsIterator(csvDataPoints, csvQuery.getMissingIntervalsPerMeasure(), measuresMap, dataset.getTimeColumnIndex(), DateTimeFormatter.ofPattern(dataset.getTimeFormat()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             return Iterators.concat(new Iterator[0]);
         }
 

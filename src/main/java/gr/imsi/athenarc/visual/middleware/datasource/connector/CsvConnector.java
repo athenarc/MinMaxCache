@@ -1,19 +1,18 @@
-package gr.imsi.athenarc.visual.middleware.domain.csv;
+package gr.imsi.athenarc.visual.middleware.datasource.connector;
 
 import java.io.IOException;
 
 import gr.imsi.athenarc.visual.middleware.datasource.executor.CsvQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
-import gr.imsi.athenarc.visual.middleware.datasource.initializer.CsvConfiguration;
-import gr.imsi.athenarc.visual.middleware.datasource.initializer.DatasourceInitializer;
+import gr.imsi.athenarc.visual.middleware.domain.csv.CsvConfiguration;
 import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.domain.dataset.CsvDataset;
 
-public class CsvInitializer implements DatasourceInitializer {
+public class CsvConnector implements DatasourceConnector {
 
     private final CsvConfiguration csvConfiguration;
 
-    public CsvInitializer(CsvConfiguration csvConfiguration) {
+    public CsvConnector(CsvConfiguration csvConfiguration) {
         this.csvConfiguration = csvConfiguration;
     }
 

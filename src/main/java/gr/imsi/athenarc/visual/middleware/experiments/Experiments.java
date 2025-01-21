@@ -9,17 +9,16 @@ import com.univocity.parsers.csv.CsvWriter;
 import com.univocity.parsers.csv.CsvWriterSettings;
 
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCache;
+import gr.imsi.athenarc.visual.middleware.datasource.connector.CsvConnector;
+import gr.imsi.athenarc.visual.middleware.datasource.connector.DatasourceConnector;
+import gr.imsi.athenarc.visual.middleware.datasource.connector.InfluxDBConnector;
+import gr.imsi.athenarc.visual.middleware.datasource.connector.PostgreSQLConnector;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.CsvQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
-import gr.imsi.athenarc.visual.middleware.datasource.initializer.CsvConfiguration;
-import gr.imsi.athenarc.visual.middleware.datasource.initializer.DatasourceInitializer;
-import gr.imsi.athenarc.visual.middleware.datasource.initializer.InfluxDBnitializer;
-import gr.imsi.athenarc.visual.middleware.datasource.initializer.PostgreSQLInitializer;
 import gr.imsi.athenarc.visual.middleware.datasource.query.CsvQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.InfluxDBQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.SQLQuery;
-import gr.imsi.athenarc.visual.middleware.domain.csv.CsvInitializer;
 import gr.imsi.athenarc.visual.middleware.domain.dataset.*;
 import gr.imsi.athenarc.visual.middleware.domain.influxdb.InfluxDBConnection;
 import gr.imsi.athenarc.visual.middleware.domain.postgresql.JDBCConnection;
@@ -29,6 +28,7 @@ import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 import gr.imsi.athenarc.visual.middleware.domain.ViewPort;
+import gr.imsi.athenarc.visual.middleware.domain.csv.CsvConfiguration;
 import gr.imsi.athenarc.visual.middleware.experiments.util.*;
 import okhttp3.Cache;
 
@@ -198,8 +198,8 @@ public class Experiments<T> {
 
     private void initialize() throws IOException, SQLException, NoSuchMethodException {
         AbstractDataset dataset = createInitDataset();
-        DatasourceInitializer cacheInitializer = createCacheInitializer();
-        QueryExecutor queryExecutor = cacheInitializer.initializeQueryExecutor(dataset);
+        DatasourceConnector datasourceInitializer = createDatasourceInitializer();
+        QueryExecutor queryExecutor = datasourceInitializer.initializeQueryExecutor(dataset);
         queryExecutor.drop();
         queryExecutor.initialize(path);
     }
@@ -210,9 +210,9 @@ public class Experiments<T> {
         CsvWriterSettings csvWriterSettings = new CsvWriterSettings();
         CsvWriter csvWriter = new CsvWriter(new FileWriter(outFile, false), csvWriterSettings);
         Stopwatch stopwatch = Stopwatch.createUnstarted();
-        DatasourceInitializer cacheInitializer = createCacheInitializer();
-        AbstractDataset dataset = cacheInitializer.initializeDataset(schema, table);
-        QueryExecutor queryExecutor = cacheInitializer.initializeQueryExecutor(dataset);
+        DatasourceConnector datasourceInitializer = createDatasourceInitializer();
+        AbstractDataset dataset = datasourceInitializer.initializeDataset(schema, table);
+        QueryExecutor queryExecutor = datasourceInitializer.initializeQueryExecutor(dataset);
         MinMaxCache minMaxCache = new MinMaxCache(queryExecutor, dataset, p, aggFactor, reductionFactor);
         QueryMethod queryMethod = QueryMethod.MIN_MAX;
         Query q0 = initiliazeQ0(dataset, startTime, endTime, accuracy, null, queryMethod, measures, viewPort, null );
@@ -263,9 +263,9 @@ public class Experiments<T> {
         CsvWriterSettings csvWriterSettings = new CsvWriterSettings();
         CsvWriter csvWriter = new CsvWriter(new FileWriter(outFile, false), csvWriterSettings);
         Stopwatch stopwatch = Stopwatch.createUnstarted();
-        DatasourceInitializer cacheInitializer = createCacheInitializer();
-        AbstractDataset dataset = cacheInitializer.initializeDataset(schema, table);
-        QueryExecutor queryExecutor = cacheInitializer.initializeQueryExecutor(dataset);
+        DatasourceConnector datasourceInitializer = createDatasourceInitializer();
+        AbstractDataset dataset = datasourceInitializer.initializeDataset(schema, table);
+        QueryExecutor queryExecutor = datasourceInitializer.initializeQueryExecutor(dataset);
         MinMaxCache rawCache = new MinMaxCache(queryExecutor, dataset, p, aggFactor, Integer.MAX_VALUE); // If aggregationFactor is larger then the cache will always request raw data.
         QueryMethod queryMethod = QueryMethod.RAW;
         Query q0 = initiliazeQ0(dataset, startTime, endTime, accuracy, null, queryMethod, measures, viewPort, null );
@@ -307,9 +307,9 @@ public class Experiments<T> {
         CsvWriterSettings csvWriterSettings = new CsvWriterSettings();
         CsvWriter csvWriter = new CsvWriter(new FileWriter(outFile, false), csvWriterSettings);
         Stopwatch stopwatch = Stopwatch.createUnstarted();
-        DatasourceInitializer cacheInitializer = createCacheInitializer();
-        AbstractDataset dataset = cacheInitializer.initializeDataset(schema, table);
-        QueryExecutor queryExecutor = cacheInitializer.initializeQueryExecutor(dataset);
+        DatasourceConnector datasourceInitializer = createDatasourceInitializer();
+        AbstractDataset dataset = datasourceInitializer.initializeDataset(schema, table);
+        QueryExecutor queryExecutor = datasourceInitializer.initializeQueryExecutor(dataset);
         QueryMethod queryMethod = QueryMethod.M4;
         Query q0 = initiliazeQ0(dataset, startTime, endTime, accuracy, null, queryMethod, measures, viewPort, null );
         List<Query> sequence = generateQuerySequence(q0, dataset);
@@ -451,26 +451,26 @@ public class Experiments<T> {
         return dataset;
     }
 
-    private DatasourceInitializer createCacheInitializer(){
-        DatasourceInitializer cacheInitializer = null;
+    private DatasourceConnector createDatasourceInitializer(){
+        DatasourceConnector datasourceInitializer = null;
         switch (type) {
             case "csv":
                 CsvConfiguration csvConfiguration = new CsvConfiguration(path, timeFormat, timeCol, delimiter, hasHeader);
-                cacheInitializer = new CsvInitializer(csvConfiguration);
+                datasourceInitializer = new CsvConnector(csvConfiguration);
                 break;
             case "postgres":
                 JDBCConnection postgreSQLConnection = new JDBCConnection(config);
-                cacheInitializer = new PostgreSQLInitializer(postgreSQLConnection);
+                datasourceInitializer = new PostgreSQLConnector(postgreSQLConnection);
                 break;
             case "influx":
                 InfluxDBConnection influxDBConnection = new InfluxDBConnection(config);
-                cacheInitializer = new InfluxDBnitializer(influxDBConnection);
+                datasourceInitializer = new InfluxDBConnector(influxDBConnection);
                 break;
             default:
                 break;
             
         }
-        return cacheInitializer;
+        return datasourceInitializer;
     }
 
 

@@ -1,18 +1,18 @@
 package gr.imsi.athenarc.visual.middleware.cache;
 
+import gr.imsi.athenarc.visual.middleware.datasource.connector.DatasourceConnector;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
-import gr.imsi.athenarc.visual.middleware.datasource.initializer.DatasourceInitializer;
 import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
 
 public class MinMaxCacheBuilder {
-    private DatasourceInitializer initializer;
+    private DatasourceConnector initializer;
     private String schema;
     private String id;
     private double prefetchingFactor = 0.5;
     private int aggFactor = 4;
     private int dataReductionRatio = 4;
 
-    public MinMaxCacheBuilder setCacheInitializer(DatasourceInitializer initializer) {
+    public MinMaxCacheBuilder setCacheInitializer(DatasourceConnector initializer) {
         this.initializer = initializer;
         return this;
     }

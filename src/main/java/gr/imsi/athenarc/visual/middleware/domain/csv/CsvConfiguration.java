@@ -1,4 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.datasource.initializer;
+package gr.imsi.athenarc.visual.middleware.domain.csv;
 
 public class CsvConfiguration {
 

@@ -1,14 +1,14 @@
-package gr.imsi.athenarc.visual.middleware.datasource.initializer;
+package gr.imsi.athenarc.visual.middleware.datasource.connector;
 
 import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.domain.dataset.InfluxDBDataset;
 import gr.imsi.athenarc.visual.middleware.domain.influxdb.InfluxDBConnection;
 
-public class InfluxDBnitializer implements DatasourceInitializer {
+public class InfluxDBConnector implements DatasourceConnector {
     private final InfluxDBConnection connection;
 
-    public InfluxDBnitializer(InfluxDBConnection connection) {
+    public InfluxDBConnector(InfluxDBConnection connection) {
         this.connection = (InfluxDBConnection) connection.connect();
     }
 

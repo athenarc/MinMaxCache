@@ -75,19 +75,6 @@ public class InfluxDBConnection implements DatabaseConnection {
         return new InfluxDBQueryExecutor(client, dataset, org);
     }
 
-    private InfluxDBQueryExecutor createQueryExecutor() {
-        if(client == null){
-            LOG.error("Connection is not initialized");
-            return null;
-        }
-        return new InfluxDBQueryExecutor(client, bucket, org);
-    }
-
-    @Override
-    public InfluxDBQueryExecutor getQueryExecutor() {
-        return this.createQueryExecutor();
-    }
-
     @Override
     public InfluxDBQueryExecutor getQueryExecutor(AbstractDataset dataset) {
         return this.createQueryExecutor(dataset);
@@ -102,10 +89,5 @@ public class InfluxDBConnection implements DatabaseConnection {
             LOG.error(e.getClass().getName() + ": " + e.getMessage());
             throw e;
         }
-    }
-
-    @Override
-    public String getType() {
-        return "influx";
     }
 }

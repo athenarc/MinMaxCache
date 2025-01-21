@@ -8,8 +8,6 @@ import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,7 +38,7 @@ public class PostgreSQLDataset extends AbstractDataset {
     public PostgreSQLDataset(JDBCConnection jdbcConnection, String id, String schema, String table) throws SQLException {
         super(id, schema, table, DEFAULT_POSTGRES_FORMAT);
         jdbcConnection.connect();
-        this.fillPostgreSQLDatasetInfo(jdbcConnection.getQueryExecutor(), schema, table);
+        this.fillPostgreSQLDatasetInfo(jdbcConnection.getQueryExecutor(this), schema, table);
         LOG.info("Dataset: {}, {}", this.getTimeRange(), this.getSamplingInterval());
     }
 

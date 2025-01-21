@@ -76,15 +76,6 @@ public class JDBCConnection implements DatabaseConnection {
         return new SQLQueryExecutor(connection, dataset);
     }
 
-
-    private SQLQueryExecutor createQueryExecutor() {
-        if(connection == null){
-            LOG.error("Connection is not initialized");
-            return null;
-        }
-        return new SQLQueryExecutor(connection);
-    }
-
     public boolean isClosed(){
         try {
             return connection.isClosed();
@@ -95,18 +86,7 @@ public class JDBCConnection implements DatabaseConnection {
     }
 
     @Override
-    public SQLQueryExecutor getQueryExecutor() {
-        return this.createQueryExecutor();
-    }
-
-    @Override
     public SQLQueryExecutor getQueryExecutor(AbstractDataset dataset) {
         return this.createQueryExecutor(dataset);
     }
-
-    @Override
-    public String getType() {
-        return "jdbc";
-    }
-
 }

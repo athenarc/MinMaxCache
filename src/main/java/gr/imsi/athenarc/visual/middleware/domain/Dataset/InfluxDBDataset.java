@@ -33,7 +33,7 @@ public class InfluxDBDataset extends AbstractDataset {
     
     public InfluxDBDataset(InfluxDBConnection influxDBConnection, String id, String bucket, String measurement) {
         super(id, bucket, measurement, DEFAULT_INFLUX_FORMAT);
-        this.fillInfluxDBDatasetInfo(influxDBConnection.getQueryExecutor());
+        this.fillInfluxDBDatasetInfo(influxDBConnection.getQueryExecutor(this));
     }
     
     private void fillInfluxDBDatasetInfo(InfluxDBQueryExecutor influxDBQueryExecutor) {

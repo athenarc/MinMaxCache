@@ -22,7 +22,7 @@ public class PrefetchManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(MinMaxCache.class);
 
-    public PrefetchManager(AbstractDataset dataset, double prefetchingFactor,
+    protected PrefetchManager(AbstractDataset dataset, double prefetchingFactor,
                            CacheManager cacheManager, DataProcessor dataProcessor) {
         this.prefetchingFactor = prefetchingFactor;
         this.cacheManager = cacheManager;
@@ -30,7 +30,7 @@ public class PrefetchManager {
         this.dataset = dataset;
     }
 
-    long[] extendInterval(long from, long to, double factor){
+    private long[] extendInterval(long from, long to, double factor){
         long interval = to - from;
         long difference = (long) (interval * (factor / 2));
         long newFrom = Math.max(dataset.getTimeRange().getFrom(), from - difference);
@@ -39,7 +39,7 @@ public class PrefetchManager {
         return new long[]{newFrom, newTo};
     }
 
-    public void prefetch(Query query, Map<Integer, Integer> aggFactors){
+    protected void prefetch(Query query, Map<Integer, Integer> aggFactors){
         if(prefetchingFactor == 0) return;
         // Setup prefetching range
         long[] prefetchingInterval = extendInterval(query.getFrom(), query.getTo(), prefetchingFactor);

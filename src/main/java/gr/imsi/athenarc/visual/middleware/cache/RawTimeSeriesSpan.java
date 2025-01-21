@@ -39,7 +39,7 @@ public class RawTimeSeriesSpan implements TimeSeriesSpan {
      */
     private int measure;
 
-    public RawTimeSeriesSpan(long from, long to, int measure) {
+    protected RawTimeSeriesSpan(long from, long to, int measure) {
         this.from = from;
         this.to = to;
         this.measure = measure;
@@ -50,7 +50,7 @@ public class RawTimeSeriesSpan implements TimeSeriesSpan {
      */
 
 
-    public void build(List<DataPoint> dataPoints) {
+     protected void build(List<DataPoint> dataPoints) {
         ArrayList<Double> valuesList = new ArrayList<>();
         ArrayList<Long> timestampsList = new ArrayList<>();
         for (DataPoint dataPoint : dataPoints) {

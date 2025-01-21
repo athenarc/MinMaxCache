@@ -17,7 +17,7 @@ public class ErrorCalculator {
     private long pixelColumnInterval;
     private double error;
 
-    public double calculateTotalError(List<PixelColumn> pixelColumns, ViewPort viewPort, long pixelColumnInterval, double accuracy) {
+    protected double calculateTotalError(List<PixelColumn> pixelColumns, ViewPort viewPort, long pixelColumnInterval, double accuracy) {
         // Calculate errors using processed data
         maxErrorEvaluator = new MaxErrorEvaluator(viewPort, pixelColumns);
         this.pixelColumnInterval = pixelColumnInterval;
@@ -37,22 +37,22 @@ public class ErrorCalculator {
         return error;
     }
 
-    public List<TimeInterval> getMissingIntervals() {
+    protected List<TimeInterval> getMissingIntervals() {
         List<TimeInterval> missingIntervals = maxErrorEvaluator.getMissingRanges();
         missingIntervals = DateTimeUtil.groupIntervals(pixelColumnInterval, missingIntervals);
         LOG.info("Unable to Determine Errors: " + missingIntervals);
         return missingIntervals;
     }
 
-    public List<RangeSet<Integer>> getMissingPixels() {
+    protected List<RangeSet<Integer>> getMissingPixels() {
         return maxErrorEvaluator.getMissingPixels();
     }
 
-    public List<RangeSet<Integer>> getFalsePixels() {
+    protected List<RangeSet<Integer>> getFalsePixels() {
         return maxErrorEvaluator.getFalsePixels();
     }
 
-    public boolean hasError(){
+    protected boolean hasError(){
         return hasError;
     }
     

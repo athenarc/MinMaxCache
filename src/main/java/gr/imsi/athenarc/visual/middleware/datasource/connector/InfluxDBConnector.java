@@ -3,7 +3,6 @@ package gr.imsi.athenarc.visual.middleware.datasource.connector;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.domain.dataset.InfluxDBDataset;
-import gr.imsi.athenarc.visual.middleware.domain.influxdb.InfluxDBConnection;
 
 public class InfluxDBConnector implements DatasourceConnector {
     private final InfluxDBConnection connection;
@@ -21,5 +20,10 @@ public class InfluxDBConnector implements DatasourceConnector {
     public QueryExecutor initializeQueryExecutor(AbstractDataset dataset) {
         InfluxDBDataset influxDataset = (InfluxDBDataset) dataset;
         return connection.getQueryExecutor(influxDataset);
+    }
+
+    @Override
+    public void close() {
+        this.connection.closeConnection();
     }
 }

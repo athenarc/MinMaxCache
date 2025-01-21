@@ -5,15 +5,15 @@ import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
 
 public class MinMaxCacheBuilder {
-    private DatasourceConnector initializer;
+    private DatasourceConnector datasourceConnector;
     private String schema;
     private String id;
     private double prefetchingFactor = 0.5;
     private int aggFactor = 4;
     private int dataReductionRatio = 4;
 
-    public MinMaxCacheBuilder setCacheInitializer(DatasourceConnector initializer) {
-        this.initializer = initializer;
+    public MinMaxCacheBuilder setDatasourceConnector(DatasourceConnector datasourceConnector) {
+        this.datasourceConnector = datasourceConnector;
         return this;
     }
 
@@ -43,11 +43,11 @@ public class MinMaxCacheBuilder {
     }
 
     public MinMaxCache build() {
-        if (initializer == null) {
-            throw new IllegalStateException("CacheInitializer must be provided");
+        if (datasourceConnector == null) {
+            throw new IllegalStateException("Datasource connector must be provided");
         }
-        AbstractDataset dataset = initializer.initializeDataset(schema, id);
-        QueryExecutor queryExecutor = initializer.initializeQueryExecutor(dataset);
+        AbstractDataset dataset = datasourceConnector.initializeDataset(schema, id);
+        QueryExecutor queryExecutor = datasourceConnector.initializeQueryExecutor(dataset);
         return new MinMaxCache(queryExecutor, dataset, prefetchingFactor, aggFactor, dataReductionRatio);
     }
 }

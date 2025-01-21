@@ -1,7 +1,6 @@
-package gr.imsi.athenarc.visual.middleware.domain.postgresql;
+package gr.imsi.athenarc.visual.middleware.datasource.connector;
 
 import gr.imsi.athenarc.visual.middleware.datasource.executor.SQLQueryExecutor;
-import gr.imsi.athenarc.visual.middleware.domain.DatabaseConnection;
 import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
 
 import org.slf4j.Logger;

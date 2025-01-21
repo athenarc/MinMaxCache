@@ -16,24 +16,17 @@ public class CacheManager {
 
     private final Map<Integer, IntervalTree<TimeSeriesSpan>> intervalTrees;
 
-    public CacheManager(List<Integer> measures) {
+    protected CacheManager(List<Integer> measures) {
         this.measures = measures;
         this.intervalTrees = new HashMap<>();
         measures.forEach(m -> intervalTrees.put(m, new IntervalTree<>()));
     }
 
-    public void addToCache(List<TimeSeriesSpan> timeSeriesSpans) {
+    protected void addToCache(List<TimeSeriesSpan> timeSeriesSpans) {
         timeSeriesSpans.forEach(timeSeriesSpan -> getIntervalTree(timeSeriesSpan.getMeasure()).insert(timeSeriesSpan));
     }
 
-    public boolean areListsEqual(List<Integer> list1, List<Integer> list2){
-        Collections.sort(list1);
-        Collections.sort(list2);
-        return list1.equals(list2);
-    }
-
-
-    public Map<Integer, List<TimeSeriesSpan>> getFromCache(Query query, long pixelColumnInterval) {
+    protected Map<Integer, List<TimeSeriesSpan>> getFromCache(Query query, long pixelColumnInterval) {
         // For each query measure, get the corresponding interval tree. From it retrieve the overlapping spans.
         return query.getMeasures().stream().collect(Collectors.toMap(
                 // Key: Measure

@@ -62,7 +62,7 @@ public class AggregateTimeSeriesSpan implements TimeSeriesSpan {
     }
 
 
-    public AggregateTimeSeriesSpan(long from, long to, int measure, long aggregateInterval) {
+    protected AggregateTimeSeriesSpan(long from, long to, int measure, long aggregateInterval) {
         initialize(from, to, aggregateInterval, measure);
     }
 

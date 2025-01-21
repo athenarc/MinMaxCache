@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.domain.dataset.PostgreSQLDataset;
-import gr.imsi.athenarc.visual.middleware.domain.postgresql.JDBCConnection;
 
 public class PostgreSQLConnector implements DatasourceConnector {
     private final JDBCConnection connection;
@@ -28,5 +27,15 @@ public class PostgreSQLConnector implements DatasourceConnector {
     public QueryExecutor initializeQueryExecutor(AbstractDataset dataset) {
         PostgreSQLDataset postgresDataset = (PostgreSQLDataset) dataset;
         return connection.getQueryExecutor(postgresDataset);
+    }
+
+
+    @Override
+    public void close() {
+        try {
+            this.connection.closeConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

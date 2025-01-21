@@ -36,5 +36,11 @@ public class CsvConnector implements DatasourceConnector {
             return null;
         }
     }
+
+    @Override
+    public void close(){
+        // Do nothing
+        throw new UnsupportedOperationException("Csv's dont have a connection to be closed");
+    }
     
 }

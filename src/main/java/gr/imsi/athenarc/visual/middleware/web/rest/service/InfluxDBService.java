@@ -11,12 +11,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCache;
-import gr.imsi.athenarc.visual.middleware.datasource.executor.InfluxDBQueryExecutor;
+import gr.imsi.athenarc.visual.middleware.cache.MinMaxCacheBuilder;
+import gr.imsi.athenarc.visual.middleware.datasource.connector.InfluxDBConnection;
+import gr.imsi.athenarc.visual.middleware.datasource.connector.InfluxDBConnector;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 import gr.imsi.athenarc.visual.middleware.domain.dataset.InfluxDBDataset;
-import gr.imsi.athenarc.visual.middleware.domain.influxdb.InfluxDBConnection;
 import gr.imsi.athenarc.visual.middleware.domain.query.Query;
-import gr.imsi.athenarc.visual.middleware.web.rest.repository.InfluxDBDatasetRepository;
 
 @Service
 public class InfluxDBService {
@@ -35,9 +35,7 @@ public class InfluxDBService {
     @Value("${influxdb.bucket}")
     private String influxDbBucket;
 
-    private InfluxDBConnection influxDBConnection;
-
-    private final InfluxDBDatasetRepository datasetRepository;
+    private InfluxDBConnector influxDBConnector;
 
     // Map to hold the minmaxcache of each dataset
     private final ConcurrentHashMap<String, MinMaxCache> cacheMap = new ConcurrentHashMap<>();
@@ -46,24 +44,21 @@ public class InfluxDBService {
     private final ConcurrentHashMap<String, CompletableFuture<?>> ongoingRequests = new ConcurrentHashMap<>();
 
     @Autowired
-    public InfluxDBService(InfluxDBDatasetRepository datasetRepository) {
-        this.datasetRepository = datasetRepository;
+    public InfluxDBService() {
     }
 
     // Method to initialize InfluxDB connection manually
     public void initializeConnection() {
-        influxDBConnection = (InfluxDBConnection) new InfluxDBConnection(influxDbUrl, influxDbOrg, influxDbToken, influxDbBucket).connect();
+        InfluxDBConnection influxDBConnection = (InfluxDBConnection) new InfluxDBConnection(influxDbUrl, influxDbOrg, influxDbToken, influxDbBucket).connect();
+        influxDBConnector = new InfluxDBConnector(influxDBConnection);
         LOG.info("InfluxDB connection established.");
     }
 
     // Method to perform a query with cancellation support
     public CompletableFuture<QueryResults> performQuery(Query query, String schema, String id) {
-        if (influxDBConnection == null) {
+        if (influxDBConnector == null) {
             initializeConnection();
         }
-
-        // Get or create the dataset
-        InfluxDBDataset dataset = getDatasetById(schema, id);
 
         // Cancel previous request for this dataset, if any
         CompletableFuture<?> previousRequest = ongoingRequests.put(id, new CompletableFuture<>());
@@ -75,8 +70,14 @@ public class InfluxDBService {
         CompletableFuture<QueryResults> queryFuture = CompletableFuture.supplyAsync(() -> {
             // Check if cache exists, if not, create it
             MinMaxCache minMaxCache = cacheMap.computeIfAbsent(id, key -> {
-                InfluxDBQueryExecutor influxDBQueryExecutor = influxDBConnection.getQueryExecutor(dataset);
-                return new MinMaxCache(influxDBQueryExecutor, dataset, 0, 4, 2);
+               return new MinMaxCacheBuilder()
+                    .setDatasourceConnector(influxDBConnector)
+                    .setSchema(schema)
+                    .setId(id)
+                    .setPrefetchingFactor(0.5)
+                    .setAggFactor(4)
+                    .setDataReductionRatio(2)
+                    .build();
             });
 
             return minMaxCache.executeQuery(query);
@@ -89,35 +90,17 @@ public class InfluxDBService {
 
     // Close connection method (optional)
     public void closeConnection() {
-        if (influxDBConnection != null) {
-            influxDBConnection.closeConnection();
+        if (influxDBConnector != null) {
+            influxDBConnector.close();
             LOG.info("InfluxDB connection closed.");
         }
     }
 
-    private InfluxDBDataset initializeDataset(String schema, String id) {
-        return new InfluxDBDataset(influxDBConnection, id, schema, id);
-    }
-
     public InfluxDBDataset getDatasetById(String schema, String id) {
-        if (influxDBConnection == null) {
+        if(influxDBConnector == null) {
             initializeConnection();
         }
-        // Check if the dataset already exists
-        if (datasetRepository.existsById(id)) {
-            return datasetRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Dataset not found."));
-        } else {
-            // Initialize and save a new dataset if it doesn't exist
-            LOG.info("Dataset with id {} does not exist. Initializing...", id);
-            InfluxDBDataset newDataset = initializeDataset(schema, id); // Use the appropriate schema
-            if (newDataset != null) {
-                datasetRepository.save(newDataset);
-                return newDataset;
-            } else {
-                throw new RuntimeException("Failed to initialize dataset with id " + id);
-            }
-        }
+        return (InfluxDBDataset) influxDBConnector.initializeDataset(schema, id);
     }
 }
 

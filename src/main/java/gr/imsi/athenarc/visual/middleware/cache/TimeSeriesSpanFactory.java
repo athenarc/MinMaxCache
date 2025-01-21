@@ -18,7 +18,7 @@ public class TimeSeriesSpanFactory {
      * @param missingIntervalsPerMeasure  list of ranges for each measure that this points belong to
      * @return A list of RawTimeSeriesSpan for each measure
      */
-    public static Map<Integer, List<TimeSeriesSpan>> createRaw(DataPoints dataPoints, Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure){
+    protected static Map<Integer, List<TimeSeriesSpan>> createRaw(DataPoints dataPoints, Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure){
         Map<Integer, List<TimeSeriesSpan>> spans = new HashMap<>();
         Iterator<DataPoint> it = dataPoints.iterator();
         DataPoint dataPoint = null;
@@ -62,7 +62,7 @@ public class TimeSeriesSpanFactory {
      * @param aggregateIntervalsPerMeasure aggregate intervals with which to fetch data for each measure
      * @return A list of AggregateTimeSeriesSpan for each measure
      */
-    public static Map<Integer, List<TimeSeriesSpan>> createAggregate(AggregatedDataPoints aggregatedDataPoints,
+    protected static Map<Integer, List<TimeSeriesSpan>> createAggregate(AggregatedDataPoints aggregatedDataPoints,
                                                                      Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure,
                                                                      Map<Integer, Long> aggregateIntervalsPerMeasure) {
         Map<Integer, List<TimeSeriesSpan>> spans = new HashMap<>();

@@ -6,12 +6,10 @@ import com.influxdb.query.FluxTable;
 import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import gr.imsi.athenarc.visual.middleware.datasource.connector.InfluxDBConnection;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.InfluxDBQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
-import gr.imsi.athenarc.visual.middleware.domain.influxdb.InfluxDBConnection;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 

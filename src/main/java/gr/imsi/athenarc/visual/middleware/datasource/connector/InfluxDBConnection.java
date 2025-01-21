@@ -1,11 +1,10 @@
-package gr.imsi.athenarc.visual.middleware.domain.influxdb;
+package gr.imsi.athenarc.visual.middleware.datasource.connector;
 
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.client.InfluxDBClientOptions;
 
 import gr.imsi.athenarc.visual.middleware.datasource.executor.InfluxDBQueryExecutor;
-import gr.imsi.athenarc.visual.middleware.domain.DatabaseConnection;
 import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger;

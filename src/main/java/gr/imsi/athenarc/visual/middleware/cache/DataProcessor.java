@@ -24,7 +24,7 @@ public class DataProcessor {
 
     private final QueryExecutor queryExecutor;
 
-    public DataProcessor(QueryExecutor queryExecutor, AbstractDataset dataset, int dataReductionRatio){
+    protected DataProcessor(QueryExecutor queryExecutor, AbstractDataset dataset, int dataReductionRatio){
         this.dataset = dataset;
         this.queryExecutor = queryExecutor;
         this.dataSource = DataSourceFactory.getDataSource(queryExecutor, dataset);
@@ -34,7 +34,7 @@ public class DataProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(DataProcessor.class);
 
     
-    private RangeSet<Long> getRawTimeSeriesSpanRanges(List<TimeSeriesSpan> timeSeriesSpans) {
+    protected RangeSet<Long> getRawTimeSeriesSpanRanges(List<TimeSeriesSpan> timeSeriesSpans) {
         RangeSet<Long> rangeSet = TreeRangeSet.create();
 
         for (TimeSeriesSpan span : timeSeriesSpans) {
@@ -58,7 +58,7 @@ public class DataProcessor {
      * @param pixelColumns pixel columns of measure
      * @param timeSeriesSpans time series spans for measure
      */
-     public void processDatapoints(long from, long to, ViewPort viewPort,
+    protected void processDatapoints(long from, long to, ViewPort viewPort,
                                    List<PixelColumn> pixelColumns, List<TimeSeriesSpan> timeSeriesSpans) {
 
 
@@ -119,7 +119,7 @@ public class DataProcessor {
      * @param aggFactors aggregation factors per measure
      * @return A list of TimeSeriesSpan for each measure.
      **/
-    public Map<Integer, List<TimeSeriesSpan>> getMissing(long from, long to, Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure,
+    protected Map<Integer, List<TimeSeriesSpan>> getMissing(long from, long to, Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure,
                                                  Map<Integer, Integer> aggFactors, ViewPort viewPort, QueryMethod queryMethod) {
         missingIntervalsPerMeasure = sortMeasuresAndIntervals(missingIntervalsPerMeasure); // This helps with parsing the query results
         Map<Integer, List<TimeSeriesSpan>> timeSeriesSpans = new HashMap<>(missingIntervalsPerMeasure.size());
@@ -202,7 +202,7 @@ public class DataProcessor {
         }
     }
 
-    public QueryExecutor getQueryExecutor() {
+    protected QueryExecutor getQueryExecutor() {
         return queryExecutor;
     }
 }

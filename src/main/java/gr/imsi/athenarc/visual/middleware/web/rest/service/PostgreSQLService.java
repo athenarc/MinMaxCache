@@ -12,12 +12,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCache;
-import gr.imsi.athenarc.visual.middleware.datasource.executor.SQLQueryExecutor;
+import gr.imsi.athenarc.visual.middleware.cache.MinMaxCacheBuilder;
+import gr.imsi.athenarc.visual.middleware.datasource.connector.JDBCConnection;
+import gr.imsi.athenarc.visual.middleware.datasource.connector.PostgreSQLConnector;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 import gr.imsi.athenarc.visual.middleware.domain.dataset.PostgreSQLDataset;
-import gr.imsi.athenarc.visual.middleware.domain.postgresql.JDBCConnection;
 import gr.imsi.athenarc.visual.middleware.domain.query.Query;
-import gr.imsi.athenarc.visual.middleware.web.rest.repository.PostgreSQLDatasetRepository;
 
 @Service
 public class PostgreSQLService {
@@ -35,32 +35,27 @@ public class PostgreSQLService {
     @Value("${postgres.password}")
     private String postgresPassword;
 
-    private JDBCConnection jdbcConnection;
+    private PostgreSQLConnector postgreSQLConnector;
 
-    private final PostgreSQLDatasetRepository datasetRepository;
 
     // Map to hold the minmaxcache of each dataset
     private final ConcurrentHashMap<String, MinMaxCache> cacheMap = new ConcurrentHashMap<>();
 
     @Autowired
-    public PostgreSQLService(PostgreSQLDatasetRepository datasetRepository) {
-        this.datasetRepository = datasetRepository;
-    }
+    public PostgreSQLService() {}
 
 
     // Method to initialize connection manually
     public void initializeConnection() throws SQLException {
-        jdbcConnection = (JDBCConnection) new JDBCConnection(postgresUrl, postgresUsername, postgresPassword).connect();
+        JDBCConnection jdbcConnection = (JDBCConnection) new JDBCConnection(postgresUrl, postgresUsername, postgresPassword).connect();
+        postgreSQLConnector = new PostgreSQLConnector(jdbcConnection);
         LOG.info("PostgreSQL connection established.");
     }
 
     public CompletableFuture<QueryResults> performQuery(Query query, String schema, String id) throws SQLException {
-        if (jdbcConnection == null) {
+        if (postgreSQLConnector == null) {
             initializeConnection();
         }
-
-        PostgreSQLDataset dataset = datasetRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Dataset not found."));
 
         // Cancel previous request for this dataset, if any
         CompletableFuture<?> previousRequest = ongoingRequests.put(id, new CompletableFuture<>());
@@ -71,8 +66,15 @@ public class PostgreSQLService {
         CompletableFuture<QueryResults> queryFuture = CompletableFuture.supplyAsync(() -> {
             // Execute the query asynchronously
             MinMaxCache minMaxCache = cacheMap.computeIfAbsent(id, key -> {
-                SQLQueryExecutor sqlQueryExecutor = jdbcConnection.getQueryExecutor(dataset);
-                return new MinMaxCache(sqlQueryExecutor, dataset, 0.5, 4, 4);
+                return new MinMaxCacheBuilder()
+                    .setDatasourceConnector(postgreSQLConnector)
+                    .setSchema(schema)
+                    .setId(id)
+                    .setPrefetchingFactor(0.5)
+                    .setAggFactor(4)
+                    .setDataReductionRatio(2)
+                    .build();
+
             });
 
             return minMaxCache.executeQuery(query);
@@ -84,40 +86,15 @@ public class PostgreSQLService {
 
     // Close connection method (optional)
     public void closeConnection() throws SQLException {
-        if (jdbcConnection != null && !jdbcConnection.isClosed()) {
-            jdbcConnection.closeConnection();;
-            // LOG.info("PostgreSQL connection closed.");
+        if (postgreSQLConnector != null) {
+            postgreSQLConnector.close();
         }
     }
-
-    private PostgreSQLDataset initializeDataset(String schema, String id){
-        try {
-            PostgreSQLDataset dataset = new PostgreSQLDataset(jdbcConnection, id, schema, id);
-            return dataset;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
+  
     public PostgreSQLDataset getDatasetById(String schema, String id) throws SQLException {
-        if (jdbcConnection == null) {
+        if (postgreSQLConnector == null) {
             initializeConnection();
         }
-        // Check if the dataset already exists
-        if (datasetRepository.existsById(id)) {
-            return datasetRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Dataset not found."));
-        } else {
-            // Initialize and save a new dataset if it doesn't exist
-            LOG.info("Dataset with id {} does not exist. Initializing...", id);
-            PostgreSQLDataset newDataset = initializeDataset(schema, id); // Use the appropriate schema
-            if (newDataset != null) {
-                datasetRepository.save(newDataset);
-                return newDataset;
-            } else {
-                throw new RuntimeException("Failed to initialize dataset with id " + id);
-            }
-        }
+        return (PostgreSQLDataset) postgreSQLConnector.initializeDataset(schema, id);
     }
 }

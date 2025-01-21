@@ -50,7 +50,7 @@ public class CacheQueryExecutor {
     private final Map<Integer, Integer> aggFactors;
 
     private final int initialAggFactor;
-    public CacheQueryExecutor(AbstractDataset dataset, int aggFactor) {
+    protected CacheQueryExecutor(AbstractDataset dataset, int aggFactor) {
         this.dataset = dataset;
         this.aggFactors = new HashMap<>(dataset.getMeasures().size());
         this.initialAggFactor = aggFactor;
@@ -62,7 +62,7 @@ public class CacheQueryExecutor {
         aggFactors.put(measure, prevAggFactor * 2);
     }
 
-    public QueryResults executeQuery(Query query, CacheManager cacheManager,
+    protected QueryResults executeQuery(Query query, CacheManager cacheManager,
                                      DataProcessor dataProcessor, PrefetchManager prefetchManager){
         LOG.info("Executing Visual Query {}", query);
         if(query.getAccuracy() == 1) return executeM4Query(query, dataProcessor.getQueryExecutor());

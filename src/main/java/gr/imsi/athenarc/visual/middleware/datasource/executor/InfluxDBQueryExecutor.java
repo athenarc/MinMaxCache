@@ -1,4 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor;
+package gr.imsi.athenarc.visual.middleware.datasource.executor;
 
 import com.influxdb.client.DeleteApi;
 import com.influxdb.client.InfluxDBClient;
@@ -9,14 +9,15 @@ import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
-import gr.imsi.athenarc.visual.middleware.datasource.DataSourceQuery;
-import gr.imsi.athenarc.visual.middleware.datasource.InfluxDBQuery;
+
+import gr.imsi.athenarc.visual.middleware.datasource.query.DataSourceQuery;
+import gr.imsi.athenarc.visual.middleware.datasource.query.InfluxDBQuery;
 import gr.imsi.athenarc.visual.middleware.domain.DataPoint;
-import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
-import gr.imsi.athenarc.visual.middleware.domain.Dataset.InfluxDBDataset;
 import gr.imsi.athenarc.visual.middleware.domain.ImmutableDataPoint;
-import gr.imsi.athenarc.visual.middleware.domain.InfluxDB.InitQueries.*;
-import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
+import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
+import gr.imsi.athenarc.visual.middleware.domain.dataset.InfluxDBDataset;
+import gr.imsi.athenarc.visual.middleware.domain.influxdb.InitQueries.*;
+import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

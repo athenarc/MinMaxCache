@@ -1,13 +1,14 @@
 package gr.imsi.athenarc.visual.middleware.datasource;
 import com.google.common.collect.Iterators;
 
-import gr.imsi.athenarc.visual.middleware.datasource.Csv.CsvAggregateDataPointsIterator;
-import gr.imsi.athenarc.visual.middleware.datasource.Csv.CsvAggregateDataPointsIteratorM4;
-import gr.imsi.athenarc.visual.middleware.datasource.Csv.CsvDataPointsIterator;
 import gr.imsi.athenarc.visual.middleware.domain.*;
-import gr.imsi.athenarc.visual.middleware.domain.Dataset.CsvDataset;
-import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.CsvQueryExecutor;
-import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
+import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvAggregateDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvAggregateDataPointsIteratorM4;
+import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.executor.CsvQueryExecutor;
+import gr.imsi.athenarc.visual.middleware.datasource.query.CsvQuery;
+import gr.imsi.athenarc.visual.middleware.domain.dataset.CsvDataset;
+import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
 
 import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;

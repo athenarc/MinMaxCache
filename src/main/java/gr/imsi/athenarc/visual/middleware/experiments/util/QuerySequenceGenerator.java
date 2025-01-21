@@ -1,7 +1,7 @@
 package gr.imsi.athenarc.visual.middleware.experiments.util;
 
-import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
-import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
+import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
+import gr.imsi.athenarc.visual.middleware.domain.query.Query;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 import gr.imsi.athenarc.visual.middleware.domain.ViewPort;
 
@@ -118,7 +118,6 @@ public class QuerySequenceGenerator {
         int pans = 50;
         int zoom_out = 30;
         int zoom_in = 20;
-//        int zoom_in = 15;
         int resize = 0;
 
         for (int i = 0; i < pans; i++) ops.add(P);

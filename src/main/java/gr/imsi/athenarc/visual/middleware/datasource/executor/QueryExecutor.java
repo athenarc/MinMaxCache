@@ -1,8 +1,8 @@
-package gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor;
+package gr.imsi.athenarc.visual.middleware.datasource.executor;
 
-import gr.imsi.athenarc.visual.middleware.datasource.DataSourceQuery;
-import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
+import gr.imsi.athenarc.visual.middleware.datasource.query.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
+import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

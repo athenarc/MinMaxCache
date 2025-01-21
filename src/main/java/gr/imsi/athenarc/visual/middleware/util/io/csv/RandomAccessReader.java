@@ -1,4 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.util.io.CsvReader;
+package gr.imsi.athenarc.visual.middleware.util.io.csv;
 
 import java.io.EOFException;
 import java.io.File;

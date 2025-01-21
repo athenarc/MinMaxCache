@@ -2,11 +2,10 @@ package gr.imsi.athenarc.visual.middleware.cache;
 
 import gr.imsi.athenarc.visual.middleware.datasource.DataSource;
 import gr.imsi.athenarc.visual.middleware.datasource.DataSourceFactory;
-import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.QueryExecutor;
+import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.*;
-import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
-import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
-import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
+import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
+import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

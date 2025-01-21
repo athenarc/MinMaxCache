@@ -11,11 +11,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCache;
-import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.InfluxDBQueryExecutor;
+import gr.imsi.athenarc.visual.middleware.datasource.executor.InfluxDBQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
-import gr.imsi.athenarc.visual.middleware.domain.Dataset.InfluxDBDataset;
-import gr.imsi.athenarc.visual.middleware.domain.InfluxDB.InfluxDBConnection;
-import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
+import gr.imsi.athenarc.visual.middleware.domain.dataset.InfluxDBDataset;
+import gr.imsi.athenarc.visual.middleware.domain.influxdb.InfluxDBConnection;
+import gr.imsi.athenarc.visual.middleware.domain.query.Query;
 import gr.imsi.athenarc.visual.middleware.web.rest.repository.InfluxDBDatasetRepository;
 
 @Service

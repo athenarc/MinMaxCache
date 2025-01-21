@@ -2,8 +2,8 @@ package gr.imsi.athenarc.visual.middleware.datasource;
 
 import gr.imsi.athenarc.visual.middleware.domain.AggregatedDataPoints;
 import gr.imsi.athenarc.visual.middleware.domain.DataPoints;
-import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
+import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
 
 import java.util.List;
 import java.util.Map;

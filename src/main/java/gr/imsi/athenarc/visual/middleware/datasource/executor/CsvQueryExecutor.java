@@ -1,17 +1,17 @@
-package gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor;
+package gr.imsi.athenarc.visual.middleware.datasource.executor;
 
-import gr.imsi.athenarc.visual.middleware.datasource.CsvQuery;
-import gr.imsi.athenarc.visual.middleware.datasource.DataSourceQuery;
-import gr.imsi.athenarc.visual.middleware.datasource.Csv.CsvAggregateDataPointsIterator;
-import gr.imsi.athenarc.visual.middleware.datasource.Csv.CsvAggregateDataPointsIteratorM4;
-import gr.imsi.athenarc.visual.middleware.datasource.Csv.CsvDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvAggregateDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvAggregateDataPointsIteratorM4;
+import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.query.CsvQuery;
+import gr.imsi.athenarc.visual.middleware.datasource.query.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.domain.AggregatedDataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.DataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.ImmutableDataPoint;
-import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
-import gr.imsi.athenarc.visual.middleware.domain.Dataset.CsvDataset;
-import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
-import gr.imsi.athenarc.visual.middleware.util.io.CsvReader.CsvTimeSeriesRandomAccessReader;
+import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
+import gr.imsi.athenarc.visual.middleware.domain.dataset.CsvDataset;
+import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
+import gr.imsi.athenarc.visual.middleware.util.io.csv.CsvTimeSeriesRandomAccessReader;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;

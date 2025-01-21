@@ -1,4 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.datasource.Csv;
+package gr.imsi.athenarc.visual.middleware.datasource.csv;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 

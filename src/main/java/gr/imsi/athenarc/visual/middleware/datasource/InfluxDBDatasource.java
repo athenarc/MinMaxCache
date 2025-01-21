@@ -3,13 +3,16 @@ package gr.imsi.athenarc.visual.middleware.datasource;
 
 import com.google.common.collect.Iterators;
 import com.influxdb.query.FluxTable;
-import gr.imsi.athenarc.visual.middleware.datasource.InfluxDB.InfluxDBAggregateDataPointsIterator;
-import gr.imsi.athenarc.visual.middleware.datasource.InfluxDB.InfluxDBAggregateDataPointsIteratorM4;
-import gr.imsi.athenarc.visual.middleware.datasource.InfluxDB.InfluxDBDataPointsIterator;
+
 import gr.imsi.athenarc.visual.middleware.domain.*;
-import gr.imsi.athenarc.visual.middleware.domain.Dataset.InfluxDBDataset;
-import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.InfluxDBQueryExecutor;
-import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
+import gr.imsi.athenarc.visual.middleware.datasource.executor.InfluxDBQueryExecutor;
+import gr.imsi.athenarc.visual.middleware.datasource.influxdb.InfluxDBAggregateDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.influxdb.InfluxDBAggregateDataPointsIteratorM4;
+import gr.imsi.athenarc.visual.middleware.datasource.influxdb.InfluxDBDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.query.InfluxDBQuery;
+import gr.imsi.athenarc.visual.middleware.domain.dataset.InfluxDBDataset;
+import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
+
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

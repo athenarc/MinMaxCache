@@ -12,11 +12,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCache;
-import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.SQLQueryExecutor;
+import gr.imsi.athenarc.visual.middleware.datasource.executor.SQLQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
-import gr.imsi.athenarc.visual.middleware.domain.Dataset.PostgreSQLDataset;
-import gr.imsi.athenarc.visual.middleware.domain.PostgreSQL.JDBCConnection;
-import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
+import gr.imsi.athenarc.visual.middleware.domain.dataset.PostgreSQLDataset;
+import gr.imsi.athenarc.visual.middleware.domain.postgresql.JDBCConnection;
+import gr.imsi.athenarc.visual.middleware.domain.query.Query;
 import gr.imsi.athenarc.visual.middleware.web.rest.repository.PostgreSQLDatasetRepository;
 
 @Service

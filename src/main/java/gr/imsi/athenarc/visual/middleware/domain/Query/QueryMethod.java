@@ -1,4 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.domain.Query;
+package gr.imsi.athenarc.visual.middleware.domain.query;
 
 public enum QueryMethod {
     M4,

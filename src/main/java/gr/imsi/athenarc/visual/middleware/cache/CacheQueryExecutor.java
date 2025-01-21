@@ -19,14 +19,14 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
 
-import gr.imsi.athenarc.visual.middleware.datasource.CsvQuery;
-import gr.imsi.athenarc.visual.middleware.datasource.DataSourceQuery;
-import gr.imsi.athenarc.visual.middleware.datasource.InfluxDBQuery;
-import gr.imsi.athenarc.visual.middleware.datasource.SQLQuery;
-import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.CsvQueryExecutor;
-import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.InfluxDBQueryExecutor;
-import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.QueryExecutor;
-import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.SQLQueryExecutor;
+import gr.imsi.athenarc.visual.middleware.datasource.executor.CsvQueryExecutor;
+import gr.imsi.athenarc.visual.middleware.datasource.executor.InfluxDBQueryExecutor;
+import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
+import gr.imsi.athenarc.visual.middleware.datasource.executor.SQLQueryExecutor;
+import gr.imsi.athenarc.visual.middleware.datasource.query.CsvQuery;
+import gr.imsi.athenarc.visual.middleware.datasource.query.DataSourceQuery;
+import gr.imsi.athenarc.visual.middleware.datasource.query.InfluxDBQuery;
+import gr.imsi.athenarc.visual.middleware.datasource.query.SQLQuery;
 import gr.imsi.athenarc.visual.middleware.domain.DataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.ErrorResults;
 import gr.imsi.athenarc.visual.middleware.domain.ImmutableDataPoint;
@@ -37,10 +37,10 @@ import gr.imsi.athenarc.visual.middleware.domain.StatsAggregator;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 import gr.imsi.athenarc.visual.middleware.domain.ViewPort;
-import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
-import gr.imsi.athenarc.visual.middleware.domain.Dataset.PostgreSQLDataset;
-import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
-import gr.imsi.athenarc.visual.middleware.domain.Query.QueryMethod;
+import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
+import gr.imsi.athenarc.visual.middleware.domain.dataset.PostgreSQLDataset;
+import gr.imsi.athenarc.visual.middleware.domain.query.Query;
+import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
 
 public class CacheQueryExecutor {
@@ -215,8 +215,8 @@ public class CacheQueryExecutor {
             List<PixelColumn> pixelColumns = pixelColumnsPerMeasure.get(measure);
 
             // Lit pixel assertion
-            // List<Range<Integer>> litPixels = computeLitPixels(pixelColumns);
-            // litPixelsPerMeasure.put(measure, litPixels);
+            List<Range<Integer>> litPixels = computeLitPixels(pixelColumns);
+            litPixelsPerMeasure.put(measure, litPixels);
             // debugLitPixels(litPixels, errorPerMeasure.get(measure));
 
             List<DataPoint> dataPoints = new ArrayList<>();
@@ -365,6 +365,11 @@ public class CacheQueryExecutor {
 
             PixelColumn currentColumn = pixelColumns.get(i);
     
+            if(currentColumn.getStats().getCount() == 0) {
+                litPixels.add(null);
+                continue;
+            }
+            
             // Get the column's inner pixel range
             Range<Integer> innerRange = currentColumn.getActualInnerColumnPixelRange(viewPortStatsAggregator);
             if (innerRange != null) {

@@ -1,8 +1,9 @@
-package gr.imsi.athenarc.visual.middleware.domain.PostgreSQL;
+package gr.imsi.athenarc.visual.middleware.domain.postgresql;
 
-import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.SQLQueryExecutor;
+import gr.imsi.athenarc.visual.middleware.datasource.executor.SQLQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.DatabaseConnection;
-import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
+import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,11 +70,19 @@ public class JDBCConnection implements DatabaseConnection {
     }
 
     private SQLQueryExecutor createQueryExecutor(AbstractDataset dataset) {
-         return new SQLQueryExecutor(connection, dataset);
+        if(connection == null){
+            LOG.error("Connection is not initialized");
+            return null;
+        }
+        return new SQLQueryExecutor(connection, dataset);
     }
 
 
     private SQLQueryExecutor createQueryExecutor() {
+        if(connection == null){
+            LOG.error("Connection is not initialized");
+            return null;
+        }
         return new SQLQueryExecutor(connection);
     }
 
@@ -95,9 +104,6 @@ public class JDBCConnection implements DatabaseConnection {
     public SQLQueryExecutor getQueryExecutor(AbstractDataset dataset) {
         return this.createQueryExecutor(dataset);
     }
-
-
-
 
     @Override
     public String getType() {

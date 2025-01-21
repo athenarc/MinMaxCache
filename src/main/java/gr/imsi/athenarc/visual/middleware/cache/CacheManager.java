@@ -1,8 +1,9 @@
 package gr.imsi.athenarc.visual.middleware.cache;
 
-import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import gr.imsi.athenarc.visual.middleware.domain.query.Query;
 
 import java.util.*;
 import java.util.stream.Collectors;

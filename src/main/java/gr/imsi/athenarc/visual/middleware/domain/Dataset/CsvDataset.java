@@ -1,4 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.domain.Dataset;
+package gr.imsi.athenarc.visual.middleware.domain.dataset;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -19,7 +19,7 @@ import gr.imsi.athenarc.visual.middleware.cache.IntervalTree;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 import gr.imsi.athenarc.visual.middleware.domain.TimeSeriesCsv;
-import gr.imsi.athenarc.visual.middleware.util.io.CsvReader.CsvTimeSeriesRandomAccessReader;
+import gr.imsi.athenarc.visual.middleware.util.io.csv.CsvTimeSeriesRandomAccessReader;
 
 @Entity
 @Table(name = "csv_dataset")

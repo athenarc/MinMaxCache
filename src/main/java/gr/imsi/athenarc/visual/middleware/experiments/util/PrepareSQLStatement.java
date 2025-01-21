@@ -3,7 +3,7 @@ package gr.imsi.athenarc.visual.middleware.experiments.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.QueryExecutor;
+import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
 
 import java.sql.SQLException;
 import java.util.ArrayList;

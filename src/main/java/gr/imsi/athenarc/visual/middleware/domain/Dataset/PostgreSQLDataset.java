@@ -1,10 +1,10 @@
-package gr.imsi.athenarc.visual.middleware.domain.Dataset;
+package gr.imsi.athenarc.visual.middleware.domain.dataset;
 
-import gr.imsi.athenarc.visual.middleware.domain.PostgreSQL.JDBCConnection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.SQLQueryExecutor;
+import gr.imsi.athenarc.visual.middleware.datasource.executor.SQLQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
+import gr.imsi.athenarc.visual.middleware.domain.postgresql.JDBCConnection;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

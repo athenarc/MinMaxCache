@@ -1,4 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.datasource.PostgreSQL;
+package gr.imsi.athenarc.visual.middleware.datasource.postgresql;
 
 import gr.imsi.athenarc.visual.middleware.domain.DataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.ImmutableDataPoint;

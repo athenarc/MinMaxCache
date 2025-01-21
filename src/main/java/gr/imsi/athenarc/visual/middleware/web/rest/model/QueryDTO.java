@@ -1,7 +1,7 @@
 package gr.imsi.athenarc.visual.middleware.web.rest.model;
 
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
-import gr.imsi.athenarc.visual.middleware.domain.Query.Query;
+import gr.imsi.athenarc.visual.middleware.domain.query.Query;
 
 public class QueryDTO {
     

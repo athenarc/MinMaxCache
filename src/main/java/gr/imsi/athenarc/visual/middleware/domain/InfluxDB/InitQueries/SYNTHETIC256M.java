@@ -1,4 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.domain.InfluxDB.InitQueries;
+package gr.imsi.athenarc.visual.middleware.domain.influxdb.InitQueries;
 
 import com.influxdb.annotations.Column;
 import com.influxdb.annotations.Measurement;

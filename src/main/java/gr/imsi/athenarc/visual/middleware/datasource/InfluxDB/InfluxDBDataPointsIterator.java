@@ -1,4 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.datasource.InfluxDB;
+package gr.imsi.athenarc.visual.middleware.datasource.influxdb;
 
 import java.util.Iterator;
 import java.util.List;

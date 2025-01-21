@@ -1,11 +1,12 @@
-package gr.imsi.athenarc.visual.middleware.domain.InfluxDB;
+package gr.imsi.athenarc.visual.middleware.domain.influxdb;
 
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.client.InfluxDBClientOptions;
-import gr.imsi.athenarc.visual.middleware.datasource.QueryExecutor.InfluxDBQueryExecutor;
+
+import gr.imsi.athenarc.visual.middleware.datasource.executor.InfluxDBQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.DatabaseConnection;
-import gr.imsi.athenarc.visual.middleware.domain.Dataset.AbstractDataset;
+import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,10 +69,18 @@ public class InfluxDBConnection implements DatabaseConnection {
     }
 
     private InfluxDBQueryExecutor createQueryExecutor(AbstractDataset dataset) {
+        if(client == null){
+            LOG.error("Connection is not initialized");
+            return null;
+        }
         return new InfluxDBQueryExecutor(client, dataset, org);
     }
 
     private InfluxDBQueryExecutor createQueryExecutor() {
+        if(client == null){
+            LOG.error("Connection is not initialized");
+            return null;
+        }
         return new InfluxDBQueryExecutor(client, bucket, org);
     }
 

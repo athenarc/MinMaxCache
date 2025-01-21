@@ -1,4 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.datasource;
+package gr.imsi.athenarc.visual.middleware.datasource.query;
 
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 

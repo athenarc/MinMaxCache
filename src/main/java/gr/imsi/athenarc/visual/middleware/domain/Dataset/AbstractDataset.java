@@ -1,4 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.domain.Dataset;
+package gr.imsi.athenarc.visual.middleware.domain.dataset;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 import jakarta.persistence.Entity;

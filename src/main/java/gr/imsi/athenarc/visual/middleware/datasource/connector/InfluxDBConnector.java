@@ -1,8 +1,8 @@
 package gr.imsi.athenarc.visual.middleware.datasource.connector;
 
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.InfluxDBDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.InfluxDBDataset;
 
 public class InfluxDBConnector implements DatasourceConnector {
     private final InfluxDBConnection connection;

@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.InfluxDBDataset;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.InfluxDBDataset;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.web.rest.model.QueryDTO;
 import gr.imsi.athenarc.visual.middleware.web.rest.service.InfluxDBService;
 import gr.imsi.athenarc.visual.middleware.web.rest.service.PostgreSQLService;

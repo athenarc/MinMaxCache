@@ -1,7 +1,7 @@
 package gr.imsi.athenarc.visual.middleware.datasource.connector;
 
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.SQLQueryExecutor;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -16,13 +16,13 @@ import gr.imsi.athenarc.visual.middleware.datasource.connector.InfluxDBConnectio
 import gr.imsi.athenarc.visual.middleware.datasource.connector.InfluxDBConnector;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.JDBCConnection;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.PostgreSQLConnector;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.*;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.CsvQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.query.CsvQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.InfluxDBQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.SQLQuery;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.*;
 import gr.imsi.athenarc.visual.middleware.domain.query.Query;
 import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;

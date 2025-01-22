@@ -1,11 +1,10 @@
-package gr.imsi.athenarc.visual.middleware.domain.dataset;
+package gr.imsi.athenarc.visual.middleware.datasource.dataset;
 
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 
 import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+
 import gr.imsi.athenarc.visual.middleware.datasource.connector.InfluxDBConnection;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.InfluxDBQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
@@ -16,8 +15,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Entity
-@Table(name = "influxdb_dataset")
 public class InfluxDBDataset extends AbstractDataset {
 
     private static String DEFAULT_INFLUX_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";

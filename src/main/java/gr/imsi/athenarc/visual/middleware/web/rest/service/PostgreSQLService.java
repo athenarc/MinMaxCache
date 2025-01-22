@@ -15,8 +15,8 @@ import gr.imsi.athenarc.visual.middleware.cache.MinMaxCache;
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCacheBuilder;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.JDBCConnection;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.PostgreSQLConnector;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.domain.query.Query;
 
 @Service

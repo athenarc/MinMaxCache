@@ -5,9 +5,9 @@ import gr.imsi.athenarc.visual.middleware.domain.*;
 import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvAggregateDataPointsIterator;
 import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvAggregateDataPointsIteratorM4;
 import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.CsvDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.CsvQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.query.CsvQuery;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.CsvDataset;
 import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
 
 import org.checkerframework.checker.units.qual.C;

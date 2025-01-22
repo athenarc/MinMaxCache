@@ -1,7 +1,5 @@
-package gr.imsi.athenarc.visual.middleware.domain.dataset;
+package gr.imsi.athenarc.visual.middleware.datasource.dataset;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.JDBCConnection;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.SQLQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
@@ -16,8 +14,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Entity
-@Table(name = "postgresql_dataset")
 public class PostgreSQLDataset extends AbstractDataset {
 
     private static String DEFAULT_POSTGRES_FORMAT = "yyyy-MM-dd[ HH:mm:ss.SSS]";

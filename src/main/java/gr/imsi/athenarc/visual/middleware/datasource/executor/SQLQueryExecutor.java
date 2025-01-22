@@ -1,11 +1,11 @@
 package gr.imsi.athenarc.visual.middleware.datasource.executor;
 
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.query.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.SQLQuery;
 import gr.imsi.athenarc.visual.middleware.domain.DataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.ImmutableDataPoint;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 import org.slf4j.Logger;

@@ -2,12 +2,12 @@ package gr.imsi.athenarc.visual.middleware.datasource;
 import com.google.common.collect.Iterators;
 
 import gr.imsi.athenarc.visual.middleware.domain.*;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.SQLQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.postgresql.PostgreSQLAggregateDataPointsIterator;
 import gr.imsi.athenarc.visual.middleware.datasource.postgresql.PostgreSQLAggregateDataPointsIteratorM4;
 import gr.imsi.athenarc.visual.middleware.datasource.postgresql.PostgreSQLDataPointsIterator;
 import gr.imsi.athenarc.visual.middleware.datasource.query.SQLQuery;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
 
 import org.jetbrains.annotations.NotNull;

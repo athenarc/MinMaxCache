@@ -1,7 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.domain.dataset;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+package gr.imsi.athenarc.visual.middleware.datasource.dataset;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,11 +15,9 @@ import org.slf4j.LoggerFactory;
 import gr.imsi.athenarc.visual.middleware.cache.IntervalTree;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
-import gr.imsi.athenarc.visual.middleware.domain.TimeSeriesCsv;
+import gr.imsi.athenarc.visual.middleware.domain.csv.TimeSeriesCsv;
 import gr.imsi.athenarc.visual.middleware.util.io.csv.CsvTimeSeriesRandomAccessReader;
 
-@Entity
-@Table(name = "csv_dataset")
 public class CsvDataset extends AbstractDataset {
 
     private static final Logger LOG = LoggerFactory.getLogger(CsvDataset.class);

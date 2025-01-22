@@ -1,4 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.domain;
+package gr.imsi.athenarc.visual.middleware.cache;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +9,12 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
+
+import gr.imsi.athenarc.visual.middleware.domain.AggregatedDataPoint;
+import gr.imsi.athenarc.visual.middleware.domain.PixelColumn;
+import gr.imsi.athenarc.visual.middleware.domain.StatsAggregator;
+import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
+import gr.imsi.athenarc.visual.middleware.domain.ViewPort;
 
 /**
  * Class that computes the maximum number of pixel errors.
@@ -26,14 +32,14 @@ public class MaxErrorEvaluator {
     private List<RangeSet<Integer>> missingPixels;
     private List<RangeSet<Integer>> falsePixels;
 
-    public MaxErrorEvaluator(ViewPort viewPort, List<PixelColumn> pixelColumns) {
+    protected MaxErrorEvaluator(ViewPort viewPort, List<PixelColumn> pixelColumns) {
         this.viewPort = viewPort;
         this.pixelColumns = pixelColumns;
         this.missingPixels = new ArrayList<>();
         this.falsePixels = new ArrayList<>();
     }
 
-    public List<Double> computeMaxPixelErrorsPerColumn() {
+    protected List<Double> computeMaxPixelErrorsPerColumn() {
         List<Double> maxPixelErrorsPerColumn = new ArrayList<>();
         missingRanges = new ArrayList<>();
 

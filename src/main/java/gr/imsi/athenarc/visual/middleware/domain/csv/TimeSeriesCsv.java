@@ -1,6 +1,9 @@
-package gr.imsi.athenarc.visual.middleware.domain;
+package gr.imsi.athenarc.visual.middleware.domain.csv;
 
 import java.io.Serializable;
+
+import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
+import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 
 public class TimeSeriesCsv implements TimeInterval, Serializable {
 

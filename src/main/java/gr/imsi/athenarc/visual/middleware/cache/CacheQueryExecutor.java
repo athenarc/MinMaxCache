@@ -19,6 +19,8 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
 
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.CsvQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.InfluxDBQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
@@ -37,8 +39,6 @@ import gr.imsi.athenarc.visual.middleware.domain.StatsAggregator;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 import gr.imsi.athenarc.visual.middleware.domain.ViewPort;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.domain.query.Query;
 import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;

@@ -1,31 +1,15 @@
-package gr.imsi.athenarc.visual.middleware.domain.dataset;
+package gr.imsi.athenarc.visual.middleware.datasource.dataset;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
-import jakarta.persistence.Table;
-
-import javax.validation.constraints.NotNull;
-
-import com.influxdb.annotations.Column;
-
-import java.io.Serializable;
 import java.util.*;
 
 
-@Entity
-@Table(name = "datasets") // Root table for the hierarchy
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public abstract class AbstractDataset implements Serializable {
+public abstract class AbstractDataset {
 
 
-    private static final long serialVersionUID = 1L;
     // yyyy-MM-dd HH:mm:ss.SSS
     private static String DEFAULT_FORMAT = "yyyy-MM-dd[ HH:mm:ss.SSS]";
-    @NotNull
-    @Id
+
     private String id;
 
     private String[] header;
@@ -34,7 +18,6 @@ public abstract class AbstractDataset implements Serializable {
     private String timeFormat;
     private TimeRange timeRange;
 
-    @Column(name = "sampling_interval")
     private long samplingInterval;
 
     public AbstractDataset(){}
@@ -116,9 +99,5 @@ public abstract class AbstractDataset implements Serializable {
         }
         return id != null && id.equals(((AbstractDataset) o).id);
     }
-
-    @Override
-    public int hashCode() {
-        return 31;
-    }
 }
+

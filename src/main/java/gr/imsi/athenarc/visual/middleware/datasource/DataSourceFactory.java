@@ -1,10 +1,10 @@
 package gr.imsi.athenarc.visual.middleware.datasource;
 
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.*;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.CsvQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.InfluxDBQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.SQLQueryExecutor;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.*;
 
 public class DataSourceFactory {
 

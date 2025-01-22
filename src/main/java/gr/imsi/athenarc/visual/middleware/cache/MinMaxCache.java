@@ -1,7 +1,7 @@
 package gr.imsi.athenarc.visual.middleware.cache;
 
-import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.domain.query.Query;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 

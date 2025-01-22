@@ -2,9 +2,9 @@ package gr.imsi.athenarc.visual.middleware.datasource.connector;
 
 import java.sql.SQLException;
 
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.PostgreSQLDataset;
 
 public class PostgreSQLConnector implements DatasourceConnector {
     private final JDBCConnection connection;

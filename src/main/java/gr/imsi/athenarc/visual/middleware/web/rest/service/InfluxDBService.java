@@ -14,8 +14,8 @@ import gr.imsi.athenarc.visual.middleware.cache.MinMaxCache;
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCacheBuilder;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.InfluxDBConnection;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.InfluxDBConnector;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.InfluxDBDataset;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.InfluxDBDataset;
 import gr.imsi.athenarc.visual.middleware.domain.query.Query;
 
 @Service

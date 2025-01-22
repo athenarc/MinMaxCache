@@ -2,11 +2,11 @@ package gr.imsi.athenarc.visual.middleware.datasource.connector;
 
 import java.io.IOException;
 
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.CsvDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.CsvQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.csv.CsvConfiguration;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.AbstractDataset;
-import gr.imsi.athenarc.visual.middleware.domain.dataset.CsvDataset;
 
 public class CsvConnector implements DatasourceConnector {
 

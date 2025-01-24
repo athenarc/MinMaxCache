@@ -47,9 +47,14 @@ public class QueryResults implements Serializable {
     @JsonProperty("litPixels")
     public Map<Integer, List<List<String>>> getLitPixelsAsString() {
         return litPixels.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream()
-                        .map(range -> List.of(range.toString()))
-                        .collect(Collectors.toList())));
+        .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                e -> e.getValue().stream()
+                        .map(range -> range == null
+                                ? List.of("[]")
+                                : List.of(range.toString()))
+                        .collect(Collectors.toList())
+        ));
     }
 
     public TimeInterval getTimeRange() {

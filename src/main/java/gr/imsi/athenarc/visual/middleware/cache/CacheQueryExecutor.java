@@ -365,7 +365,8 @@ public class CacheQueryExecutor {
 
             PixelColumn currentColumn = pixelColumns.get(i);
     
-            if(currentColumn.getStats().getCount() == 0) {
+            if(currentColumn.getStats().getCount() == 0 || currentColumn.hasNoError()) {
+                // Add an empty range
                 litPixels.add(null);
                 continue;
             }

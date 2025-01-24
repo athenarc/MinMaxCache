@@ -46,8 +46,7 @@ public class H2DataSourceConfig {
 
     return builder
             .dataSource(dataSource)
-            .packages("gr.imsi.athenarc.visual.middleware.web.rest.model", "gr.imsi.athenarc.visual.middleware.domain")
-            // .persistenceUnit("user")
+            .packages("gr.imsi.athenarc.visual.middleware.web.rest.model")
             .properties(jpaProperties)
             .build();
     }

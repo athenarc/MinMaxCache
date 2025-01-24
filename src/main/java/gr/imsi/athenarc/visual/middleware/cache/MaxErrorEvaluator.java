@@ -69,7 +69,6 @@ public class MaxErrorEvaluator {
                 missingPixels.add(pixelColumnMissingPixels);
                 falsePixels.add(pixelColumnFalsePixels);
                 missingRanges.add(currentPixelColumn.getRange()); // add range as missing to fetch
-                // LOG.info("Missing range: {}-{}", currentPixelColumn.getRange().getFromDate("yyyy-MM-dd HH:mm:ss.SSS"), currentPixelColumn.getRange().getToDate("yyyy-MM-dd HH:mm:ss.SSS"));
                 continue;
             }
             else {
@@ -85,9 +84,7 @@ public class MaxErrorEvaluator {
                             falsePixels.add(pixelColumnFalsePixels);
                             continue;
                         }
-                        if(leftMaxFalsePixels != null) {
-                            pixelColumnFalsePixels.add(leftMaxFalsePixels);
-                        }
+                        pixelColumnFalsePixels.add(leftMaxFalsePixels);
                     }
                 }
                 // Check if there is a next PixelColumn
@@ -102,13 +99,11 @@ public class MaxErrorEvaluator {
                             falsePixels.add(pixelColumnFalsePixels);
                             continue;
                         }
-                        if(rightMaxFalsePixels != null) {
-                            pixelColumnFalsePixels.add(rightMaxFalsePixels);
-                        }
+                        pixelColumnFalsePixels.add(rightMaxFalsePixels);
                     }
                 }
 
-                // CLear false pixels
+                // Clear false pixels
                 Range<Integer> actualInnerColumnPixelRange = currentPixelColumn.getActualInnerColumnPixelRange(viewPortStatsAggregator);
                 pixelColumnFalsePixels.remove(actualInnerColumnPixelRange);
 
@@ -121,12 +116,6 @@ public class MaxErrorEvaluator {
                 pixelColumnRangeSet.add(actualInnerColumnPixelRange);
                 Range<Integer> pixelColumnRange = pixelColumnRangeSet.span();
                 pixelColumnMissingPixels.remove(pixelColumnRange);
-                
-                // LOG.info("Pixel column inner range: {}", actualInnerColumnPixelRange);
-                // LOG.info("Pixel column intra range: {}", actualIntraColumnPixelRanges);
-                // LOG.info("Pixel column range: {}", pixelColumnRange);
-
-                // LOG.info("Missing pixels: {}\n", pixelColumnMissingPixels);
                 
                 RangeSet<Integer> pixelColumnErrorPixels = TreeRangeSet.create();
                 pixelColumnErrorPixels.addAll(pixelColumnFalsePixels);

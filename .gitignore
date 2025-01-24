@@ -1,6 +1,6 @@
 target/*
 .idea/*
-outputs/*
 logs.log
 .DS_Store
 .vscode/*
+output/*

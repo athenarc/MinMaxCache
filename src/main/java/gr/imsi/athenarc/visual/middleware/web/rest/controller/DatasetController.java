@@ -49,7 +49,7 @@ public class DatasetController {
    @PostMapping("/postgres/query")
     public ResponseEntity<QueryDTO.QueryResponse> queryPostgres(@Valid @RequestBody QueryDTO.QueryRequest queryRequest) {
         try {
-            CompletableFuture<QueryResults> future = postgresService.performQuery(queryRequest.query, queryRequest.schema, queryRequest.table);
+            CompletableFuture<QueryResults> future = postgresService.performQuery(queryRequest.query);
 
             // Wait for the query result (or handle asynchronously for better UX)
             QueryResults queryResults = future.get();
@@ -83,7 +83,7 @@ public class DatasetController {
     @PostMapping("/influx/query")
     public ResponseEntity<QueryDTO.QueryResponse> queryInflux(@Valid @RequestBody QueryDTO.QueryRequest queryRequest) {
         try {
-            CompletableFuture<QueryResults> future = influxService.performQuery(queryRequest.query, queryRequest.schema, queryRequest.table);
+            CompletableFuture<QueryResults> future = influxService.performQuery(queryRequest.query);
 
             // Wait for the query result (or handle asynchronously)
             QueryResults queryResults = future.get();

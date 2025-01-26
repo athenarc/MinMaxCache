@@ -1,23 +1,18 @@
 package gr.imsi.athenarc.visual.middleware.web.rest.model;
 
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
-import gr.imsi.athenarc.visual.middleware.domain.query.Query;
 
 public class QueryDTO {
     
     public static class QueryRequest {
-        public Query query;
-        public String schema;
-        public String table;
+        public VisualQuery query;
 
 
         public QueryRequest() {
         }
 
-        public QueryRequest(Query query, String schema, String table) {
+        public QueryRequest(VisualQuery query, String schema, String table) {
             this.query = query;
-            this.schema = schema;
-            this.table = table;
         }
     }
 

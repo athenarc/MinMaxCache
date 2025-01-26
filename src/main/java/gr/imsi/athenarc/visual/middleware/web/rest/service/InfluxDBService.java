@@ -1,6 +1,8 @@
 package gr.imsi.athenarc.visual.middleware.web.rest.service;
 
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,6 +19,8 @@ import gr.imsi.athenarc.visual.middleware.datasource.connector.InfluxDBConnector
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.InfluxDBDataset;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 import gr.imsi.athenarc.visual.middleware.domain.query.Query;
+import gr.imsi.athenarc.visual.middleware.web.rest.model.Algorithm;
+import gr.imsi.athenarc.visual.middleware.web.rest.model.VisualQuery;
 
 @Service
 public class InfluxDBService {
@@ -55,10 +59,13 @@ public class InfluxDBService {
     }
 
     // Method to perform a query with cancellation support
-    public CompletableFuture<QueryResults> performQuery(Query query, String schema, String id) {
+    public CompletableFuture<QueryResults> performQuery(VisualQuery visualQuery) {
         if (influxDBConnector == null) {
             initializeConnection();
         }
+
+        String schema = visualQuery.getSchema();
+        String id = visualQuery.getTable();
 
         // Cancel previous request for this dataset, if any
         CompletableFuture<?> previousRequest = ongoingRequests.put(id, new CompletableFuture<>());
@@ -69,18 +76,34 @@ public class InfluxDBService {
         // Perform the query asynchronously
         CompletableFuture<QueryResults> queryFuture = CompletableFuture.supplyAsync(() -> {
             // Check if cache exists, if not, create it
-            MinMaxCache minMaxCache = cacheMap.computeIfAbsent(id, key -> {
-               return new MinMaxCacheBuilder()
-                    .setDatasourceConnector(influxDBConnector)
-                    .setSchema(schema)
-                    .setId(id)
-                    .setPrefetchingFactor(0.5)
-                    .setAggFactor(4)
-                    .setDataReductionRatio(2)
-                    .build();
-            });
+            if(visualQuery.geAlgorithm() == Algorithm.MIN_MAX_CACHE){
+                // Get MinMaxCache params
+                if(!visualQuery.getParams().containsKey("accuracy")){
+                    throw new IllegalArgumentException("Missing accuracy parameter for MinMaxCache algorithm");
+                }
+                float accuracy = Float.parseFloat(visualQuery.getParams().get("accuracy"));
 
-            return minMaxCache.executeQuery(query);
+                MinMaxCache minMaxCache = cacheMap.computeIfAbsent(id, key -> {
+                    return new MinMaxCacheBuilder()
+                         .setDatasourceConnector(influxDBConnector)
+                         .setSchema(schema)
+                         .setId(id)
+                         .setPrefetchingFactor(0.5)
+                         .setAggFactor(4)
+                         .setDataReductionRatio(2)
+                         .build();
+                 });
+                 long from = visualQuery.getFrom();
+                 long to = visualQuery.getTo();
+                 int width = visualQuery.getWidth();
+                 int height = visualQuery.getHeight();
+                 List<Integer> measures = visualQuery.getMeasures();
+                 Map<Integer, Double[]> filter = null;
+     
+                 Query minMaxCacheQuery = new Query(from, to, measures, accuracy, width, height, filter);    
+                 return minMaxCache.executeQuery(minMaxCacheQuery);
+            }
+            else return new QueryResults();
         });
 
         // Track the ongoing request

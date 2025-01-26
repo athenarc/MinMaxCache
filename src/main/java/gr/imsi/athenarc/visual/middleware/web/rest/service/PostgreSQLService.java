@@ -1,6 +1,8 @@
 package gr.imsi.athenarc.visual.middleware.web.rest.service;
 
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -18,6 +20,7 @@ import gr.imsi.athenarc.visual.middleware.datasource.connector.PostgreSQLConnect
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 import gr.imsi.athenarc.visual.middleware.domain.query.Query;
+import gr.imsi.athenarc.visual.middleware.web.rest.model.VisualQuery;
 
 @Service
 public class PostgreSQLService {
@@ -52,10 +55,13 @@ public class PostgreSQLService {
         LOG.info("PostgreSQL connection established.");
     }
 
-    public CompletableFuture<QueryResults> performQuery(Query query, String schema, String id) throws SQLException {
+    public CompletableFuture<QueryResults> performQuery(VisualQuery visualQuery) throws SQLException {
         if (postgreSQLConnector == null) {
             initializeConnection();
         }
+
+        String schema = visualQuery.getSchema();
+        String id = visualQuery.getTable();
 
         // Cancel previous request for this dataset, if any
         CompletableFuture<?> previousRequest = ongoingRequests.put(id, new CompletableFuture<>());
@@ -76,8 +82,18 @@ public class PostgreSQLService {
                     .build();
 
             });
+            long from = visualQuery.getFrom();
+            long to = visualQuery.getTo();
+            int width = visualQuery.getWidth();
+            int height = visualQuery.getHeight();
+            List<Integer> measures = visualQuery.getMeasures();
 
-            return minMaxCache.executeQuery(query);
+            float accuracy = 0.95F;
+            Map<Integer, Double[]> filter = null;
+
+        
+            Query minMaxCacheQuery = new Query(from, to, measures, accuracy, width, height, filter);    
+            return minMaxCache.executeQuery(minMaxCacheQuery);
         }).orTimeout(30, TimeUnit.SECONDS); // Timeout after 30 seconds
 
         ongoingRequests.put(id, queryFuture);

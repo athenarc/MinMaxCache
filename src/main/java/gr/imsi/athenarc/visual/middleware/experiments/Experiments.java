@@ -10,6 +10,8 @@ import com.univocity.parsers.csv.CsvWriterSettings;
 
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCache;
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCacheBuilder;
+import gr.imsi.athenarc.visual.middleware.cache.query.Query;
+import gr.imsi.athenarc.visual.middleware.cache.query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.CsvConnector;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.DatasourceConnector;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.InfluxDBConnection;
@@ -23,8 +25,6 @@ import gr.imsi.athenarc.visual.middleware.datasource.query.CsvQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.InfluxDBQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.SQLQuery;
-import gr.imsi.athenarc.visual.middleware.domain.query.Query;
-import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;

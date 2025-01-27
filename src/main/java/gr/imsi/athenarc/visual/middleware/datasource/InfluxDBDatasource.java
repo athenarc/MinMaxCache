@@ -5,13 +5,13 @@ import com.google.common.collect.Iterators;
 import com.influxdb.query.FluxTable;
 
 import gr.imsi.athenarc.visual.middleware.domain.*;
+import gr.imsi.athenarc.visual.middleware.cache.query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.InfluxDBDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.InfluxDBQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.influxdb.InfluxDBAggregateDataPointsIterator;
 import gr.imsi.athenarc.visual.middleware.datasource.influxdb.InfluxDBAggregateDataPointsIteratorM4;
 import gr.imsi.athenarc.visual.middleware.datasource.influxdb.InfluxDBDataPointsIterator;
 import gr.imsi.athenarc.visual.middleware.datasource.query.InfluxDBQuery;
-import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
 
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;

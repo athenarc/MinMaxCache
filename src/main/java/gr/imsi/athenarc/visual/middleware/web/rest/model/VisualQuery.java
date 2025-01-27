@@ -22,7 +22,7 @@ public class VisualQuery  {
 
     public VisualQuery() {}
 
-    public VisualQuery(long from, long to, List<Integer> measures, int width, int height, String schema, String table, Map<String, String> params) {    
+    public VisualQuery(Algorithm algorithm, long from, long to, List<Integer> measures, int width, int height, String schema, String table, Map<String, String> params) {    
         this.from = from;
         this.to = to;
         this.measures = measures;
@@ -31,6 +31,7 @@ public class VisualQuery  {
         this.schema = schema;
         this.table = table;
         this.params = params;
+        this.algorithm = algorithm;
     }
 
     public long getFrom() {
@@ -53,7 +54,7 @@ public class VisualQuery  {
         return measures;
     }
 
-    public Algorithm geAlgorithm() {
+    public Algorithm getAlgorithm() {
         return algorithm;
     }
 

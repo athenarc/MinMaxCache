@@ -11,11 +11,10 @@ public class QueryDTO {
         public QueryRequest() {
         }
 
-        public QueryRequest(VisualQuery query, String schema, String table) {
+        public QueryRequest(VisualQuery query) {
             this.query = query;
         }
     }
-
 
     public static class QueryResponse {
         public String message;

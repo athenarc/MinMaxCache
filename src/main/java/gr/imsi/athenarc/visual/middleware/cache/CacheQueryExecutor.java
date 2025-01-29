@@ -283,11 +283,15 @@ public class CacheQueryExecutor {
         Map<String, List<TimeInterval>> missingTimeIntervalsPerMeasureName = new HashMap<>(query.getMeasures().size());
         Map<String, Integer> numberOfGroupsPerMeasureName = new HashMap<>(query.getMeasures().size());
         Map<Integer, Integer> numberOfGroups = new HashMap<>(query.getMeasures().size());
+        long aggInterval = (query.getTo() - query.getFrom()) / query.getViewPort().getWidth();
+
+        long startPixelColumn = query.getFrom();
+        long endPixelColumn = query.getFrom() + aggInterval * (query.getViewPort().getWidth());
+
 
         for (Integer measure : query.getMeasures()) {
             String measureName = dataset.getHeader()[measure];
             List<TimeInterval> timeIntervalsForMeasure = new ArrayList<>();
-            long aggInterval = (query.getTo() - query.getFrom()) / query.getViewPort().getWidth();
             timeIntervalsForMeasure.add(new TimeRange(query.getFrom(), query.getFrom() + aggInterval * (query.getViewPort().getWidth())));
             missingTimeIntervalsPerMeasure.put(measure, timeIntervalsForMeasure);
             missingTimeIntervalsPerMeasureName.put(measureName, timeIntervalsForMeasure);
@@ -319,7 +323,7 @@ public class CacheQueryExecutor {
             error.put(m, new ErrorResults());
         }
         queryResults.setError(error);
-
+        queryResults.setTimeRange(new TimeRange(startPixelColumn, endPixelColumn));
         queryTime = stopwatch.elapsed(TimeUnit.NANOSECONDS) / Math.pow(10d, 9);
         stopwatch.stop();
         queryResults.setQueryTime(queryTime);

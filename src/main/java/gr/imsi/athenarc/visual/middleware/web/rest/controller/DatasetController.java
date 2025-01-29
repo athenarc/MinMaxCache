@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.InfluxDBDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.PostgreSQLDataset;
-import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
+import gr.imsi.athenarc.visual.middleware.methods.VisualQueryResults;
 import gr.imsi.athenarc.visual.middleware.web.rest.model.QueryDTO;
 import gr.imsi.athenarc.visual.middleware.web.rest.service.InfluxDBService;
 import gr.imsi.athenarc.visual.middleware.web.rest.service.PostgreSQLService;
@@ -49,10 +49,10 @@ public class DatasetController {
    @PostMapping("/postgres/query")
     public ResponseEntity<QueryDTO.QueryResponse> queryPostgres(@Valid @RequestBody QueryDTO.QueryRequest queryRequest) {
         try {
-            CompletableFuture<QueryResults> future = postgresService.performQuery(queryRequest.query);
+            CompletableFuture<VisualQueryResults> future = postgresService.performQuery(queryRequest.query);
 
             // Wait for the query result (or handle asynchronously for better UX)
-            QueryResults queryResults = future.get();
+            VisualQueryResults queryResults = future.get();
             QueryDTO.QueryResponse queryResponse = new QueryDTO.QueryResponse(
                 "PostgresDB query executed successfully.", queryResults);
             return ResponseEntity.ok(queryResponse);
@@ -83,10 +83,10 @@ public class DatasetController {
     @PostMapping("/influx/query")
     public ResponseEntity<QueryDTO.QueryResponse> queryInflux(@Valid @RequestBody QueryDTO.QueryRequest queryRequest) {
         try {
-            CompletableFuture<QueryResults> future = influxService.performQuery(queryRequest.query);
+            CompletableFuture<VisualQueryResults> future = influxService.performQuery(queryRequest.query);
 
             // Wait for the query result (or handle asynchronously)
-            QueryResults queryResults = future.get();
+            VisualQueryResults queryResults = future.get();
 
             QueryDTO.QueryResponse queryResponse = new QueryDTO.QueryResponse(
                 "InfluxDB query executed successfully.", queryResults);

@@ -1,12 +1,14 @@
-package gr.imsi.athenarc.visual.middleware.web.rest.model;
+package gr.imsi.athenarc.visual.middleware.methods;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import gr.imsi.athenarc.visual.middleware.web.rest.model.MethodConfig;
+
 public class VisualQuery  {
 
-    Algorithm algorithm;
+    MethodConfig methodConfig;
 
     long from;
     long to;
@@ -22,7 +24,7 @@ public class VisualQuery  {
 
     public VisualQuery() {}
 
-    public VisualQuery(Algorithm algorithm, long from, long to, List<Integer> measures, int width, int height, String schema, String table, Map<String, String> params) {    
+    public VisualQuery(MethodConfig methodConfig, long from, long to, List<Integer> measures, int width, int height, String schema, String table, Map<String, String> params) {    
         this.from = from;
         this.to = to;
         this.measures = measures;
@@ -31,7 +33,7 @@ public class VisualQuery  {
         this.schema = schema;
         this.table = table;
         this.params = params;
-        this.algorithm = algorithm;
+        this.methodConfig = methodConfig;
     }
 
     public long getFrom() {
@@ -54,8 +56,8 @@ public class VisualQuery  {
         return measures;
     }
 
-    public Algorithm getAlgorithm() {
-        return algorithm;
+    public MethodConfig getMethodConfig() {
+        return methodConfig;
     }
 
     public String getSchema() {
@@ -78,7 +80,7 @@ public class VisualQuery  {
                 ", measures=" + measures +
                 ", width=" + width +
                 ", height=" + height +
-                ", algorithm=" + algorithm +
+                ", methodConfig=" + methodConfig +
                 ", schema=" + schema +
                 ", table=" + table +
                 ", params=" + params +

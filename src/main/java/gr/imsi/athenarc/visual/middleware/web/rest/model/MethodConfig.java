@@ -2,20 +2,20 @@ package gr.imsi.athenarc.visual.middleware.web.rest.model;
 
 import java.util.Map;
 
-public class Algorithm {
-    String name;
+public class MethodConfig {
+    String key;
     Map<String, String> params;
 
-    public Algorithm() {
+    public MethodConfig() {
     }
 
-    public Algorithm(String name, Map<String, String> params) {
-        this.name = name;
+    public MethodConfig(String key, Map<String, String> params) {
+        this.key = key;
         this.params = params;
     }
 
-    public String getName() {
-        return name;
+    public String getKey() {
+        return key;
     }
 
     public Map<String, String> getParams() {
@@ -24,8 +24,8 @@ public class Algorithm {
 
 
     public String toString() {
-        return "Algorithm{" +
-            "name='" + name + '\'' +
+        return "Method{" +
+            "key='" + key + '\'' +
             ", params=" + params +
             '}';
     }

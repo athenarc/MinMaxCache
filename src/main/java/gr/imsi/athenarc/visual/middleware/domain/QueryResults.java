@@ -26,8 +26,6 @@ public class QueryResults implements Serializable {
 
     private TimeInterval timeRange;
 
-    private Map<Integer, StatsAggregator> groupByResults;
-
     private Map<Integer, ErrorResults> error;
 
     private int ioCount = 0;
@@ -80,15 +78,7 @@ public class QueryResults implements Serializable {
     public void setMeasureStats(Map<Integer, DoubleSummaryStatistics> measureStats) {
         this.measureStats = measureStats;
     }
-
-    public Map<Integer, StatsAggregator> getGroupByResults() {
-        return groupByResults;
-    }
-
-    public void setGroupByResults(Map<Integer, StatsAggregator> groupByResults) {
-        this.groupByResults = groupByResults;
-    }
-
+    
     public int getIoCount() {
         return ioCount;
     }

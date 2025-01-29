@@ -1,33 +1,29 @@
-package gr.imsi.athenarc.visual.middleware.algorithms;
+package gr.imsi.athenarc.visual.middleware.methods;
 
 import java.util.Map;
 
-import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
-import gr.imsi.athenarc.visual.middleware.web.rest.model.VisualQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.DatasourceConnector;
 
 /**
- * Common interface for all query algorithms.
+ * Common interface for all query methods.
  */
-public interface Algorithm {
+public interface Method {
     /**
-     * Initialize the algorithm once. This can be where you build caches or set up
+     * Initialize the method once. This can be where you build caches or set up
      * data structures, using the parameters given.
      *
      * @param schema             Database schema or measurement name
      * @param datasetId          Unique dataset/table identifier
      * @param influxDBConnector  Connector to InfluxDB
-     * @param params             Extra parameters for the algorithm (accuracy, etc.)
+     * @param params             Extra parameters for the method (accuracy, etc.)
      */
     void initialize(String schema, String datasetId, DatasourceConnector datasourceConnector, Map<String, String> params);
 
     /**
-     * Execute a query using this algorithm.
+     * Execute a query using this method.
      *
      * @param query Query object with from/to, measures, filter, etc.
      * @return QueryResults
      */
-    QueryResults executeQuery(VisualQuery query);
-
-    boolean isInitialized(String datasetId);
+    VisualQueryResults executeQuery(VisualQuery query);
 }

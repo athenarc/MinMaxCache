@@ -20,7 +20,8 @@ import gr.imsi.athenarc.visual.middleware.datasource.connector.JDBCConnection;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.PostgreSQLConnector;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
-import gr.imsi.athenarc.visual.middleware.web.rest.model.VisualQuery;
+import gr.imsi.athenarc.visual.middleware.methods.VisualQuery;
+import gr.imsi.athenarc.visual.middleware.methods.VisualQueryResults;
 
 @Service
 public class PostgreSQLService {
@@ -55,7 +56,7 @@ public class PostgreSQLService {
         LOG.info("PostgreSQL connection established.");
     }
 
-    public CompletableFuture<QueryResults> performQuery(VisualQuery visualQuery) throws SQLException {
+    public CompletableFuture<VisualQueryResults> performQuery(VisualQuery visualQuery) throws SQLException {
         if (postgreSQLConnector == null) {
             initializeConnection();
         }
@@ -69,32 +70,7 @@ public class PostgreSQLService {
             previousRequest.cancel(true);
         }
 
-        CompletableFuture<QueryResults> queryFuture = CompletableFuture.supplyAsync(() -> {
-            // Execute the query asynchronously
-            MinMaxCache minMaxCache = cacheMap.computeIfAbsent(id, key -> {
-                return new MinMaxCacheBuilder()
-                    .setDatasourceConnector(postgreSQLConnector)
-                    .setSchema(schema)
-                    .setId(id)
-                    .setPrefetchingFactor(0.5)
-                    .setAggFactor(4)
-                    .setDataReductionRatio(2)
-                    .build();
-
-            });
-            long from = visualQuery.getFrom();
-            long to = visualQuery.getTo();
-            int width = visualQuery.getWidth();
-            int height = visualQuery.getHeight();
-            List<Integer> measures = visualQuery.getMeasures();
-
-            float accuracy = 0.95F;
-            Map<Integer, Double[]> filter = null;
-
-        
-            Query minMaxCacheQuery = new Query(from, to, measures, accuracy, width, height, filter);    
-            return minMaxCache.executeQuery(minMaxCacheQuery);
-        }).orTimeout(30, TimeUnit.SECONDS); // Timeout after 30 seconds
+        CompletableFuture<VisualQueryResults> queryFuture = null; // Timeout after 30 seconds
 
         ongoingRequests.put(id, queryFuture);
         return queryFuture;

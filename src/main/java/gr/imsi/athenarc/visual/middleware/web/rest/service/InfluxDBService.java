@@ -1,8 +1,5 @@
 package gr.imsi.athenarc.visual.middleware.web.rest.service;
 
-
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -12,15 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import gr.imsi.athenarc.visual.middleware.algorithms.Algorithm;
-import gr.imsi.athenarc.visual.middleware.algorithms.AlgorithmManager;
-import gr.imsi.athenarc.visual.middleware.algorithms.M4Algorithm;
-import gr.imsi.athenarc.visual.middleware.algorithms.MinMaxCacheAlgorithm;
+import gr.imsi.athenarc.visual.middleware.methods.Method;
+import gr.imsi.athenarc.visual.middleware.methods.MethodManager;
+import gr.imsi.athenarc.visual.middleware.methods.VisualQuery;
+import gr.imsi.athenarc.visual.middleware.methods.VisualQueryResults;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.InfluxDBConnection;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.InfluxDBConnector;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.InfluxDBDataset;
-import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
-import gr.imsi.athenarc.visual.middleware.web.rest.model.VisualQuery;
 
 @Service
 public class InfluxDBService {
@@ -56,7 +51,7 @@ public class InfluxDBService {
     }
 
     // Method to perform a query with cancellation support
-    public CompletableFuture<QueryResults> performQuery(VisualQuery visualQuery) {
+    public CompletableFuture<VisualQueryResults> performQuery(VisualQuery visualQuery) {
         if (influxDBConnector == null) {
             initializeConnection();
         }
@@ -71,16 +66,16 @@ public class InfluxDBService {
         }
 
         // Perform the query asynchronously
-        CompletableFuture<QueryResults> queryFuture = CompletableFuture.supplyAsync(() -> {
-        Algorithm algorithm = AlgorithmManager.getOrInitializeAlgorithm(
-            visualQuery.getAlgorithm().getName(),
+        CompletableFuture<VisualQueryResults> queryFuture = CompletableFuture.supplyAsync(() -> {
+        Method method = MethodManager.getOrInitializeMethod(
+            visualQuery.getMethodConfig().getKey(),
             schema,
             id,
             influxDBConnector,
-            visualQuery.getAlgorithm().getParams()
+            visualQuery.getMethodConfig().getParams()
         );
 
-        return algorithm.executeQuery(visualQuery);
+        return method.executeQuery(visualQuery);
     });
         // Track the ongoing request
         ongoingRequests.put(id, queryFuture);

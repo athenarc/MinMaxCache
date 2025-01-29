@@ -1,6 +1,7 @@
 package gr.imsi.athenarc.visual.middleware.web.rest.model;
 
-import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
+import gr.imsi.athenarc.visual.middleware.methods.VisualQuery;
+import gr.imsi.athenarc.visual.middleware.methods.VisualQueryResults;
 
 public class QueryDTO {
     
@@ -18,13 +19,13 @@ public class QueryDTO {
 
     public static class QueryResponse {
         public String message;
-        public QueryResults queryResults;
+        public VisualQueryResults queryResults;
        
         public QueryResponse() {
 
         }
 
-        public QueryResponse(String message, QueryResults queryResults){
+        public QueryResponse(String message, VisualQueryResults queryResults){
             this.message = message;
             this.queryResults = queryResults;
         }

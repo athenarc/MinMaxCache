@@ -12,7 +12,7 @@ import java.util.*;
  * A balanced binary-search tree keyed by Interval objects.
  * <p>
  * The underlying data-structure is a red-black tree largely implemented from
- * CLRS (Introduction to Algorithms, 2nd edition) with the interval-tree
+ * CLRS (Introduction to Methods, 2nd edition) with the interval-tree
  * extensions mentioned in section 14.3
  * @param <T> - the type of TimeRange this tree contains
  */
@@ -801,7 +801,7 @@ public class IntervalTree<T extends TimeInterval> implements Iterable<T>, Serial
 
         /**
          * Performs a left-rotation on this Node.
-         * @see - Cormen et al. "Introduction to Algorithms", 2nd ed, pp. 277-279.
+         * @see - Cormen et al. "Introduction to Methods", 2nd ed, pp. 277-279.
          */
         private void leftRotate() {
             Node y = right;
@@ -830,7 +830,7 @@ public class IntervalTree<T extends TimeInterval> implements Iterable<T>, Serial
 
         /**
          * Performs a right-rotation on this Node.
-         * @see - Cormen et al. "Introduction to Algorithms", 2nd ed, pp. 277-279.
+         * @see - Cormen et al. "Introduction to Methods", 2nd ed, pp. 277-279.
          */
         private void rightRotate() {
             Node y = left;

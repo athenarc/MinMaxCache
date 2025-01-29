@@ -2,7 +2,7 @@
 # Visualization-aware Timeseries Min-Max Caching with Error Bound Guarantees
 
 ## Supplemental Material
-Supplemental material detailing the algorithms for error-bound calculation and query evaluation over MinMaxCache, as well as a detailed presentation of the user study conducted, can be found [here](https://github.com/athenarc/MinMaxCache/blob/main/paper_supplementary_material.pdf).
+Supplemental material detailing the methods for error-bound calculation and query evaluation over MinMaxCache, as well as a detailed presentation of the user study conducted, can be found [here](https://github.com/athenarc/MinMaxCache/blob/main/paper_supplementary_material.pdf).
 ## Datasets
 Data used for the experiments can be found [here](https://imisathena-my.sharepoint.com/:f:/g/personal/bstam_athenarc_gr/EqNFfVTRJ_9KresHs-QGyQ8BYJZVOQNty_mRCIwpru7s-Q?e=PoAxgl).
 
@@ -86,7 +86,7 @@ java -jar target/experiments.jar -c timeQueries -seqCount 50 -measureChange 0 -t
 
 -type *Database, <influx, postgres>*
 
--mode *Algorithm to run <minMax, m4, raw>
+-mode *Method to run <minMax, m4, raw>
 
 -measures *Measure ids, e.g 1,2,3*
 

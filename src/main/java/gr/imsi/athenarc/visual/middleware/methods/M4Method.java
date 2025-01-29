@@ -1,4 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.algorithms;
+package gr.imsi.athenarc.visual.middleware.methods;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -26,9 +26,8 @@ import gr.imsi.athenarc.visual.middleware.domain.ErrorResults;
 import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
-import gr.imsi.athenarc.visual.middleware.web.rest.model.VisualQuery;
 
-public class M4Algorithm implements Algorithm {
+public class M4Method implements Method {
 
 
     Map<String, DatasourceConnector> dataSourceConnnectors = new HashMap<>();
@@ -39,7 +38,7 @@ public class M4Algorithm implements Algorithm {
     }
 
     @Override
-    public QueryResults executeQuery(VisualQuery query) {
+    public VisualQueryResults executeQuery(VisualQuery query) {
         int width = query.getWidth();
         int height = query.getHeight();
         long from = query.getFrom();
@@ -48,7 +47,9 @@ public class M4Algorithm implements Algorithm {
         AbstractDataset dataset = datasourceConnector.initializeDataset(query.getSchema(), query.getTable());
         QueryExecutor queryExecutor = datasourceConnector.initializeQueryExecutor(dataset);
 
-        QueryResults queryResults = new QueryResults();
+        VisualQueryResults queryResults = new VisualQueryResults();
+
+        QueryResults m4Results = new QueryResults();
         double queryTime = 0;
 
         Stopwatch stopwatch = Stopwatch.createStarted();
@@ -84,23 +85,23 @@ public class M4Algorithm implements Algorithm {
             throw new RuntimeException("Unsupported query executor");
         }
         try {
-            queryResults = queryExecutor.execute(dataSourceQuery, QueryMethod.M4);
+            m4Results = queryExecutor.execute(dataSourceQuery, QueryMethod.M4);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        queryTime = stopwatch.elapsed(TimeUnit.NANOSECONDS) / Math.pow(10d, 9);
         Map<Integer, ErrorResults> error = new HashMap<>();
         for(Integer m : query.getMeasures()){
             error.put(m, new ErrorResults());
         }
-        queryResults.setError(error);
+        queryResults.setData(m4Results.getData());
         queryResults.setTimeRange(new TimeRange(startPixelColumn, endPixelColumn));
-        queryTime = stopwatch.elapsed(TimeUnit.NANOSECONDS) / Math.pow(10d, 9);
-        stopwatch.stop();
         queryResults.setQueryTime(queryTime);
 
+        queryTime = stopwatch.elapsed(TimeUnit.NANOSECONDS) / Math.pow(10d, 9);
+        stopwatch.stop();
         return queryResults;
     }
 

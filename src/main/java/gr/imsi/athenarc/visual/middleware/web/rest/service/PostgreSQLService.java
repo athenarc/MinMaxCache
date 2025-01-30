@@ -1,11 +1,7 @@
 package gr.imsi.athenarc.visual.middleware.web.rest.service;
 
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,12 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCache;
-import gr.imsi.athenarc.visual.middleware.cache.MinMaxCacheBuilder;
-import gr.imsi.athenarc.visual.middleware.cache.query.Query;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.JDBCConnection;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.PostgreSQLConnector;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.PostgreSQLDataset;
-import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 import gr.imsi.athenarc.visual.middleware.methods.VisualQuery;
 import gr.imsi.athenarc.visual.middleware.methods.VisualQueryResults;
 
@@ -27,8 +20,6 @@ import gr.imsi.athenarc.visual.middleware.methods.VisualQueryResults;
 public class PostgreSQLService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreSQLService.class);
-
-    private final ConcurrentHashMap<String, CompletableFuture<?>> ongoingRequests = new ConcurrentHashMap<>();
 
     @Value("${postgres.url}")
     private String postgresUrl;
@@ -56,7 +47,7 @@ public class PostgreSQLService {
         LOG.info("PostgreSQL connection established.");
     }
 
-    public CompletableFuture<VisualQueryResults> performQuery(VisualQuery visualQuery) throws SQLException {
+    public VisualQueryResults performQuery(VisualQuery visualQuery) throws SQLException {
         if (postgreSQLConnector == null) {
             initializeConnection();
         }
@@ -64,16 +55,7 @@ public class PostgreSQLService {
         String schema = visualQuery.getSchema();
         String id = visualQuery.getTable();
 
-        // Cancel previous request for this dataset, if any
-        CompletableFuture<?> previousRequest = ongoingRequests.put(id, new CompletableFuture<>());
-        if (previousRequest != null && !previousRequest.isDone()) {
-            previousRequest.cancel(true);
-        }
-
-        CompletableFuture<VisualQueryResults> queryFuture = null; // Timeout after 30 seconds
-
-        ongoingRequests.put(id, queryFuture);
-        return queryFuture;
+        return null;
     }
 
     // Close connection method (optional)

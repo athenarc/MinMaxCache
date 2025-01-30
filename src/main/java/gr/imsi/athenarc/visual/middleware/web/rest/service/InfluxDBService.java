@@ -1,8 +1,5 @@
 package gr.imsi.athenarc.visual.middleware.web.rest.service;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +33,6 @@ public class InfluxDBService {
 
     private InfluxDBConnector influxDBConnector;
 
-    // Map to track ongoing requests
-    private final ConcurrentHashMap<String, CompletableFuture<?>> ongoingRequests = new ConcurrentHashMap<>();
-
     @Autowired
     public InfluxDBService() {
     }
@@ -51,7 +45,7 @@ public class InfluxDBService {
     }
 
     // Method to perform a query with cancellation support
-    public CompletableFuture<VisualQueryResults> performQuery(VisualQuery visualQuery) {
+    public VisualQueryResults performQuery(VisualQuery visualQuery) {
         if (influxDBConnector == null) {
             initializeConnection();
         }
@@ -59,14 +53,8 @@ public class InfluxDBService {
         String schema = visualQuery.getSchema();
         String id = visualQuery.getTable();
 
-        // Cancel previous request for this dataset, if any
-        CompletableFuture<?> previousRequest = ongoingRequests.put(id, new CompletableFuture<>());
-        if (previousRequest != null && !previousRequest.isDone()) {
-            previousRequest.cancel(true);
-        }
-
+        
         // Perform the query asynchronously
-        CompletableFuture<VisualQueryResults> queryFuture = CompletableFuture.supplyAsync(() -> {
         Method method = MethodManager.getOrInitializeMethod(
             visualQuery.getMethodConfig().getKey(),
             schema,
@@ -76,10 +64,6 @@ public class InfluxDBService {
         );
 
         return method.executeQuery(visualQuery);
-    });
-        // Track the ongoing request
-        ongoingRequests.put(id, queryFuture);
-        return queryFuture;
     }
 
     // Close connection method (optional)

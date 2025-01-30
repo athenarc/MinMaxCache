@@ -1,8 +1,5 @@
 package gr.imsi.athenarc.visual.middleware.web.rest.controller;
 
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,16 +46,12 @@ public class DatasetController {
    @PostMapping("/postgres/query")
     public ResponseEntity<QueryDTO.QueryResponse> queryPostgres(@Valid @RequestBody QueryDTO.QueryRequest queryRequest) {
         try {
-            CompletableFuture<VisualQueryResults> future = postgresService.performQuery(queryRequest.query);
+            VisualQueryResults queryResults = postgresService.performQuery(queryRequest.query);
 
             // Wait for the query result (or handle asynchronously for better UX)
-            VisualQueryResults queryResults = future.get();
             QueryDTO.QueryResponse queryResponse = new QueryDTO.QueryResponse(
                 "PostgresDB query executed successfully.", queryResults);
             return ResponseEntity.ok(queryResponse);
-        } catch (CancellationException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(
-                new QueryDTO.QueryResponse("Query was canceled.", null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -83,17 +76,11 @@ public class DatasetController {
     @PostMapping("/influx/query")
     public ResponseEntity<QueryDTO.QueryResponse> queryInflux(@Valid @RequestBody QueryDTO.QueryRequest queryRequest) {
         try {
-            CompletableFuture<VisualQueryResults> future = influxService.performQuery(queryRequest.query);
-
-            // Wait for the query result (or handle asynchronously)
-            VisualQueryResults queryResults = future.get();
-
+            VisualQueryResults queryResults = influxService.performQuery(queryRequest.query);
+       
             QueryDTO.QueryResponse queryResponse = new QueryDTO.QueryResponse(
                 "InfluxDB query executed successfully.", queryResults);
             return ResponseEntity.ok(queryResponse);
-        } catch (CancellationException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(
-                new QueryDTO.QueryResponse("Query was canceled.", null));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);

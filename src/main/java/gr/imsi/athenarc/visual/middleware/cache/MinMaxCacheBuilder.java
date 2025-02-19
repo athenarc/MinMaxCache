@@ -1,10 +1,12 @@
 package gr.imsi.athenarc.visual.middleware.cache;
 
+
 import gr.imsi.athenarc.visual.middleware.datasource.connector.DatasourceConnector;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
 
 public class MinMaxCacheBuilder {
+
     private DatasourceConnector datasourceConnector;
     private String schema;
     private String id;

@@ -92,12 +92,6 @@ public class RawTimeSeriesSpan implements TimeSeriesSpan {
     }
 
     @Override
-    public int[] getCounts() {
-        return new int[0];
-    }
-
-
-    @Override
     public Iterator<DataPoint> iterator() {
         // Use the first and last timestamps as the range for the iterator
         return new RawTimeSeriesSpanIterator(from, to);
@@ -140,6 +134,7 @@ public class RawTimeSeriesSpan implements TimeSeriesSpan {
         return getFromDate() + " - " + getToDate() + " for measure: " + measure;
     }
 
+    @Override
     public int getCount() {
         return count;
     }

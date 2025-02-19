@@ -91,7 +91,6 @@ public class PixelColumn implements TimeInterval {
     }
 
 
-
     private void determinePartialContained() {
         Range<Long> pixelColumnTimeRange = Range.closedOpen(from, to);
         Range<Long> fullyContainedRange = fullyContainedRangeSet.span();

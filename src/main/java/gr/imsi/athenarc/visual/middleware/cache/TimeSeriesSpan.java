@@ -14,9 +14,8 @@ public interface TimeSeriesSpan extends DataPoints {
 
     /**
      * The number of time series points fetched form the database behind every data point included in this time series span.
-     * When the time series span corresponds to raw, non aggregated data, this number is 1.
      */
-    int[] getCounts();
+    int getCount();
 
     /*
         Calculate the memory size of this span.

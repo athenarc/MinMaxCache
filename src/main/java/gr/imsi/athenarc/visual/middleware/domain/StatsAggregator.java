@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.spi.LoggerContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

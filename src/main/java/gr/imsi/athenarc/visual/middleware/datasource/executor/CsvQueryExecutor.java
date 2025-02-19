@@ -1,5 +1,7 @@
 package gr.imsi.athenarc.visual.middleware.datasource.executor;
 
+import gr.imsi.athenarc.visual.middleware.cache.query.QueryMethod;
+import gr.imsi.athenarc.visual.middleware.cache.query.QueryResults;
 import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvAggregateDataPointsIterator;
 import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvAggregateDataPointsIteratorM4;
 import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvDataPointsIterator;
@@ -10,9 +12,7 @@ import gr.imsi.athenarc.visual.middleware.datasource.query.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.domain.AggregatedDataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.DataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.ImmutableDataPoint;
-import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.util.io.csv.CsvTimeSeriesRandomAccessReader;
-import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 import gr.imsi.athenarc.visual.middleware.domain.csv.TimeSeriesCsv;
@@ -49,7 +49,7 @@ public class CsvQueryExecutor implements QueryExecutor {
     }
 
     @Override
-    public QueryResults execute(DataSourceQuery q, QueryMethod method) throws IOException {
+    public Map<Integer, List<DataPoint>> execute(DataSourceQuery q, QueryMethod method) throws IOException {
         switch (method) {
             case M4:
                 return executeM4Query(q);
@@ -134,7 +134,12 @@ public class CsvQueryExecutor implements QueryExecutor {
     }
 
     @Override
-    public QueryResults executeM4Query(DataSourceQuery q) throws IOException {
+    public Map<Integer, List<DataPoint>> execute(String s) throws IOException {
+        throw new UnsupportedOperationException("Unsupported method");
+    }
+
+    @Override
+    public Map<Integer, List<DataPoint>> executeM4Query(DataSourceQuery q) throws IOException {
         CsvQuery csvQuery = (CsvQuery) q;
         Iterable<String[]> csvDataPoints = executeCsvQuery(csvQuery);
         Map<String, Integer> measuresMap = csvQuery.getMissingIntervalsPerMeasure().entrySet().stream()
@@ -153,7 +158,7 @@ public class CsvQueryExecutor implements QueryExecutor {
 
 
     @Override
-    public QueryResults executeMinMaxQuery(DataSourceQuery q) throws IOException {
+    public Map<Integer, List<DataPoint>> executeMinMaxQuery(DataSourceQuery q) throws IOException {
         CsvQuery csvQuery = (CsvQuery) q;
         Iterable<String[]> csvDataPoints = executeCsvQuery(csvQuery);
         Map<String, Integer> measuresMap = csvQuery.getMissingIntervalsPerMeasure().entrySet().stream()
@@ -171,7 +176,7 @@ public class CsvQueryExecutor implements QueryExecutor {
     }
 
     @Override
-    public QueryResults executeRawQuery(DataSourceQuery q) throws IOException {
+    public Map<Integer, List<DataPoint>> executeRawQuery(DataSourceQuery q) throws IOException {
         CsvQuery csvQuery = (CsvQuery) q;
         Iterable<String[]> csvDataPoints = executeCsvQuery(csvQuery);
         Map<String, Integer> measuresMap = csvQuery.getMissingIntervalsPerMeasure().entrySet().stream()
@@ -216,8 +221,7 @@ public class CsvQueryExecutor implements QueryExecutor {
     }
 
 
-    private QueryResults collectAggregateDatapoints(Iterator<AggregatedDataPoint> iterator) {
-        QueryResults queryResults = new QueryResults();
+    private Map<Integer, List<DataPoint>> collectAggregateDatapoints(Iterator<AggregatedDataPoint> iterator) {
         HashMap<Integer, List<DataPoint>> data = new HashMap<>();
         while(iterator.hasNext()){
             AggregatedDataPoint aggregatedDataPoint = iterator.next();
@@ -229,12 +233,10 @@ public class CsvQueryExecutor implements QueryExecutor {
         }
         
         data.forEach((k, v) -> v.sort(Comparator.comparingLong(DataPoint::getTimestamp)));
-        queryResults.setData(data);
-        return queryResults;
+        return data;
     }
 
-    private QueryResults collectDataPoints(Iterator<DataPoint> iterator) {
-        QueryResults queryResults = new QueryResults();
+    private Map<Integer, List<DataPoint>> collectDataPoints(Iterator<DataPoint> iterator) {
         HashMap<Integer, List<DataPoint>> data = new HashMap<>();
         while(iterator.hasNext()){
             DataPoint dataPoint = iterator.next();
@@ -242,10 +244,8 @@ public class CsvQueryExecutor implements QueryExecutor {
             data.computeIfAbsent(measure, k -> new ArrayList<>()).add(dataPoint);
         }
         data.forEach((k, v) -> v.sort(Comparator.comparingLong(DataPoint::getTimestamp)));
-        queryResults.setData(data);
-        return queryResults;
+        return data;
     }
-
 
 }
 

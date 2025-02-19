@@ -14,6 +14,5 @@ public interface DataPoint {
      */
     double getValue();
 
-
     int getMeasure();
 }

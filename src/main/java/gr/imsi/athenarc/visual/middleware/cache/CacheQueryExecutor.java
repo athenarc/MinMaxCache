@@ -19,6 +19,10 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
 
+import gr.imsi.athenarc.visual.middleware.cache.query.ErrorResults;
+import gr.imsi.athenarc.visual.middleware.cache.query.Query;
+import gr.imsi.athenarc.visual.middleware.cache.query.QueryMethod;
+import gr.imsi.athenarc.visual.middleware.cache.query.QueryResults;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.CsvQueryExecutor;
@@ -30,18 +34,13 @@ import gr.imsi.athenarc.visual.middleware.datasource.query.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.InfluxDBQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.SQLQuery;
 import gr.imsi.athenarc.visual.middleware.domain.DataPoint;
-import gr.imsi.athenarc.visual.middleware.domain.ErrorResults;
 import gr.imsi.athenarc.visual.middleware.domain.ImmutableDataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.PixelColumn;
-import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
 import gr.imsi.athenarc.visual.middleware.domain.Stats;
 import gr.imsi.athenarc.visual.middleware.domain.StatsAggregator;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 import gr.imsi.athenarc.visual.middleware.domain.ViewPort;
-import gr.imsi.athenarc.visual.middleware.domain.query.Query;
-import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
-import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
 
 public class CacheQueryExecutor {
 
@@ -76,6 +75,7 @@ public class CacheQueryExecutor {
 
         long pixelColumnInterval = (to - from) / viewPort.getWidth();
         double queryTime = 0;
+        long ioCount = 0;
 
         Stopwatch stopwatch = Stopwatch.createUnstarted();
         stopwatch.start();
@@ -168,9 +168,9 @@ public class CacheQueryExecutor {
         List<Integer> measuresWithError = new ArrayList<>();
         // For each measure with a miss, add the fetched data points to the pixel columns and recalculate the error.
         for(int measureWithMiss : missingTimeSeriesSpansPerMeasure.keySet()) {
-
             List<PixelColumn> pixelColumns = pixelColumnsPerMeasure.get(measureWithMiss);
             List<TimeSeriesSpan> timeSeriesSpans = missingTimeSeriesSpansPerMeasure.get(measureWithMiss);
+            ioCount += timeSeriesSpans.stream().mapToLong(TimeSeriesSpan::getCount).sum();
             // Add to pixel columns
             dataProcessor.processDatapoints(from, to, viewPort, pixelColumns, timeSeriesSpans);
 
@@ -194,6 +194,7 @@ public class CacheQueryExecutor {
             Query m4Query = new Query(from, to, 1.0f, query.getFilter(), QueryMethod.M4, measuresWithError, viewPort, query.getOpType());
             QueryResults m4QueryResults = executeM4Query(m4Query, dataProcessor.getQueryExecutor());
             long timeStart = System.currentTimeMillis();
+            ioCount += 4 * viewPort.getWidth() * measuresWithError.size();
             measuresWithError.forEach(m -> resultData.put(m, m4QueryResults.getData().get(m))); // add m4 results to final result
             // Set error to 0
             ErrorResults errorResults = new ErrorResults();
@@ -269,12 +270,13 @@ public class CacheQueryExecutor {
         queryResults.setQueryTime(queryTime);
         queryResults.setTimeRange(new TimeRange(startPixelColumn, endPixelColumn));
         queryResults.setAggFactors(aggFactors);
-        queryResults.setLitPixels(litPixelsPerMeasure);
+        queryResults.setIoCount(ioCount);
         return queryResults;
     }
 
     private QueryResults executeM4Query(Query query, QueryExecutor queryExecutor) {
         QueryResults queryResults = new QueryResults();
+        Map<Integer, List<DataPoint>> m4Data = new HashMap<>();
         double queryTime = 0;
 
         Stopwatch stopwatch = Stopwatch.createStarted();
@@ -283,11 +285,15 @@ public class CacheQueryExecutor {
         Map<String, List<TimeInterval>> missingTimeIntervalsPerMeasureName = new HashMap<>(query.getMeasures().size());
         Map<String, Integer> numberOfGroupsPerMeasureName = new HashMap<>(query.getMeasures().size());
         Map<Integer, Integer> numberOfGroups = new HashMap<>(query.getMeasures().size());
+        long aggInterval = (query.getTo() - query.getFrom()) / query.getViewPort().getWidth();
+
+        long startPixelColumn = query.getFrom();
+        long endPixelColumn = query.getFrom() + aggInterval * (query.getViewPort().getWidth());
+
 
         for (Integer measure : query.getMeasures()) {
             String measureName = dataset.getHeader()[measure];
             List<TimeInterval> timeIntervalsForMeasure = new ArrayList<>();
-            long aggInterval = (query.getTo() - query.getFrom()) / query.getViewPort().getWidth();
             timeIntervalsForMeasure.add(new TimeRange(query.getFrom(), query.getFrom() + aggInterval * (query.getViewPort().getWidth())));
             missingTimeIntervalsPerMeasure.put(measure, timeIntervalsForMeasure);
             missingTimeIntervalsPerMeasureName.put(measureName, timeIntervalsForMeasure);
@@ -307,7 +313,7 @@ public class CacheQueryExecutor {
             throw new RuntimeException("Unsupported query executor");
         }
         try {
-            queryResults = queryExecutor.execute(dataSourceQuery, QueryMethod.M4);
+            m4Data = queryExecutor.execute(dataSourceQuery, QueryMethod.M4);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -318,8 +324,9 @@ public class CacheQueryExecutor {
         for(Integer m : query.getMeasures()){
             error.put(m, new ErrorResults());
         }
+        queryResults.setData(m4Data);
         queryResults.setError(error);
-
+        queryResults.setTimeRange(new TimeRange(startPixelColumn, endPixelColumn));
         queryTime = stopwatch.elapsed(TimeUnit.NANOSECONDS) / Math.pow(10d, 9);
         stopwatch.stop();
         queryResults.setQueryTime(queryTime);

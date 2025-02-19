@@ -171,6 +171,4 @@ public class InfluxDBQuery extends DataSourceQuery {
 
     }
 
-
-
 }

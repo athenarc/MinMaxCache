@@ -43,7 +43,7 @@ public class PostgreSQLDataset extends AbstractDataset {
         String columnInfoQuery = "SELECT column_name, data_type FROM information_schema.columns " +
                                  "WHERE table_schema = '" + schema + "' AND table_name = '" + table + "';";
 
-        ResultSet resultSet = sqlQueryExecutor.execute(columnInfoQuery);
+        ResultSet resultSet = sqlQueryExecutor.executeDbQuery(columnInfoQuery);
         List<String> potentialTimeCols = new ArrayList<>();
         List<String> potentialIdCols = new ArrayList<>();
         List<String> potentialValueCols = new ArrayList<>();
@@ -81,7 +81,7 @@ public class PostgreSQLDataset extends AbstractDataset {
         // Header query to fetch distinct measures
         String headerQuery = "SELECT DISTINCT(" + getIdCol() + ") FROM " + getSchema() + "." + getTableName() + " " +
                              "ORDER BY " + getIdCol() + " ASC";
-        resultSet = sqlQueryExecutor.execute(headerQuery);
+        resultSet = sqlQueryExecutor.executeDbQuery(headerQuery);
         List<String> header = new ArrayList<>();
         while (resultSet.next()) {
             header.add(resultSet.getString(1));
@@ -94,7 +94,7 @@ public class PostgreSQLDataset extends AbstractDataset {
                             "WHERE " + getIdCol() + " = '" + header.get(getMeasures().get(0)) + "' " +
                             "ORDER BY " + getTimeCol() + " ASC " +
                             "LIMIT 2;";
-        resultSet = sqlQueryExecutor.execute(firstQuery);
+        resultSet = sqlQueryExecutor.executeDbQuery(firstQuery);
         resultSet.next();
         long from = resultSet.getLong(1);
         resultSet.next();
@@ -106,7 +106,7 @@ public class PostgreSQLDataset extends AbstractDataset {
                            "FROM " + getSchema() + "." + getTableName() + " " +
                            "ORDER BY " + getTimeCol() + " DESC " +
                            "LIMIT 1;";
-        resultSet = sqlQueryExecutor.execute(lastQuery);
+        resultSet = sqlQueryExecutor.executeDbQuery(lastQuery);
         resultSet.next();
         long to = resultSet.getLong(1);
         setTimeRange(new TimeRange(from, to));

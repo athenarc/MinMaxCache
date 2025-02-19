@@ -1,9 +1,12 @@
-package gr.imsi.athenarc.visual.middleware.domain;
+package gr.imsi.athenarc.visual.middleware.cache.query;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Range;
 import com.opencsv.CSVWriter;
+
+import gr.imsi.athenarc.visual.middleware.domain.DataPoint;
+import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -26,11 +29,9 @@ public class QueryResults implements Serializable {
 
     private TimeInterval timeRange;
 
-    private Map<Integer, StatsAggregator> groupByResults;
-
     private Map<Integer, ErrorResults> error;
 
-    private int ioCount = 0;
+    private long ioCount = 0;
 
     private double queryTime = 0;
 
@@ -80,20 +81,12 @@ public class QueryResults implements Serializable {
     public void setMeasureStats(Map<Integer, DoubleSummaryStatistics> measureStats) {
         this.measureStats = measureStats;
     }
-
-    public Map<Integer, StatsAggregator> getGroupByResults() {
-        return groupByResults;
-    }
-
-    public void setGroupByResults(Map<Integer, StatsAggregator> groupByResults) {
-        this.groupByResults = groupByResults;
-    }
-
-    public int getIoCount() {
+    
+    public long getIoCount() {
         return ioCount;
     }
 
-    public void setIoCount(int ioCount) {
+    public void setIoCount(long ioCount) {
         this.ioCount = ioCount;
     }
 

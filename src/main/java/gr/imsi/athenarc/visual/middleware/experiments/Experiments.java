@@ -10,6 +10,9 @@ import com.univocity.parsers.csv.CsvWriterSettings;
 
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCache;
 import gr.imsi.athenarc.visual.middleware.cache.MinMaxCacheBuilder;
+import gr.imsi.athenarc.visual.middleware.cache.query.Query;
+import gr.imsi.athenarc.visual.middleware.cache.query.QueryMethod;
+import gr.imsi.athenarc.visual.middleware.cache.query.QueryResults;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.CsvConnector;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.DatasourceConnector;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.InfluxDBConnection;
@@ -17,15 +20,12 @@ import gr.imsi.athenarc.visual.middleware.datasource.connector.InfluxDBConnector
 import gr.imsi.athenarc.visual.middleware.datasource.connector.JDBCConnection;
 import gr.imsi.athenarc.visual.middleware.datasource.connector.PostgreSQLConnector;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.*;
-import gr.imsi.athenarc.visual.middleware.datasource.executor.CsvQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.query.CsvQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.InfluxDBQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.SQLQuery;
-import gr.imsi.athenarc.visual.middleware.domain.query.Query;
-import gr.imsi.athenarc.visual.middleware.domain.query.QueryMethod;
-import gr.imsi.athenarc.visual.middleware.domain.QueryResults;
+import gr.imsi.athenarc.visual.middleware.domain.DataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 import gr.imsi.athenarc.visual.middleware.domain.ViewPort;
@@ -316,7 +316,8 @@ public class Experiments<T> {
         for (int i = 0; i < sequence.size(); i += 1) {
             stopwatch.start();
             Query query = sequence.get(i);
-            QueryResults queryResults;
+            Map<Integer, List<DataPoint>>  m4Data;
+            QueryResults queryResults = new QueryResults();
             double time = 0;
             LOG.info("Executing query " + i + " " + query.getFromDate() + " - " + query.getToDate());
             Map<Integer, List<TimeInterval>> missingTimeIntervalsPerMeasure = new HashMap<>(query.getMeasures().size());
@@ -348,7 +349,7 @@ public class Experiments<T> {
                             query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
                     break;
             }
-            queryResults = queryExecutor.execute(dataSourceQuery, queryMethod);
+            m4Data = queryExecutor.execute(dataSourceQuery, queryMethod);
             stopwatch.stop();
             time = stopwatch.elapsed(TimeUnit.NANOSECONDS) / Math.pow(10d, 9);
             if(run == 0) queryResults.toMultipleCsv(Paths.get(resultsPath, "query_" + i).toString());

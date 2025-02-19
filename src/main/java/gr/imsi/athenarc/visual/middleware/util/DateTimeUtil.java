@@ -48,43 +48,43 @@ public class DateTimeUtil {
     }
 
     public static String format(final long timeStamp) {
-        return formatTimeStamp(DEFAULT_FORMATTER, timeStamp);
+        return formatTimeStamp( timeStamp, DEFAULT_FORMATTER);
     }
 
     public static String format(final long timeStamp, final ZoneId zone) {
-        return format(DEFAULT_FORMATTER, timeStamp, zone);
+        return format(timeStamp, DEFAULT_FORMATTER,  zone);
     }
 
-    public static String format(final String format, final long timeStamp) {
+    public static String format(final long timeStamp, final String format) {
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
         return Instant.ofEpochMilli(timeStamp)
                 .atZone(UTC)
                 .format(formatter);
     }
 
-    public static String format(final String format, final long timeStamp, final ZoneId zone) {
+    public static String format(final long timeStamp, final String format, final ZoneId zone) {
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
         return Instant.ofEpochMilli(timeStamp)
                 .atZone(zone)
                 .format(formatter);
     }
 
-    public static String format(final DateTimeFormatter formatter, final long timeStamp, final ZoneId zone) {
+    public static String format( final long timeStamp, final DateTimeFormatter formatter, final ZoneId zone) {
         return Instant.ofEpochMilli(timeStamp)
                 .atZone(zone)
                 .format(formatter);
     }
 
     public static String formatTimeStamp(final long timeStamp) {
-        return formatTimeStamp(DEFAULT_FORMATTER, timeStamp);
+        return formatTimeStamp(timeStamp, DEFAULT_FORMATTER);
     }
 
-    public static String formatTimeStamp(final String format, final long timeStamp) {
-        return format(format, timeStamp, UTC);
+    public static String formatTimeStamp(final long timeStamp, final String format) {
+        return format(timeStamp, format, UTC);
     }
 
-    public static String formatTimeStamp(final DateTimeFormatter formatter, final long timeStamp) {
-        return format(formatter, timeStamp, UTC);
+    public static String formatTimeStamp(final long timeStamp, final DateTimeFormatter formatter ) {
+        return format(timeStamp, formatter, UTC);
     }
     public static ZonedDateTime getIntervalEnd(long timestamp, AggregateInterval aggregateInterval, ZoneId zoneId) {
         return getIntervalStart(timestamp, aggregateInterval, zoneId).plus(aggregateInterval.getInterval(), aggregateInterval.getChronoUnit());

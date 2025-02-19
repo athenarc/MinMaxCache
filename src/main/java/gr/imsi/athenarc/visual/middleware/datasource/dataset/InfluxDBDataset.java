@@ -40,7 +40,7 @@ public class InfluxDBDataset extends AbstractDataset {
             "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + getTableName() + "\")\n" +
             "  |> first()\n";
     
-        List<FluxTable> fluxTables = influxDBQueryExecutor.execute(firstQuery);
+        List<FluxTable> fluxTables = influxDBQueryExecutor.executeDbQuery(firstQuery);
         FluxRecord firstRecord = fluxTables.get(0).getRecords().get(0);
         long firstTime = firstRecord.getTime().toEpochMilli();
     
@@ -50,7 +50,7 @@ public class InfluxDBDataset extends AbstractDataset {
             "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + getTableName() + "\")\n" +
             "  |> last()\n";
     
-        fluxTables = influxDBQueryExecutor.execute(lastQuery);
+        fluxTables = influxDBQueryExecutor.executeDbQuery(lastQuery);
         FluxRecord lastRecord = fluxTables.get(0).getRecords().get(0);
         long lastTime = lastRecord.getTime().toEpochMilli();
     
@@ -58,11 +58,11 @@ public class InfluxDBDataset extends AbstractDataset {
         // Fetch the second timestamp to calculate the sampling interval.
         // Query on first time plus some time later
         String secondQuery = "from(bucket:\"" + getSchema() + "\")\n" +
-            "  |> range(start:" + DateTimeUtil.format(influxFormat, firstTime).replace("\"", "") + ", stop: " + DateTimeUtil.format(influxFormat, firstTime + 60000).replace("\"", "") + ")\n" +
+            "  |> range(start:" + DateTimeUtil.format(firstTime, influxFormat).replace("\"", "") + ", stop: " + DateTimeUtil.format(firstTime + 60000, influxFormat).replace("\"", "") + ")\n" +
             "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + getTableName() + "\")\n" +
             "  |> limit(n: 2)\n";  // Fetch the first two records
     
-        fluxTables = influxDBQueryExecutor.execute(secondQuery);
+        fluxTables = influxDBQueryExecutor.executeDbQuery(secondQuery);
         FluxRecord secondRecord = fluxTables.get(0).getRecords().get(1); 
         long secondTime = secondRecord.getTime().toEpochMilli();
     

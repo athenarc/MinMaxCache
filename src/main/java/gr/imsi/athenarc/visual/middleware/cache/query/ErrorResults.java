@@ -1,4 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.domain;
+package gr.imsi.athenarc.visual.middleware.cache.query;
 
 import java.util.ArrayList;
 import java.util.List;

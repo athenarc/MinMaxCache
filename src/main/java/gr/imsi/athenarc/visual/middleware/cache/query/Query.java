@@ -1,4 +1,4 @@
-package gr.imsi.athenarc.visual.middleware.domain.query;
+package gr.imsi.athenarc.visual.middleware.cache.query;
 
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.ViewPort;
@@ -7,8 +7,8 @@ import gr.imsi.athenarc.visual.middleware.experiments.util.UserOpType;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Query implements TimeInterval {
 
@@ -16,15 +16,13 @@ public class Query implements TimeInterval {
     long to;
     List<Integer> measures;
     ViewPort viewPort;
+    Map<Integer, Double[]> filter;
     QueryMethod queryMethod;
-    private HashMap<Integer, Double[]> filter;
-
     UserOpType opType;
     float accuracy;
 
     public Query() {}
-
-    public Query(long from, long to, List<Integer> measures, float accuracy, int width, int height, HashMap<Integer, Double[]> filter) {
+    public Query(long from, long to, List<Integer> measures, float accuracy, int width, int height, Map<Integer, Double[]> filter) {
         this.from = from;
         this.to = to;
         this.measures = measures;
@@ -35,7 +33,7 @@ public class Query implements TimeInterval {
         this.opType = null;
     }
 
-    public Query(long from, long to, float accuracy, HashMap<Integer, Double[]> filter,
+    public Query(long from, long to, float accuracy, Map<Integer, Double[]> filter,
                  QueryMethod queryMethod, List<Integer> measures, ViewPort viewPort, UserOpType opType) {
         this.from = from;
         this.to = to;
@@ -105,7 +103,7 @@ public class Query implements TimeInterval {
         this.opType = opType;
     }
 
-    public HashMap<Integer, Double[]> getFilter() {
+    public Map<Integer, Double[]> getFilter() {
         return filter;
     }
 

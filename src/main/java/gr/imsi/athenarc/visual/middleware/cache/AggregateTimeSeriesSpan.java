@@ -21,16 +21,12 @@ public class AggregateTimeSeriesSpan implements TimeSeriesSpan {
 
     private int measure;
 
+    private int count;
+
     /**
      * The aggregate values for every window interval and for every measure.
      */
     private long[] aggregates;
-
-    /**
-     * The number of raw time series points behind every data point included in this time series span.
-     * When the time series span corresponds to raw, non aggregated data, this number is 1.
-     */
-    private int[] counts;
 
     // The start time value of the span
     private long from;
@@ -57,7 +53,6 @@ public class AggregateTimeSeriesSpan implements TimeSeriesSpan {
         this.aggregateInterval = aggregateInterval;
         LOG.debug("Initializing time series span ({},{}) measure = {} with size {}, aggregate interval {}", getFromDate(), getToDate(), measure, size, aggregateInterval);
         this.measure = measure;
-        this.counts = new int[size];
         this.aggregates = new long[size * 5];
     }
 
@@ -68,7 +63,7 @@ public class AggregateTimeSeriesSpan implements TimeSeriesSpan {
 
     protected void addAggregatedDataPoint(int i, AggregatedDataPoint aggregatedDataPoint) {
         Stats stats = aggregatedDataPoint.getStats();
-        counts[i] = stats.getCount();
+        count += stats.getCount();
         if (stats.getCount() == 0) {
             return;
         }
@@ -114,10 +109,6 @@ public class AggregateTimeSeriesSpan implements TimeSeriesSpan {
 
     public long getAggregateInterval() {
         return aggregateInterval;
-    }
-
-    public int[] getCounts() {
-        return counts;
     }
 
     public TimeInterval getResidual(){
@@ -182,7 +173,7 @@ public class AggregateTimeSeriesSpan implements TimeSeriesSpan {
 
         long aggregatesMemory = REF_SIZE + ARRAY_OVERHEAD + aggregates.length * (REF_SIZE + ARRAY_OVERHEAD + ((long) size * 5 * LONG_SIZE));
 
-        long countsMemory = REF_SIZE + ARRAY_OVERHEAD + ((long) counts.length * INT_SIZE);
+        long countsMemory = REF_SIZE + ARRAY_OVERHEAD + ((long) count * INT_SIZE);
 
         long aggregateIntervalMemory = 2 * REF_SIZE + OBJECT_OVERHEAD + LONG_SIZE;
 
@@ -191,6 +182,11 @@ public class AggregateTimeSeriesSpan implements TimeSeriesSpan {
 
 
         return deepMemorySize;
+    }
+
+    @Override
+    public int getCount() {
+        return count;
     }
 
     @Override
@@ -232,7 +228,7 @@ public class AggregateTimeSeriesSpan implements TimeSeriesSpan {
 
         @Override
         public int getCount() {
-            return counts[currentIndex];
+            return count;
         }
 
         @Override
@@ -243,7 +239,7 @@ public class AggregateTimeSeriesSpan implements TimeSeriesSpan {
 
                 @Override
                 public int getCount() {
-                    return counts[index];
+                    return count;
                 }
 
                 @Override
@@ -263,7 +259,7 @@ public class AggregateTimeSeriesSpan implements TimeSeriesSpan {
 
                 @Override
                 public double getAverageValue() {
-                    return Double.longBitsToDouble(aggregates[index * 5]) / counts[index];
+                    return Double.longBitsToDouble(aggregates[index * 5]) / count;
                 }
 
                 @Override

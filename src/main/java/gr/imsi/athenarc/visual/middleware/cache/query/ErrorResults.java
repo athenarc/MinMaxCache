@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 
@@ -29,8 +27,7 @@ public class ErrorResults {
     public void setError(double error) {
         this.error = error;
     }
-      // Use @JsonIgnore on the original field to avoid exposing it directly
-    @JsonIgnore
+
     public List<RangeSet<Integer>> getMissingPixels() {
         return missingPixels;
     }
@@ -39,7 +36,7 @@ public class ErrorResults {
         this.missingPixels = missingPixels;
     }
 
-    @JsonIgnore
+
     public List<RangeSet<Integer>> getFalsePixels() {
         return falsePixels;
     }
@@ -48,8 +45,6 @@ public class ErrorResults {
         this.falsePixels = falsePixels;
     }
 
-    // Serialize missingPixels as a list of string representations of ranges
-    @JsonProperty("missingPixels")
     public List<List<String>> getMissingPixelsAsString() {
         return missingPixels.stream()
                 .map(rangeSet -> rangeSet.asRanges().stream()
@@ -58,8 +53,6 @@ public class ErrorResults {
                 .collect(Collectors.toList());
     }
 
-    // Serialize falsePixels as a list of string representations of ranges
-    @JsonProperty("falsePixels")
     public List<List<String>> getFalsePixelsAsString() {
         return falsePixels.stream()
                 .map(rangeSet -> rangeSet.asRanges().stream()

@@ -1,7 +1,5 @@
 package gr.imsi.athenarc.visual.middleware.cache.query;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Range;
 import com.opencsv.CSVWriter;
 
@@ -41,11 +39,8 @@ public class QueryResults implements Serializable {
 
     private boolean flag;
 
-    @JsonIgnore
     private Map<Integer, List<Range<Integer>>> litPixels;
     
-
-    @JsonProperty("litPixels")
     public Map<Integer, List<List<String>>> getLitPixelsAsString() {
         return litPixels.entrySet().stream()
         .collect(Collectors.toMap(

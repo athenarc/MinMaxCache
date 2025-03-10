@@ -3,6 +3,7 @@
 
 ## Supplemental Material
 Supplemental material detailing the algorithms for error-bound calculation and query evaluation over MinMaxCache, as well as a detailed presentation of the user study conducted, can be found [here](https://github.com/athenarc/MinMaxCache/blob/main/paper_supplementary_material.pdf).
+
 ## Datasets
 Data used for the experiments can be found [here](https://imisathena-my.sharepoint.com/:f:/g/personal/bstam_athenarc_gr/EqNFfVTRJ_9KresHs-QGyQ8BYJZVOQNty_mRCIwpru7s-Q?e=PoAxgl).
 
@@ -22,21 +23,16 @@ mvn clean package
 
 ### Experiments
 
-To initialize a dataset in a .csv file, run the following:
 
-```
-java -jar target/experiments.jar -path <path_to_csv> -c initialize -type <influx, postgres> -out output -schema <schema> -table <table_name> -timeFormat "yyyy-MM-dd[ HH:mm:ss.SSS]"
 ```
 To execute a sequence of queries, e.g. using a table, run the following:
 
 ```
-java -jar target/experiments.jar -c timeQueries -seqCount 50 -measureChange 0 -type <influx, postgres> -mode <minMax> -measures <measure_ids> -timeCol <timeCol (if postgres)>
--valueCol <valueCol (if postgres)> -idCol <idCol (if postgres)> -zoomFactor 2 -viewport <width,height> -runs 1 -out <output_folder_path> -minShift 0.1 -maxShift 0.5 -schema <schema or bucket> -table <tableName> -timeFormat "yyyy-MM-dd[ HH:mm:ss.SSS]" -a 0.95 -q 0.1 -p 1 -agg 4 
+java -jar target/experiments.jar -seqCount 50 -measureChange 0 -type <influx, postgres> -measures <measure_ids> -timeCol <timeCol (if postgres)>
+-valueCol <valueCol (if postgres)> -idCol <idCol (if postgres)> -zoomFactor 2 -viewport <width,height> -runs 1 -out <output_folder_path> -minShift 0.1 -maxShift 0.5 -schema <schema or bucket> -table <tableName> -timeFormat "yyyy-MM-dd[ HH:mm:ss.SSS]" -a 0.95 -q 0.1 -prefetchingFactor 1 -aggFactor 4 
 ```
 
 ### Parameters:
-
--c *The command to run, <timeQueries, initialize>*
 
 -seqCount *No. of queries*
 
@@ -74,9 +70,9 @@ java -jar target/experiments.jar -c timeQueries -seqCount 50 -measureChange 0 -t
 
 -q *Query Selectivity*
 
--p *Prefetching Toggle*
+-prefetchingFactor *Prefetching Factor*
 
--agg *Initial Aggregation Factor*
+-aggFactor *Initial Aggregation Factor*
 
 (-queries) *A path to a csv file with predefined epoch-based queries. First column is start epoch and the second end epoch (e.g queries.txt file in the repository). *
 

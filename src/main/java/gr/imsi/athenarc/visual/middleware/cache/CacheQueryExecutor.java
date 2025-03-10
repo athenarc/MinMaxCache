@@ -1,11 +1,10 @@
 package gr.imsi.athenarc.visual.middleware.cache;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,28 +15,18 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Range;
-import com.google.common.collect.RangeSet;
-import com.google.common.collect.TreeRangeSet;
 
 import gr.imsi.athenarc.visual.middleware.cache.query.ErrorResults;
 import gr.imsi.athenarc.visual.middleware.cache.query.Query;
-import gr.imsi.athenarc.visual.middleware.cache.query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.cache.query.QueryResults;
+import gr.imsi.athenarc.visual.middleware.datasource.DataSource;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
-import gr.imsi.athenarc.visual.middleware.datasource.dataset.PostgreSQLDataset;
-import gr.imsi.athenarc.visual.middleware.datasource.executor.CsvQueryExecutor;
-import gr.imsi.athenarc.visual.middleware.datasource.executor.InfluxDBQueryExecutor;
-import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
-import gr.imsi.athenarc.visual.middleware.datasource.executor.SQLQueryExecutor;
-import gr.imsi.athenarc.visual.middleware.datasource.query.CsvQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.DataSourceQuery;
-import gr.imsi.athenarc.visual.middleware.datasource.query.InfluxDBQuery;
-import gr.imsi.athenarc.visual.middleware.datasource.query.SQLQuery;
+import gr.imsi.athenarc.visual.middleware.domain.AggregatedDataPoint;
+import gr.imsi.athenarc.visual.middleware.domain.AggregatedDataPoints;
 import gr.imsi.athenarc.visual.middleware.domain.DataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.ImmutableDataPoint;
-import gr.imsi.athenarc.visual.middleware.domain.PixelColumn;
 import gr.imsi.athenarc.visual.middleware.domain.Stats;
-import gr.imsi.athenarc.visual.middleware.domain.StatsAggregator;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 import gr.imsi.athenarc.visual.middleware.domain.ViewPort;
@@ -45,12 +34,16 @@ import gr.imsi.athenarc.visual.middleware.domain.ViewPort;
 public class CacheQueryExecutor {
 
     private static final Logger LOG = LoggerFactory.getLogger(MinMaxCache.class);
+    private final DataSource dataSource;
     private final AbstractDataset dataset;
     private final Map<Integer, Integer> aggFactors;
 
+
     private final int initialAggFactor;
-    protected CacheQueryExecutor(AbstractDataset dataset, int aggFactor) {
-        this.dataset = dataset;
+
+    protected CacheQueryExecutor(DataSource dataSource, int aggFactor) {
+        this.dataSource = dataSource;
+        this.dataset = dataSource.getDataset();
         this.aggFactors = new HashMap<>(dataset.getMeasures().size());
         this.initialAggFactor = aggFactor;
         for(int measure : dataset.getMeasures()) aggFactors.put(measure, aggFactor);
@@ -64,7 +57,7 @@ public class CacheQueryExecutor {
     protected QueryResults executeQuery(Query query, CacheManager cacheManager,
                                      DataProcessor dataProcessor, PrefetchManager prefetchManager){
         LOG.info("Executing Visual Query {}", query);
-        if(query.getAccuracy() == 1) return executeM4Query(query, dataProcessor.getQueryExecutor());
+        if(query.getAccuracy() == 1) return executeM4Query(query);
 
         // Bound from and to to dataset range
         long from = Math.max(dataset.getTimeRange().getFrom(), query.getFrom());
@@ -163,7 +156,7 @@ public class CacheQueryExecutor {
         // Fetch the missing data from the data source.
         // Give the measures with misses, their intervals and their respective agg factors.
         Map<Integer, List<TimeSeriesSpan>> missingTimeSeriesSpansPerMeasure = missingIntervalsPerMeasure.size() > 0 ?
-                dataProcessor.getMissing(from, to, missingIntervalsPerMeasure, aggFactors, viewPort, query.getQueryMethod()) : new HashMap<>(measures.size());
+                dataProcessor.getMissing(from, to, missingIntervalsPerMeasure, aggFactors, viewPort) : new HashMap<>(measures.size());
 
         List<Integer> measuresWithError = new ArrayList<>();
         // For each measure with a miss, add the fetched data points to the pixel columns and recalculate the error.
@@ -191,8 +184,8 @@ public class CacheQueryExecutor {
         }
         // Fetch errored measures with M4
         if(!measuresWithError.isEmpty()) {
-            Query m4Query = new Query(from, to, 1.0f, query.getFilter(), QueryMethod.M4, measuresWithError, viewPort, query.getOpType());
-            QueryResults m4QueryResults = executeM4Query(m4Query, dataProcessor.getQueryExecutor());
+            Query m4Query = new Query(from, to, measuresWithError, viewPort.getWidth(), viewPort.getHeight(), 1.0f);
+            QueryResults m4QueryResults = executeM4Query(m4Query);
             long timeStart = System.currentTimeMillis();
             ioCount += 4 * viewPort.getWidth() * measuresWithError.size();
             measuresWithError.forEach(m -> resultData.put(m, m4QueryResults.getData().get(m))); // add m4 results to final result
@@ -206,7 +199,6 @@ public class CacheQueryExecutor {
         List<Integer> measuresWithoutError = new ArrayList<>(measures);
         measuresWithoutError.removeAll(measuresWithError); // remove measures handled with m4 query
         Map<Integer, DoubleSummaryStatistics> measureStatsMap = new HashMap<>(measures.size());
-        Map<Integer, List<Range<Integer>>> litPixelsPerMeasure = new HashMap<>(measures.size());
 
         for (int measure : measuresWithoutError) {
             int count = 0;
@@ -215,11 +207,6 @@ public class CacheQueryExecutor {
             double sum = 0;
             List<PixelColumn> pixelColumns = pixelColumnsPerMeasure.get(measure);
 
-            // Lit pixel assertion
-            List<Range<Integer>> litPixels = computeLitPixels(pixelColumns);
-            litPixelsPerMeasure.put(measure, litPixels);
-            // debugLitPixels(litPixels, errorPerMeasure.get(measure));
-
             List<DataPoint> dataPoints = new ArrayList<>();
             int i = 0;
             for (PixelColumn pixelColumn : pixelColumns) {
@@ -227,24 +214,12 @@ public class CacheQueryExecutor {
                 if (pixelColumnStats.getCount() <= 0) {
                     continue;
                 }
-                // filter
-                if(query.getFilter() == null || query.getFilter().isEmpty()){
-                    dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getFirstTimestamp(), pixelColumnStats.getFirstValue(), measure));
-                    dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getMinTimestamp(), pixelColumnStats.getMinValue(), measure));
-                    dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getMaxTimestamp(), pixelColumnStats.getMaxValue(), measure));
-                    dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getLastTimestamp(), pixelColumnStats.getLastValue(), measure));
-                }
-                else {
-                    double filterMin = query.getFilter().get(measure)[0];
-                    double filterMax = query.getFilter().get(measure)[1];
-                    if (filterMin < pixelColumnStats.getMinValue() &&
-                            filterMax > pixelColumnStats.getMaxValue()) {
-                        dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getFirstTimestamp(), pixelColumnStats.getFirstValue(), measure));
-                        dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getMinTimestamp(), pixelColumnStats.getMinValue(), measure));
-                        dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getMaxTimestamp(), pixelColumnStats.getMaxValue(), measure));
-                        dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getLastTimestamp(), pixelColumnStats.getLastValue(), measure));
-                    }
-                }
+                // add points
+                dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getFirstTimestamp(), pixelColumnStats.getFirstValue(), measure));
+                dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getMinTimestamp(), pixelColumnStats.getMinValue(), measure));
+                dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getMaxTimestamp(), pixelColumnStats.getMaxValue(), measure));
+                dataPoints.add(new ImmutableDataPoint(pixelColumnStats.getLastTimestamp(), pixelColumnStats.getLastValue(), measure));
+                
                 // compute statistics
                 count += 1;
                 if(max < pixelColumnStats.getMaxValue()) max = pixelColumnStats.getMaxValue();
@@ -265,24 +240,23 @@ public class CacheQueryExecutor {
         resultData.forEach((k, v) -> v.sort(Comparator.comparingLong(DataPoint::getTimestamp)));
         queryResults.setData(resultData);
         queryResults.setMeasureStats(measureStatsMap);
-        queryResults.setError(errorPerMeasure);
-        queryResults.setFlag(measuresWithError.size() > 0);
+        // queryResults.setError(errorPerMeasure);
         queryResults.setQueryTime(queryTime);
         queryResults.setTimeRange(new TimeRange(startPixelColumn, endPixelColumn));
-        queryResults.setAggFactors(aggFactors);
         queryResults.setIoCount(ioCount);
         return queryResults;
     }
 
-    private QueryResults executeM4Query(Query query, QueryExecutor queryExecutor) {
+    private QueryResults executeM4Query(Query query) {
         QueryResults queryResults = new QueryResults();
         Map<Integer, List<DataPoint>> m4Data = new HashMap<>();
         double queryTime = 0;
 
         Stopwatch stopwatch = Stopwatch.createStarted();
-        DataSourceQuery dataSourceQuery = null;
-        Map<Integer, List<TimeInterval>> missingTimeIntervalsPerMeasure = new HashMap<>(query.getMeasures().size());
-        Map<String, List<TimeInterval>> missingTimeIntervalsPerMeasureName = new HashMap<>(query.getMeasures().size());
+        Map<Integer, List<TimeInterval>> missingΙntervalsPerMeasure = new HashMap<>(query.getMeasures().size());
+        Map<Integer, Long> aggregateIntervals = new HashMap<>(query.getMeasures().size());
+
+        Map<String, List<TimeInterval>> missingIntervalsPerMeasureName = new HashMap<>(query.getMeasures().size());
         Map<String, Integer> numberOfGroupsPerMeasureName = new HashMap<>(query.getMeasures().size());
         Map<Integer, Integer> numberOfGroups = new HashMap<>(query.getMeasures().size());
         long aggInterval = (query.getTo() - query.getFrom()) / query.getViewPort().getWidth();
@@ -295,132 +269,42 @@ public class CacheQueryExecutor {
             String measureName = dataset.getHeader()[measure];
             List<TimeInterval> timeIntervalsForMeasure = new ArrayList<>();
             timeIntervalsForMeasure.add(new TimeRange(query.getFrom(), query.getFrom() + aggInterval * (query.getViewPort().getWidth())));
-            missingTimeIntervalsPerMeasure.put(measure, timeIntervalsForMeasure);
-            missingTimeIntervalsPerMeasureName.put(measureName, timeIntervalsForMeasure);
+            missingΙntervalsPerMeasure.put(measure, timeIntervalsForMeasure);
+            missingIntervalsPerMeasureName.put(measureName, timeIntervalsForMeasure);
             numberOfGroups.put(measure, query.getViewPort().getWidth());
             numberOfGroupsPerMeasureName.put(measureName, query.getViewPort().getWidth());
+            aggregateIntervals.put(measure, aggInterval);
         }
-        if(queryExecutor instanceof SQLQueryExecutor)
-            dataSourceQuery = new SQLQuery(dataset.getSchema(), dataset.getTableName(), dataset.getTimeFormat(),
-                    ((PostgreSQLDataset)dataset).getTimeCol(), ((PostgreSQLDataset)dataset).getIdCol(), ((PostgreSQLDataset)dataset).getValueCol(),
-                    query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
-        else if (queryExecutor instanceof InfluxDBQueryExecutor)
-            dataSourceQuery = new InfluxDBQuery(dataset.getSchema(), dataset.getTableName(), dataset.getTimeFormat(),
-             query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
-        else if (queryExecutor instanceof CsvQueryExecutor)
-            dataSourceQuery = new CsvQuery(query.getFrom(), query.getTo(), missingTimeIntervalsPerMeasureName, numberOfGroupsPerMeasureName);
-        else {
-            throw new RuntimeException("Unsupported query executor");
-        }
-        try {
-            m4Data = queryExecutor.execute(dataSourceQuery, QueryMethod.M4);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        AggregatedDataPoints missingDataPoints = 
+            dataSource.getM4DataPoints(startPixelColumn, endPixelColumn, missingΙntervalsPerMeasure, numberOfGroups);
+        
+        Map<Integer, List<TimeSeriesSpan>> timeSeriesSpans = TimeSeriesSpanFactory.createAggregate(missingDataPoints, missingΙntervalsPerMeasure, aggregateIntervals);
+        for (Integer measure : query.getMeasures()) {
+            List<TimeSeriesSpan> spans = timeSeriesSpans.get(measure);
+            List<DataPoint> dataPoints = new ArrayList<>();
+            for (TimeSeriesSpan span : spans) {
+                Iterator<AggregatedDataPoint> it = ((AggregateTimeSeriesSpan) span).iterator();
+                while (it.hasNext()) {
+                    AggregatedDataPoint aggregatedDataPoint = it.next();
+                    dataPoints.add(new ImmutableDataPoint(aggregatedDataPoint.getStats().getFirstDataPoint().getTimestamp(), aggregatedDataPoint.getStats().getFirstDataPoint().getValue(), measure));
+                    dataPoints.add(new ImmutableDataPoint(aggregatedDataPoint.getStats().getMinDataPoint().getTimestamp(), aggregatedDataPoint.getStats().getMinDataPoint().getValue(), measure));
+                    dataPoints.add(new ImmutableDataPoint(aggregatedDataPoint.getStats().getMaxDataPoint().getTimestamp(), aggregatedDataPoint.getStats().getMaxDataPoint().getValue(), measure));
+                    dataPoints.add(new ImmutableDataPoint(aggregatedDataPoint.getStats().getLastDataPoint().getTimestamp(), aggregatedDataPoint.getStats().getLastDataPoint().getValue(), measure));
 
+                }
+            }
+            m4Data.put(measure, dataPoints);
+        }
         Map<Integer, ErrorResults> error = new HashMap<>();
         for(Integer m : query.getMeasures()){
             error.put(m, new ErrorResults());
         }
         queryResults.setData(m4Data);
-        queryResults.setError(error);
         queryResults.setTimeRange(new TimeRange(startPixelColumn, endPixelColumn));
         queryTime = stopwatch.elapsed(TimeUnit.NANOSECONDS) / Math.pow(10d, 9);
         stopwatch.stop();
         queryResults.setQueryTime(queryTime);
 
         return queryResults;
-    }
-
-    private void debugLitPixels(List<Range<Integer>> litPixels, ErrorResults errors ){ 
-    
-        for(int ii = 0; ii < litPixels.size(); ii ++) {
-            Range<Integer> pixelColumn = litPixels.get(ii);
-            RangeSet<Integer> pixelColumnMissing = errors.getMissingPixels().get(ii);
-            RangeSet<Integer> pixelColumnFalse = errors.getFalsePixels().get(ii);
-
-            if(pixelColumnMissing.isEmpty()) continue;
-
-            for(Range<Integer> missingRange : pixelColumnMissing.asRanges()){
-                if(pixelColumn.encloses(missingRange)){
-                    LOG.error("There are missing pixels inside the pixel range of this pixel column");
-                }
-            }
-
-            if(pixelColumnFalse.isEmpty()) continue;
-
-            for(Range<Integer> falseRange : pixelColumnFalse.asRanges()){
-                // if(pixelColumn.isConnected(falseRange) && !pixelColumn.intersection(falseRange).isEmpty()){
-                if(!pixelColumn.encloses(falseRange)){
-                    LOG.error("There are false pixels outside the pixel range of this pixel column");
-                }
-            }
-        }    
-    }
-
-    private List<Range<Integer>> computeLitPixels(List<PixelColumn> pixelColumns) {
-        // Combine stats across all pixel columns
-        StatsAggregator viewPortStatsAggregator = new StatsAggregator();
-        pixelColumns.forEach(pc -> viewPortStatsAggregator.combine(pc.getStats()));
-    
-        List<Range<Integer>> litPixels = new ArrayList<>();
-        // For each pixel column, gather its "inner" lit pixels
-        for (int i = 0; i < pixelColumns.size(); i++) {
-            RangeSet<Integer> pixelColumnLitPixels = TreeRangeSet.create();
-
-            PixelColumn currentColumn = pixelColumns.get(i);
-    
-            if(currentColumn.getStats().getCount() == 0 || currentColumn.hasNoError()) {
-                // Add an empty range
-                litPixels.add(null);
-                continue;
-            }
-            
-            // Get the column's inner pixel range
-            Range<Integer> innerRange = currentColumn.getActualInnerColumnPixelRange(viewPortStatsAggregator);
-            if (innerRange != null) {
-                pixelColumnLitPixels.add(innerRange);
-            }
-    
-            // Also connect with the previous column, if present
-            if (i > 0) {
-                PixelColumn previousColumn = pixelColumns.get(i - 1);
-                if (previousColumn.getStats().getCount() != 0) {
-                    Range<Integer> leftLine = currentColumn.getPixelIdsForLineSegment(
-                        previousColumn.getStats().getLastTimestamp(),
-                        previousColumn.getStats().getLastValue(),
-                        currentColumn.getStats().getFirstTimestamp(),
-                        currentColumn.getStats().getFirstValue(),
-                        viewPortStatsAggregator
-                    );
-                    if (leftLine != null) {
-                        pixelColumnLitPixels.add(leftLine);
-                    }
-                }
-            }
-    
-            // Connect with the next column as well, if present
-            if (i < pixelColumns.size() - 1) {
-                PixelColumn nextColumn = pixelColumns.get(i + 1);
-                if (nextColumn.getStats().getCount() != 0) {
-                    Range<Integer> rightLine = currentColumn.getPixelIdsForLineSegment(
-                        currentColumn.getStats().getLastTimestamp(),
-                        currentColumn.getStats().getLastValue(),
-                        nextColumn.getStats().getFirstTimestamp(),
-                        nextColumn.getStats().getFirstValue(),
-                        viewPortStatsAggregator
-                    );
-                    if (rightLine != null) {
-                        pixelColumnLitPixels.add(rightLine);
-                    }
-                }
-            }            
-            if(!pixelColumnLitPixels.isEmpty()) litPixels.add(pixelColumnLitPixels.span());
-            else litPixels.add(null);
-        }
-    
-        return litPixels;
     }
 }

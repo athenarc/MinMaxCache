@@ -1,9 +1,9 @@
 package gr.imsi.athenarc.visual.middleware.datasource.query;
 
-import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
-
 import java.util.List;
 import java.util.Map;
+
+import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 
 /**
  * Represents a time series data source query

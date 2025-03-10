@@ -1,14 +1,13 @@
 package gr.imsi.athenarc.visual.middleware.datasource;
-import com.google.common.collect.Iterators;
-
-import gr.imsi.athenarc.visual.middleware.domain.*;
-import gr.imsi.athenarc.visual.middleware.cache.query.QueryMethod;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.PostgreSQLDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.SQLQueryExecutor;
-import gr.imsi.athenarc.visual.middleware.datasource.postgresql.PostgreSQLAggregateDataPointsIterator;
-import gr.imsi.athenarc.visual.middleware.datasource.postgresql.PostgreSQLAggregateDataPointsIteratorM4;
-import gr.imsi.athenarc.visual.middleware.datasource.postgresql.PostgreSQLDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.iterator.m4.PostgreSQLM4DataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.iterator.minmax.PostgreSQLMinMaxDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.iterator.raw.PostgreSQLDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.datasource.query.SQLQuery;
+import gr.imsi.athenarc.visual.middleware.domain.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -17,6 +16,7 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,11 +31,16 @@ public class PostgreSQLDatasource implements DataSource {
     }
 
     @Override
-    public AggregatedDataPoints getAggregatedDataPoints(long from, long to,
-                                                        Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure, Map<Integer, Integer> numberOfGroups, QueryMethod queryMethod) {
-        return new SQLAggregatedDataPoints(from, to, missingIntervalsPerMeasure, numberOfGroups, queryMethod);
+    public AggregatedDataPoints getMinMaxDataPoints(long from, long to,
+                                                        Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure, Map<Integer, Integer> numberOfGroups) {
+        return new SQLAggregatedDataPoints(from, to, missingIntervalsPerMeasure, numberOfGroups, QueryMethod.MIN_MAX);
     }
 
+    @Override
+    public AggregatedDataPoints getM4DataPoints(long from, long to,
+                                                        Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure, Map<Integer, Integer> numberOfGroups) {
+        return new SQLAggregatedDataPoints(from, to, missingIntervalsPerMeasure, numberOfGroups, QueryMethod.M4);
+    }
     @Override
     public DataPoints getDataPoints(long from, long to, List<Integer> measures) {
         Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure = new HashMap<>();
@@ -49,7 +54,6 @@ public class PostgreSQLDatasource implements DataSource {
 
     @Override
     public DataPoints getDataPoints(long from, long to, Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure) {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -93,7 +97,7 @@ public class PostgreSQLDatasource implements DataSource {
             catch(SQLException e) {
                 e.printStackTrace();
             }
-            return Iterators.concat(new Iterator[0]);
+            return Collections.emptyIterator();
         }
 
         @Override
@@ -166,15 +170,15 @@ public class PostgreSQLDatasource implements DataSource {
             try {
                 if (queryMethod == QueryMethod.M4) {
                     ResultSet resultSet = sqlQueryExecutor.executeM4SqlQuery(sqlQuery);
-                    return new PostgreSQLAggregateDataPointsIteratorM4(resultSet, sqlQuery.getMissingIntervalsPerMeasure(), sqlQuery.getAggregateIntervals(), measuresMap);
+                    return new PostgreSQLM4DataPointsIterator(resultSet, sqlQuery.getMissingIntervalsPerMeasure(), sqlQuery.getAggregateIntervals(), measuresMap);
                 } else {
                     ResultSet resultSet = sqlQueryExecutor.executeMinMaxSqlQuery(sqlQuery);
-                    return new PostgreSQLAggregateDataPointsIterator(resultSet, sqlQuery.getMissingIntervalsPerMeasure(), sqlQuery.getAggregateIntervals(), measuresMap);
+                    return new PostgreSQLMinMaxDataPointsIterator(resultSet, sqlQuery.getMissingIntervalsPerMeasure(), sqlQuery.getAggregateIntervals(), measuresMap);
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-            return Iterators.concat(new Iterator[0]);
+            return Collections.emptyIterator();
         }
 
         @Override
@@ -218,4 +222,17 @@ public class PostgreSQLDatasource implements DataSource {
     }
 
 
+    public AbstractDataset getDataset(){
+        return dataset;
+    }
+
+    @Override
+    public AggregatedDataPoints getSlopeDataPoints(long from, long to, int measure, ChronoUnit chronoUnit) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getSlopeDataPoints'");
+    }
+
+    public void closeConnection() {
+        sqlQueryExecutor.closeConnection();
+    }
 }

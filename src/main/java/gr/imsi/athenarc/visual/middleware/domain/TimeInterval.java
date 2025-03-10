@@ -1,16 +1,9 @@
 package gr.imsi.athenarc.visual.middleware.domain;
 
-import com.google.common.collect.ImmutableRangeSet;
-import com.google.common.collect.Range;
-import com.google.common.collect.RangeSet;
-import com.google.common.collect.TreeRangeSet;
-import gr.imsi.athenarc.visual.middleware.cache.TimeSeriesSpan;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Closed-open, [), interval on the integer number line.
@@ -95,30 +88,6 @@ public interface TimeInterval extends Comparable<TimeInterval> {
         }
     }
 
-    // Get a Guava Range from a time interval
-    public static Range<Long> toGuavaRange(TimeInterval timeInterval) {
-        return Range.closedOpen(timeInterval.getFrom(), timeInterval.getTo());
-    }
-
-    /**
-     * Calculate the difference between this TimeInterval and a list of TimeIntervals
-     *
-     * @param others - list of TimeIntervals
-     * @return a list of TimeIntervals representing ranges in this TimeInterval not covered by any TimeInterval in others
-     */
-    default List<TimeInterval> difference(List<TimeSeriesSpan> others) {
-        Range<Long> thisRange = toGuavaRange(this);
-        RangeSet<Long> rangeSet = TreeRangeSet.create();
-        others.stream()
-                .map(TimeInterval::toGuavaRange)
-                .forEach(rangeSet::add);
-
-        ImmutableRangeSet<Long> otherRangeSet = ImmutableRangeSet.copyOf(rangeSet);
-
-        return ImmutableRangeSet.of(thisRange).difference(otherRangeSet).asRanges().stream()
-                .map(r -> new TimeRange(r.lowerEndpoint(), r.upperEndpoint()))
-                .collect(Collectors.toList());
-    }
 
     default String getIntervalString() {
         return "[" + Instant.ofEpochMilli(getFrom()) + " (" + getFrom() + "), " + Instant.ofEpochMilli(getTo()) + " (" + getTo() + "))";

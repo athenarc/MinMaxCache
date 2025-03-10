@@ -1,8 +1,5 @@
 package gr.imsi.athenarc.visual.middleware.domain;
 
-
-import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
-
 /**
  * Represents an immutable single univariate data point with a single value and a timestamp.
  */

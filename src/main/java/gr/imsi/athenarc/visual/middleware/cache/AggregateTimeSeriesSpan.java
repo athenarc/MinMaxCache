@@ -1,9 +1,14 @@
 package gr.imsi.athenarc.visual.middleware.cache;
 
-import gr.imsi.athenarc.visual.middleware.domain.*;
-import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import gr.imsi.athenarc.visual.middleware.domain.AggregatedDataPoint;
+import gr.imsi.athenarc.visual.middleware.domain.DataPoints;
+import gr.imsi.athenarc.visual.middleware.domain.DateTimeUtil;
+import gr.imsi.athenarc.visual.middleware.domain.Stats;
+import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
+import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 
 import java.util.Iterator;
 import java.util.stream.IntStream;
@@ -17,7 +22,7 @@ import java.util.stream.IntStream;
  */
 public class AggregateTimeSeriesSpan implements TimeSeriesSpan {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DataProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesSpan.class);
 
     private int measure;
 
@@ -51,9 +56,9 @@ public class AggregateTimeSeriesSpan implements TimeSeriesSpan {
         this.from = from;
         this.to = to;
         this.aggregateInterval = aggregateInterval;
-        LOG.debug("Initializing time series span ({},{}) measure = {} with size {}, aggregate interval {}", getFromDate(), getToDate(), measure, size, aggregateInterval);
         this.measure = measure;
         this.aggregates = new long[size * 5];
+        LOG.debug("Initializing time series span ({},{}) measure = {} with size {}, aggregate interval {}", getFromDate(), getToDate(), measure, size, aggregateInterval);
     }
 
 
@@ -61,7 +66,9 @@ public class AggregateTimeSeriesSpan implements TimeSeriesSpan {
         initialize(from, to, aggregateInterval, measure);
     }
 
-    protected void addAggregatedDataPoint(int i, AggregatedDataPoint aggregatedDataPoint) {
+    protected void addAggregatedDataPoint(AggregatedDataPoint aggregatedDataPoint) {
+        int i = DateTimeUtil.indexInInterval(getFrom(), getTo(), aggregateInterval, aggregatedDataPoint.getTimestamp());
+
         Stats stats = aggregatedDataPoint.getStats();
         count += stats.getCount();
         if (stats.getCount() == 0) {

@@ -1,10 +1,6 @@
 package gr.imsi.athenarc.visual.middleware.cache;
 
-import gr.imsi.athenarc.visual.middleware.cache.query.QueryMethod;
 import gr.imsi.athenarc.visual.middleware.datasource.DataSource;
-import gr.imsi.athenarc.visual.middleware.datasource.DataSourceFactory;
-import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
-import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
 import gr.imsi.athenarc.visual.middleware.domain.*;
 
 import org.slf4j.Logger;
@@ -18,16 +14,11 @@ import java.util.*;
 
 public class DataProcessor {
 
-    private final AbstractDataset dataset;
     private final DataSource dataSource;
     private final int dataReductionRatio;
 
-    private final QueryExecutor queryExecutor;
-
-    protected DataProcessor(QueryExecutor queryExecutor, AbstractDataset dataset, int dataReductionRatio){
-        this.dataset = dataset;
-        this.queryExecutor = queryExecutor;
-        this.dataSource = DataSourceFactory.getDataSource(queryExecutor, dataset);
+    protected DataProcessor(DataSource dataSource, int dataReductionRatio){
+        this.dataSource = dataSource;
         this.dataReductionRatio = dataReductionRatio;
     }
 
@@ -120,13 +111,13 @@ public class DataProcessor {
      * @return A list of TimeSeriesSpan for each measure.
      **/
     protected Map<Integer, List<TimeSeriesSpan>> getMissing(long from, long to, Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure,
-                                                 Map<Integer, Integer> aggFactors, ViewPort viewPort, QueryMethod queryMethod) {
+                                                 Map<Integer, Integer> aggFactors, ViewPort viewPort) {
         missingIntervalsPerMeasure = sortMeasuresAndIntervals(missingIntervalsPerMeasure); // This helps with parsing the query results
         Map<Integer, List<TimeSeriesSpan>> timeSeriesSpans = new HashMap<>(missingIntervalsPerMeasure.size());
         Map<Integer, Integer> numberOfGroups = new HashMap<>(missingIntervalsPerMeasure.size());
         Map<Integer, Long> aggregateIntervals = new HashMap<>(missingIntervalsPerMeasure.size());
 
-        long rawAggregateInterval = dataset.getSamplingInterval();  
+        long rawAggregateInterval = dataSource.getDataset().getSamplingInterval();  
         boolean fetchRaw = false;
         for (Map.Entry<Integer, List<TimeInterval>> entry : missingIntervalsPerMeasure.entrySet()) {
             int measure = entry.getKey();
@@ -170,7 +161,7 @@ public class DataProcessor {
             }
             AggregatedDataPoints missingDataPoints = null;
             LOG.info("Fetching missing data from data source");
-            missingDataPoints = dataSource.getAggregatedDataPoints(from, to, missingIntervalsPerMeasure, numberOfGroups, queryMethod);
+            missingDataPoints = dataSource.getMinMaxDataPoints(from, to, missingIntervalsPerMeasure, numberOfGroups);
             LOG.info("Fetched missing data from data source");
             timeSeriesSpans = TimeSeriesSpanFactory.createAggregate(missingDataPoints, missingIntervalsPerMeasure, aggregateIntervals);
         }
@@ -200,9 +191,5 @@ public class DataProcessor {
         if (pixelColumnIndex < viewPort.getWidth()) {
             pixelColumns.get(pixelColumnIndex).addDataPoint(dataPoint);
         }
-    }
-
-    protected QueryExecutor getQueryExecutor() {
-        return queryExecutor;
     }
 }

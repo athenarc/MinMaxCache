@@ -4,7 +4,7 @@
   <groupId>gr.imsi.athenarc.visual.middleware</groupId>
   <artifactId>min-max-cache</artifactId>
   <name>MinMaxCache</name>
-  <version>2.0</version>
+  <version>3.0</version>
   <build>
     <pluginManagement>
       <plugins>
@@ -87,18 +87,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>${spring.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>repackage</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
   <dependencies>
@@ -116,17 +104,15 @@
     </dependency>
   </dependencies>
   <properties>
-    <spring.security.version>6.3.3</spring.security.version>
+    <maven.compiler.source>11</maven.compiler.source>
+    <javac.source>11</javac.source>
     <postgres.version>42.7.4</postgres.version>
-    <slf4j.version>1.7.21</slf4j.version>
+    <javac.target>11</javac.target>
+    <maven.compiler.target>11</maven.compiler.target>
     <jjwt.version>0.11.1</jjwt.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <log4j.version>3.0.0-beta2</log4j.version>
     <junit.version>4.13.2</junit.version>
-    <javac.version>17</javac.version>
-    <maven.compiler.source>17</maven.compiler.source>
-    <spring.version>3.3.4</spring.version>
-    <javac.source>17</javac.source>
-    <javac.target>17</javac.target>
-    <maven.compiler.target>17</maven.compiler.target>
+    <javac.version>11</javac.version>
   </properties>
 </project>

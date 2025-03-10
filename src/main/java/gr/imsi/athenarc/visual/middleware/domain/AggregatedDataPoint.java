@@ -1,6 +1,5 @@
 package gr.imsi.athenarc.visual.middleware.domain;
 
-
 /**
  * Represents a data point that aggregates a series of raw, non-aggregated data points, along with their aggregated measure values
  */

@@ -11,7 +11,6 @@ import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
 
 import gr.imsi.athenarc.visual.middleware.domain.AggregatedDataPoint;
-import gr.imsi.athenarc.visual.middleware.domain.PixelColumn;
 import gr.imsi.athenarc.visual.middleware.domain.StatsAggregator;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.ViewPort;

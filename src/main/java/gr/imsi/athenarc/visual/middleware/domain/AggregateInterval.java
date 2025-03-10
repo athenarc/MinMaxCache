@@ -1,7 +1,5 @@
 package gr.imsi.athenarc.visual.middleware.domain;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
@@ -36,7 +34,7 @@ public class AggregateInterval implements Comparable<AggregateInterval> {
     }
 
     @Override
-    public int compareTo(@NotNull AggregateInterval o) {
+    public int compareTo(AggregateInterval o) {
         return Long.compare(this.toDuration().toMillis(), o.toDuration().toMillis());
     }
 

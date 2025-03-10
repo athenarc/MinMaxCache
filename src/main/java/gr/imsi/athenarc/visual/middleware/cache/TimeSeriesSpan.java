@@ -1,7 +1,7 @@
 package gr.imsi.athenarc.visual.middleware.cache;
-import gr.imsi.athenarc.visual.middleware.domain.DataPoints;
-
 import java.util.Iterator;
+
+import gr.imsi.athenarc.visual.middleware.domain.DataPoints;
 
 /**
  * Represents an interval in time for a single measure. To be stored in an interval tree.

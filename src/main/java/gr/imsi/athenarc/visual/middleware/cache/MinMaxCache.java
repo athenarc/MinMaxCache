@@ -2,8 +2,7 @@ package gr.imsi.athenarc.visual.middleware.cache;
 
 import gr.imsi.athenarc.visual.middleware.cache.query.Query;
 import gr.imsi.athenarc.visual.middleware.cache.query.QueryResults;
-import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
-import gr.imsi.athenarc.visual.middleware.datasource.executor.QueryExecutor;
+import gr.imsi.athenarc.visual.middleware.datasource.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,12 +16,11 @@ public class MinMaxCache {
     private final PrefetchManager prefetchManager;
     private final DataProcessor dataProcessor;
 
-    protected MinMaxCache(QueryExecutor dataQueryExecutor, AbstractDataset dataset, double prefetchingFactor, int aggFactor, int dataReductionRatio) {
-        // Constructor logic for MinMaxCache
-        cacheQueryExecutor = new CacheQueryExecutor(dataset, aggFactor);
-        cacheManager = new CacheManager(dataset.getMeasures());
-        dataProcessor = new DataProcessor(dataQueryExecutor, dataset, dataReductionRatio);
-        prefetchManager = new PrefetchManager(dataset, prefetchingFactor, cacheManager, dataProcessor);
+    public MinMaxCache(DataSource dataSource, double prefetchingFactor, int aggFactor, int dataReductionRatio) {
+        cacheQueryExecutor = new CacheQueryExecutor(dataSource, aggFactor);
+        cacheManager = new CacheManager(dataSource);
+        dataProcessor = new DataProcessor(dataSource, dataReductionRatio);
+        prefetchManager = new PrefetchManager(dataSource, prefetchingFactor, cacheManager, dataProcessor);
     }
 
     public QueryResults executeQuery(Query query) {

@@ -1,7 +1,7 @@
 package gr.imsi.athenarc.visual.middleware.experiments.util;
 
 
-import gr.imsi.athenarc.visual.middleware.util.DateTimeUtil;
+import gr.imsi.athenarc.visual.middleware.domain.DateTimeUtil;
 
 import java.text.ParseException;
 

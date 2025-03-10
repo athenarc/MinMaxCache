@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gr.imsi.athenarc.visual.middleware.cache.query.Query;
+import gr.imsi.athenarc.visual.middleware.datasource.DataSource;
+import gr.imsi.athenarc.visual.middleware.domain.IntervalTree;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,11 +15,12 @@ public class CacheManager {
 
     private final List<Integer> measures;
     private static final Logger LOG = LoggerFactory.getLogger(MinMaxCache.class);
-
+    private final DataSource dataSource;
     private final Map<Integer, IntervalTree<TimeSeriesSpan>> intervalTrees;
 
-    protected CacheManager(List<Integer> measures) {
-        this.measures = measures;
+    protected CacheManager(DataSource dataSource) {
+        this.dataSource = dataSource;
+        this.measures = dataSource.getDataset().getMeasures();
         this.intervalTrees = new HashMap<>();
         measures.forEach(m -> intervalTrees.put(m, new IntervalTree<>()));
     }

@@ -1,23 +1,30 @@
 package gr.imsi.athenarc.visual.middleware.datasource;
-import com.google.common.collect.Iterators;
-
-import gr.imsi.athenarc.visual.middleware.domain.*;
-import gr.imsi.athenarc.visual.middleware.cache.query.QueryMethod;
-import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvAggregateDataPointsIterator;
-import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvAggregateDataPointsIteratorM4;
-import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.iterator.m4.CsvM4DataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.iterator.minmax.CsvMinMaxDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.iterator.raw.CsvDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.CsvDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.executor.CsvQueryExecutor;
 import gr.imsi.athenarc.visual.middleware.datasource.query.CsvQuery;
+import gr.imsi.athenarc.visual.middleware.datasource.query.QueryMethod;
+import gr.imsi.athenarc.visual.middleware.domain.AggregatedDataPoint;
+import gr.imsi.athenarc.visual.middleware.domain.AggregatedDataPoints;
+import gr.imsi.athenarc.visual.middleware.domain.DataPoint;
+import gr.imsi.athenarc.visual.middleware.domain.DataPoints;
+import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
+import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
 
-import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
+
+import com.google.common.collect.Iterators;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class CsvDatasource implements DataSource {
@@ -25,15 +32,21 @@ public class CsvDatasource implements DataSource {
     CsvQueryExecutor csvQueryExecutor;
     CsvDataset dataset;
 
-    public CsvDatasource(CsvQueryExecutor csvQueryExecutor, CsvDataset dataset) {
+    protected CsvDatasource(CsvQueryExecutor csvQueryExecutor, CsvDataset dataset) {
         this.dataset = dataset;
         this.csvQueryExecutor = csvQueryExecutor;
     }
+    
+    @Override
+    public AggregatedDataPoints getMinMaxDataPoints(long from, long to,
+                                                        Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure, Map<Integer, Integer> numberOfGroups) {
+        return new CsvAggregatedDataPoints(from, to, missingIntervalsPerMeasure, numberOfGroups, QueryMethod.MIN_MAX);
+    }
 
     @Override
-    public AggregatedDataPoints getAggregatedDataPoints(long from, long to,
-                                                        Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure, Map<Integer, Integer> numberOfGroups, QueryMethod queryMethod) {
-        return new CsvAggregatedDataPoints(from, to, missingIntervalsPerMeasure, numberOfGroups, queryMethod);
+    public AggregatedDataPoints getM4DataPoints(long from, long to,
+                                                        Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure, Map<Integer, Integer> numberOfGroups) {
+        return new CsvAggregatedDataPoints(from, to, missingIntervalsPerMeasure, numberOfGroups, QueryMethod.M4);
     }
 
     @Override
@@ -51,7 +64,6 @@ public class CsvDatasource implements DataSource {
     public DataPoints getDataPoints(long from, long to, Map<Integer, List<TimeInterval>> missingIntervalsPerMeasure) {
         return new CsvDatasource.CsvDataPoints(from, to, missingIntervalsPerMeasure);
     }
-
 
     @Override
     public DataPoints getAllDataPoints(List<Integer> measures) {
@@ -130,7 +142,6 @@ public class CsvDatasource implements DataSource {
         public String getToDate(String format) {
             return Instant.ofEpochMilli(csvQuery.getFrom()).atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern(format));
         }
-
     }
 
     final class CsvAggregatedDataPoints implements AggregatedDataPoints {
@@ -171,10 +182,10 @@ public class CsvDatasource implements DataSource {
             try {
                 Iterable<String[]> csvDataPoints = csvQueryExecutor.executeCsvQuery(csvQuery);
                 if (queryMethod == QueryMethod.M4) {
-                    return new CsvAggregateDataPointsIteratorM4(csvDataPoints, csvQuery.getMissingIntervalsPerMeasure(),
+                    return new CsvMinMaxDataPointsIterator(csvDataPoints, csvQuery.getMissingIntervalsPerMeasure(),
                     measuresMap, csvQuery.getAggregateIntervals(), dataset.getTimeColumnIndex(), DateTimeFormatter.ofPattern(dataset.getTimeFormat()));
                 } else {
-                    return new CsvAggregateDataPointsIterator(csvDataPoints, csvQuery.getMissingIntervalsPerMeasure(),
+                    return new CsvM4DataPointsIterator(csvDataPoints, csvQuery.getMissingIntervalsPerMeasure(),
                     measuresMap, csvQuery.getAggregateIntervals(), dataset.getTimeColumnIndex(), DateTimeFormatter.ofPattern(dataset.getTimeFormat()));
         
                 }
@@ -224,6 +235,16 @@ public class CsvDatasource implements DataSource {
         }
     }
 
- 
+    public AbstractDataset getDataset(){
+        return dataset;
+    }
 
+    @Override
+    public AggregatedDataPoints getSlopeDataPoints(long from, long to, int measure, ChronoUnit chronoUnit) {
+        throw new UnsupportedOperationException("Unimplemented method 'getAggregatedDataPoints'");
+    }
+
+    public void closeConnection() {
+        throw new UnsupportedOperationException("Unimplemented method 'closeConnection'");
+    }
 }

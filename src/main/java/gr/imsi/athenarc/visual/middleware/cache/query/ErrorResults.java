@@ -13,14 +13,12 @@ public class ErrorResults {
     private List<RangeSet<Integer>> missingPixels;
     private List<RangeSet<Integer>> falsePixels;
     
-    
     public ErrorResults() {
         this.error = 0.0;
         missingPixels = new ArrayList<>();
         falsePixels = new ArrayList<>();
     }
 
-    
     public double getError() {
         return error;
     }

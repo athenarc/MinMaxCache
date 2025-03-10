@@ -1,11 +1,11 @@
 package gr.imsi.athenarc.visual.middleware.datasource.query;
 
-import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 
 public class SQLQuery extends DataSourceQuery {
 

@@ -1,21 +1,19 @@
 package gr.imsi.athenarc.visual.middleware.datasource.executor;
 
-import gr.imsi.athenarc.visual.middleware.cache.query.QueryMethod;
-import gr.imsi.athenarc.visual.middleware.cache.query.QueryResults;
-import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvAggregateDataPointsIterator;
-import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvAggregateDataPointsIteratorM4;
-import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.csv.CsvTimeSeriesRandomAccessReader;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.CsvDataset;
+import gr.imsi.athenarc.visual.middleware.datasource.dataset.TimeSeriesCsv;
+import gr.imsi.athenarc.visual.middleware.datasource.iterator.minmax.CsvMinMaxDataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.iterator.m4.CsvM4DataPointsIterator;
+import gr.imsi.athenarc.visual.middleware.datasource.iterator.raw.CsvDataPointsIterator;
 import gr.imsi.athenarc.visual.middleware.datasource.query.CsvQuery;
 import gr.imsi.athenarc.visual.middleware.datasource.query.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.domain.AggregatedDataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.DataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.ImmutableDataPoint;
-import gr.imsi.athenarc.visual.middleware.util.io.csv.CsvTimeSeriesRandomAccessReader;
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
-import gr.imsi.athenarc.visual.middleware.domain.csv.TimeSeriesCsv;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +32,6 @@ public class CsvQueryExecutor implements QueryExecutor {
     CsvDataset dataset;
     String table;
     String schema;
-    private int timeColumnIndex;
-    private DateTimeFormatter formatter;
 
 
     public CsvQueryExecutor() {
@@ -45,21 +41,6 @@ public class CsvQueryExecutor implements QueryExecutor {
         this.dataset = (CsvDataset) dataset;
         this.schema = dataset.getSchema();
         this.table = dataset.getTableName();
-        this.formatter = DateTimeFormatter.ofPattern(this.dataset.getTimeFormat());
-    }
-
-    @Override
-    public Map<Integer, List<DataPoint>> execute(DataSourceQuery q, QueryMethod method) throws IOException {
-        switch (method) {
-            case M4:
-                return executeM4Query(q);
-            case RAW:
-                return executeRawQuery(q);
-            case MIN_MAX:
-                return executeMinMaxQuery(q);
-            default:
-                throw new UnsupportedOperationException("Unsupported Query Method");
-        }
     }
 
     /*
@@ -133,12 +114,6 @@ public class CsvQueryExecutor implements QueryExecutor {
         return mergedIntervals;
     }
 
-    @Override
-    public Map<Integer, List<DataPoint>> execute(String s) throws IOException {
-        throw new UnsupportedOperationException("Unsupported method");
-    }
-
-    @Override
     public Map<Integer, List<DataPoint>> executeM4Query(DataSourceQuery q) throws IOException {
         CsvQuery csvQuery = (CsvQuery) q;
         Iterable<String[]> csvDataPoints = executeCsvQuery(csvQuery);
@@ -149,15 +124,13 @@ public class CsvQueryExecutor implements QueryExecutor {
                     (v1, v2) -> v1, // Merge function to keep the first value in case of key collision
                     LinkedHashMap::new // Specify LinkedHashMap to maintain insertion order
             ));
-        CsvAggregateDataPointsIteratorM4 csvAggregateDataPointsIteratorM4 = 
-        new CsvAggregateDataPointsIteratorM4(csvDataPoints, csvQuery.getMissingIntervalsPerMeasure(),
+        CsvM4DataPointsIterator csvAggregateDataPointsIteratorM4 = 
+        new CsvM4DataPointsIterator(csvDataPoints, csvQuery.getMissingIntervalsPerMeasure(),
             measuresMap, csvQuery.getAggregateIntervals(), dataset.getTimeColumnIndex(), DateTimeFormatter.ofPattern(dataset.getTimeFormat()));
         return collectAggregateDatapoints(csvAggregateDataPointsIteratorM4);
 
     }
 
-
-    @Override
     public Map<Integer, List<DataPoint>> executeMinMaxQuery(DataSourceQuery q) throws IOException {
         CsvQuery csvQuery = (CsvQuery) q;
         Iterable<String[]> csvDataPoints = executeCsvQuery(csvQuery);
@@ -168,14 +141,13 @@ public class CsvQueryExecutor implements QueryExecutor {
                     (v1, v2) -> v1, // Merge function to keep the first value in case of key collision
                     LinkedHashMap::new // Specify LinkedHashMap to maintain insertion order
             ));
-        CsvAggregateDataPointsIterator csvAggregateDataPointsIterator = 
-        new CsvAggregateDataPointsIterator(csvDataPoints, csvQuery.getMissingIntervalsPerMeasure(),
+        CsvMinMaxDataPointsIterator csvAggregateDataPointsIterator = 
+        new CsvMinMaxDataPointsIterator(csvDataPoints, csvQuery.getMissingIntervalsPerMeasure(),
             measuresMap, csvQuery.getAggregateIntervals(), dataset.getTimeColumnIndex(), DateTimeFormatter.ofPattern(dataset.getTimeFormat()));
 
        return collectAggregateDatapoints(csvAggregateDataPointsIterator);
     }
 
-    @Override
     public Map<Integer, List<DataPoint>> executeRawQuery(DataSourceQuery q) throws IOException {
         CsvQuery csvQuery = (CsvQuery) q;
         Iterable<String[]> csvDataPoints = executeCsvQuery(csvQuery);
@@ -191,26 +163,6 @@ public class CsvQueryExecutor implements QueryExecutor {
             measuresMap, dataset.getTimeColumnIndex(), DateTimeFormatter.ofPattern(dataset.getTimeFormat()));
         return collectDataPoints(csvDataPointsIterator);
     }
-
-    @Override
-    public void initialize(String path) throws NoSuchMethodException {
-        throw new NoSuchMethodException("Unsupported method");
-    }
-
-    @Override
-    public void drop() throws NoSuchMethodException {
-        throw new NoSuchMethodException("Unsupported method");
-    }
-
-    Comparator<DataPoint> compareLists = new Comparator<DataPoint>() {
-        @Override
-        public int compare(DataPoint s1, DataPoint s2) {
-            if (s1==null && s2==null) return 0; //swapping has no point here
-            if (s1==null) return  1;
-            if (s2==null) return -1;
-            return (int) (s1.getTimestamp() - s2.getTimestamp());
-        }
-    };
 
     public String getTable() {
         return table;

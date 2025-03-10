@@ -6,7 +6,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
-
+/**
+ * An implementation of the TimeInterval interface.
+ */
 public class TimeRange implements Serializable, TimeInterval {
 
     private long from;

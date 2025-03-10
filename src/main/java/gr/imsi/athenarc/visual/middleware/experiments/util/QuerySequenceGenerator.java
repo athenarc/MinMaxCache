@@ -98,8 +98,7 @@ public class QuerySequenceGenerator {
                 long from = Long.parseLong(columns[0].trim());
                 long to = Long.parseLong(columns[1].trim());
                 // TODO: Change it to get other variables from the file too. for now though this is enough.
-                Query q = new Query(from, to, q0.getAccuracy(), null,
-                        q0.getQueryMethod(), q0.getMeasures(), q0.getViewPort(), opType);
+                Query q = new Query(from, to, q0.getMeasures(), q0.getViewPort().getWidth(), q0.getViewPort().getHeight(), q0.getAccuracy());
                 queries.add(q);
             }
         } catch (IOException e) {
@@ -168,8 +167,7 @@ public class QuerySequenceGenerator {
                 opType = ZI;
                 timeRange = zoomIn(q);
             }
-            q = new Query(timeRange.getFrom(), timeRange.getTo(), q0.getAccuracy(), null,
-                    q0.getQueryMethod(), measures, viewPort, opType);
+            q = new Query(timeRange.getFrom(), timeRange.getTo(), measures, viewPort.getWidth(), viewPort.getHeight(), q0.getAccuracy());
             queries.add(q);
         }
         return queries;

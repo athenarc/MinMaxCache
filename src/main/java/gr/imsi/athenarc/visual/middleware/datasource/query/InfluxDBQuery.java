@@ -1,14 +1,15 @@
 package gr.imsi.athenarc.visual.middleware.datasource.query;
 
-import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
-
 import java.util.*;
+
+import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 
 public class InfluxDBQuery extends DataSourceQuery {
 
     final String bucket;
     final String measurement;
     final String timeFormat;
+    final String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     public InfluxDBQuery(String bucket, String measurement, String timeFormat, 
     long from, long to, Map<String, List<TimeInterval>> missingIntervalsPerMeasure, Map<String, Integer> numberOfGroups) {
@@ -29,19 +30,16 @@ public class InfluxDBQuery extends DataSourceQuery {
 
     @Override
     public String getFromDate() {
-        String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
         return super.getFromDate(format);
     }
 
     @Override
     public String getToDate() {
-        String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
         return super.getToDate(format);
     }
 
     @Override
     public String minMaxQuerySkeleton() {
-        String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
         String s =
                 "aggregate = (tables=<-, agg, name, aggregateInterval, offset) => tables" +
                         "\n" +
@@ -79,7 +77,6 @@ public class InfluxDBQuery extends DataSourceQuery {
 
     @Override
     public String rawQuerySkeleton() {
-        String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
         StringBuilder s = new StringBuilder();
         int i = 0;
         int streamCount = 0;
@@ -122,7 +119,6 @@ public class InfluxDBQuery extends DataSourceQuery {
 
     @Override
     public String m4QuerySkeleton() {
-        String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
         String s = "customAggregateWindow = (every, fn, column=\"_value\", timeSrc=\"_time\", timeDst=\"_time\", offset, tables=<-) =>\n" +
                 "  tables\n" +
                 "    |> window(every:every, offset: offset, createEmpty:true)\n" +
@@ -168,7 +164,6 @@ public class InfluxDBQuery extends DataSourceQuery {
     @Override
     public int getNoOfQueries() {
         return this.getMissingIntervalsPerMeasure().size() * this.getMissingIntervalsPerMeasure().values().stream().mapToInt(List::size).sum();
-
     }
 
 }

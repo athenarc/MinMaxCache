@@ -1,11 +1,11 @@
 package gr.imsi.athenarc.visual.middleware.datasource.dataset;
+import java.util.*;
+
 import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 import gr.imsi.athenarc.visual.middleware.domain.TimeRange;
-import java.util.*;
 
 
 public abstract class AbstractDataset {
-
 
     // yyyy-MM-dd HH:mm:ss.SSS
     private static String DEFAULT_FORMAT = "yyyy-MM-dd[ HH:mm:ss.SSS]";

@@ -225,13 +225,7 @@ public class PostgreSQLDatasource implements DataSource {
     public AbstractDataset getDataset(){
         return dataset;
     }
-
-    @Override
-    public AggregatedDataPoints getSlopeDataPoints(long from, long to, int measure, ChronoUnit chronoUnit) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getSlopeDataPoints'");
-    }
-
+    
     public void closeConnection() {
         sqlQueryExecutor.closeConnection();
     }

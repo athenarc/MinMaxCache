@@ -239,11 +239,6 @@ public class CsvDatasource implements DataSource {
         return dataset;
     }
 
-    @Override
-    public AggregatedDataPoints getSlopeDataPoints(long from, long to, int measure, ChronoUnit chronoUnit) {
-        throw new UnsupportedOperationException("Unimplemented method 'getAggregatedDataPoints'");
-    }
-
     public void closeConnection() {
         throw new UnsupportedOperationException("Unimplemented method 'closeConnection'");
     }

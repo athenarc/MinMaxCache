@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 public class StatsAggregator implements Consumer<DataPoint>, Stats, Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(StatsAggregator.class);
+    private static final long serialVersionUID = 1L;
 
     protected int count;
     protected double sum;
@@ -56,6 +57,11 @@ public class StatsAggregator implements Consumer<DataPoint>, Stats, Serializable
      */
     @Override
     public void accept(DataPoint dataPoint) {
+        if (dataPoint == null) {
+            LOG.warn("Null data point encountered, skipping");
+            return;
+        }
+        
         if (dataPoint instanceof AggregatedDataPoint) {
             accept((AggregatedDataPoint) dataPoint);
             return;
@@ -79,12 +85,17 @@ public class StatsAggregator implements Consumer<DataPoint>, Stats, Serializable
             lastValue = value;
             lastTimestamp = dataPoint.getTimestamp();
         }
-        count ++;
+        count++;
     }
 
     public void accept(AggregatedDataPoint dataPoint) {
+        if (dataPoint == null || dataPoint.getStats() == null) {
+            LOG.warn("Null aggregated data point or stats encountered, skipping");
+            return;
+        }
+        
         Stats stats = dataPoint.getStats();
-        if (dataPoint.getCount() != 0) {
+        if (dataPoint.getCount() > 0) {
             sum += stats.getSum();
             minValue = Math.min(minValue, stats.getMinValue());
             if (minValue == stats.getMinValue()) {
@@ -94,13 +105,13 @@ public class StatsAggregator implements Consumer<DataPoint>, Stats, Serializable
             if (maxValue == stats.getMaxValue()) {
                 maxTimestamp = stats.getMaxTimestamp();
             }
-            if (firstTimestamp > stats.getMinTimestamp()) {
-                firstValue = stats.getMinValue();
-                firstTimestamp = stats.getMinTimestamp();
+            if (firstTimestamp > stats.getFirstTimestamp()) {
+                firstValue = stats.getFirstValue();
+                firstTimestamp = stats.getFirstTimestamp();
             }
-            if (lastTimestamp < stats.getMaxTimestamp()) {
-                lastValue = stats.getMaxValue();
-                lastTimestamp = stats.getMaxTimestamp();
+            if (lastTimestamp < stats.getLastTimestamp()) {
+                lastValue = stats.getLastValue();
+                lastTimestamp = stats.getLastTimestamp();
             }
             count += dataPoint.getCount();
         }
@@ -115,7 +126,12 @@ public class StatsAggregator implements Consumer<DataPoint>, Stats, Serializable
      * @throws IllegalArgumentException if the other Stats instance does not have the same measures as this StatsAggregator
      */
     public void combine(Stats other) {
-        if(other.getCount() != 0) {
+        if (other == null) {
+            LOG.warn("Null stats encountered in combine operation, skipping");
+            return;
+        }
+        
+        if(other.getCount() > 0) {
             sum += other.getSum();
             minValue = Math.min(minValue, other.getMinValue());
             if (minValue == other.getMinValue()) {
@@ -133,8 +149,8 @@ public class StatsAggregator implements Consumer<DataPoint>, Stats, Serializable
                 lastValue = other.getLastValue();
                 lastTimestamp = other.getLastTimestamp();
             }
+            count += other.getCount();
         }
-        count += other.getCount();
     }
 
 
@@ -235,6 +251,12 @@ public class StatsAggregator implements Consumer<DataPoint>, Stats, Serializable
 
     @Override
     public String toString() {
-        return String.valueOf(count);
+        if (count == 0) {
+            return "No data points";
+        }
+        return "Stats{count=" + count + 
+               ", avg=" + getAverageValue() + 
+               ", min=" + minValue + 
+               ", max=" + maxValue + "}";
     }
 }

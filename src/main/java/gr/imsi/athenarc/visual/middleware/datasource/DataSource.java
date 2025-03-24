@@ -15,19 +15,6 @@ import gr.imsi.athenarc.visual.middleware.domain.TimeInterval;
 public interface DataSource {
 
     /**
-     * Returns an {@link AggregatedDataPoints} instance to access the aggregated data points in the time series,
-     * that have a timestamp greater than or equal to the startTimestamp,
-     * and less than or equal to the endTimestamp,
-     * aggregated in the specified time unit.
-     * @param from
-     * @param to
-     * @param measure
-     * @param chronoUnit
-     * @return
-     */
-    AggregatedDataPoints getSlopeDataPoints(long from, long to, int measure, ChronoUnit chronoUnit);
-
-    /**
      * Returns a {@link DataPoints} instance to access the data points in the time series, that
      * have a timestamp greater than or equal to the startTimestamp,
      * and less than or equal to the endTimestamp.

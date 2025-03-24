@@ -14,14 +14,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.Range;
 
 import gr.imsi.athenarc.visual.middleware.cache.query.ErrorResults;
 import gr.imsi.athenarc.visual.middleware.cache.query.Query;
 import gr.imsi.athenarc.visual.middleware.cache.query.QueryResults;
 import gr.imsi.athenarc.visual.middleware.datasource.DataSource;
 import gr.imsi.athenarc.visual.middleware.datasource.dataset.AbstractDataset;
-import gr.imsi.athenarc.visual.middleware.datasource.query.DataSourceQuery;
 import gr.imsi.athenarc.visual.middleware.domain.AggregatedDataPoint;
 import gr.imsi.athenarc.visual.middleware.domain.AggregatedDataPoints;
 import gr.imsi.athenarc.visual.middleware.domain.DataPoint;

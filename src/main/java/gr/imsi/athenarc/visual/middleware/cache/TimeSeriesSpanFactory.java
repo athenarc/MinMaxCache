@@ -1,4 +1,5 @@
 package gr.imsi.athenarc.visual.middleware.cache;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,20 +34,29 @@ public class TimeSeriesSpanFactory {
             for(TimeInterval range : missingIntervalsPerMeasure.get(measure)) {
                 RawTimeSeriesSpan timeSeriesSpan = new RawTimeSeriesSpan(range.getFrom(), range.getTo(), measure);
                 List<DataPoint> dataPointsList = new ArrayList<>();
-                while (it.hasNext()) {
-                    if (!changed){ // if there is a change keep the previous datapoint to process
-                        if(it.hasNext()) dataPoint = it.next();
-                        else break;
+                while (true) {
+                    // Get next point if needed
+                    if (!changed && dataPoint == null && it.hasNext()) {
+                        dataPoint = it.next();
                     }
-                    if (dataPoint.getTimestamp() < range.getFrom() || dataPoint.getTimestamp() >= range.getTo()
+                    
+                    // If there's no point to process, break the loop
+                    if (dataPoint == null) {
+                        break;
+                    }
+                    
+                    if (dataPoint.getTimestamp() < range.getFrom() 
+                        || dataPoint.getTimestamp() >= range.getTo()
                         || dataPoint.getMeasure() != measure) {
                         changed = true;
                         break;
                     }
-                    else{
+                    else {
                         changed = false;
                         // LOG.info("Adding {} between {}-{}", dataPoint.getTimestamp(), range.getFrom(), range.getTo());
                         dataPointsList.add(dataPoint);
+                        // Clear current point and get next one in next iteration
+                        dataPoint = null;
                     }   
                 }
                 timeSeriesSpan.build(dataPointsList);
@@ -72,51 +82,50 @@ public class TimeSeriesSpanFactory {
         Map<Integer, List<TimeSeriesSpan>> spans = new HashMap<>();
         Iterator<AggregatedDataPoint> it = aggregatedDataPoints.iterator();
         AggregatedDataPoint aggregatedDataPoint = null;
-        boolean changed = false;
+        
         for (Integer measure : missingIntervalsPerMeasure.keySet()) {
             long aggregateInterval = aggregateIntervalsPerMeasure.get(measure);
             List<TimeSeriesSpan> timeSeriesSpansForMeasure = new ArrayList<>();
+            boolean changed = false; 
+            
             for (TimeInterval range : missingIntervalsPerMeasure.get(measure)) {
-                int j = 0;
                 AggregateTimeSeriesSpan timeSeriesSpan = new AggregateTimeSeriesSpan(range.getFrom(), range.getTo(), measure, aggregateInterval);
-                // This is to handle missing fetched data.
-                // There is not a 1-1 mapping between the fetched aggregate data and the time series span we are creating.
-                // Postgres omits results if there is no data in the group (InfluxDB has a fill empty clause and handles this, so we create the empty data points in the iterator).
-                // We use this solution to see when the time series span changes.
-                while (j < (timeSeriesSpan.getSize() - 1)) {
-                    if (!changed){ // if there is a change keep the previous datapoint to process
-                        if(it.hasNext()) aggregatedDataPoint = it.next();
-                        else break;
+                
+                while (true) {
+                    // Get next point if needed
+                    if (!changed && aggregatedDataPoint == null && it.hasNext()) {
+                        aggregatedDataPoint = it.next();
                     }
+                    
+                    // If there's no point to process, break the loop
+                    if (aggregatedDataPoint == null) {
+                        break;
+                    }
+                
                     if (aggregatedDataPoint.getTimestamp() < range.getFrom()
-                            || aggregatedDataPoint.getTimestamp() >= range.getTo() || aggregatedDataPoint.getMeasure() != measure) {
+                            || aggregatedDataPoint.getTimestamp() >= range.getTo() 
+                            || aggregatedDataPoint.getMeasure() != measure) {
                         changed = true;
                         break;
                     }
                     else {
                         changed = false;
-                        LOG.debug("Adding {} between {}-{} with aggregate interval {} for measure {} at position {}",
-                                aggregatedDataPoint.getTimestamp(), range.getFrom(), range.getTo(), aggregateInterval, measure, j);
+                        LOG.debug("Adding {} between {}-{} with aggregate interval {} for measure {}",
+                                aggregatedDataPoint.getTimestamp(), range.getFrom(), range.getTo(), aggregateInterval, measure);
                         timeSeriesSpan.addAggregatedDataPoint(aggregatedDataPoint);
+                        // Clear current point and get next one in next iteration
+                        aggregatedDataPoint = null;
                     }
                 }
+                LOG.info("Created aggregate time series span: {}", timeSeriesSpan.getSize());
+
                 timeSeriesSpansForMeasure.add(timeSeriesSpan);
             }
+            
             spans.put(measure, timeSeriesSpansForMeasure);
         }
+        
         return spans;
-    }
-
-
-    public static TimeSeriesSpan createAggregate(AggregatedDataPoints aggregatedDataPoints, TimeInterval range, int measure, long aggregateInterval) {
-        Iterator<AggregatedDataPoint> it = aggregatedDataPoints.iterator();
-        AggregatedDataPoint aggregatedDataPoint = null;
-        AggregateTimeSeriesSpan timeSeriesSpan = new AggregateTimeSeriesSpan(range.getFrom(), range.getTo(), measure, aggregateInterval);
-        while (it.hasNext()) {   
-            aggregatedDataPoint = it.next();     
-            timeSeriesSpan.addAggregatedDataPoint(aggregatedDataPoint);
-        }
-        return timeSeriesSpan;
     }
 }
 
